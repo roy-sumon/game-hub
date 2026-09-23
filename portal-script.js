@@ -198,12 +198,12 @@ const GAMES_CATALOG = [
     title: 'Image Puzzle Master',
     file: 'image_puzzle.html',
     category: 'puzzle',
-    categoryLabel: 'Art Puzzle',
-    badge: 'Multi-Level',
-    description: 'Reconstruct stunning procedural landscapes across 6 diverse art stages. Choose from 3x3 Easy to 6x6 Master difficulty with star ratings and time trials.',
-    keys: ['TOUCH SWIPE', 'MOUSE CLICK', 'PREVIEW'],
-    instructions: 'Slide tiles into the empty space to solve the picture. Toggle numbers for hints or click Preview to see the original artwork!',
-    rating: '⭐ 4.9',
+    categoryLabel: 'Art & Custom Photo',
+    badge: 'Upload Photos',
+    description: 'Solve sliding puzzles of famous masterpieces (The Starry Night, The Great Wave, Mona Lisa, Mount Fuji) or upload any custom photo from your device!',
+    keys: ['TOUCH SWIPE', 'MOUSE CLICK', 'UPLOAD PHOTO'],
+    instructions: 'Slide tiles into the empty space to solve the picture. Upload any photo from your device or pick iconic masterpieces from the gallery!',
+    rating: '⭐ 5.0',
     difficulty: 'Adaptable',
     mobileOptimized: true,
     width: 700,
@@ -259,6 +259,57 @@ const GAMES_CATALOG = [
     mobileOptimized: true,
     width: 500,
     height: 640,
+    themeColor: '#f59e0b'
+  },
+  {
+    id: 'memory-match',
+    title: 'Memory Flip Master',
+    file: 'memory_match.html',
+    category: 'puzzle',
+    categoryLabel: 'Memory / Brain',
+    badge: '3D Card Flip',
+    description: '3D card matching challenge with combo multipliers, streak bonuses, 4 themes (Gaming, Animals, Sci-Fi, Food), and star ratings.',
+    keys: ['TOUCH / CLICK', 'PEEK CARDS'],
+    instructions: 'Flip cards to find pairs. Maintain consecutive matches to activate flame combo streaks and achieve 3 stars!',
+    rating: '⭐ 4.9',
+    difficulty: 'Adaptive',
+    mobileOptimized: true,
+    width: 680,
+    height: 720,
+    themeColor: '#c084fc'
+  },
+  {
+    id: 'neon-minesweeper',
+    title: 'Neon Minesweeper',
+    file: 'minesweeper.html',
+    category: 'puzzle',
+    categoryLabel: 'Cyber Grid',
+    badge: 'Safe Start',
+    description: 'Cyberpunk minefield defusal grid with guaranteed safe first click, flag mode toggle for mobile, rapid chord reveals, and digital LCD counters.',
+    keys: ['L-CLICK DIG', 'R-CLICK FLAG', 'MOBILE TOGGLE'],
+    instructions: 'Left-click or tap to clear safe cells. Right-click or use Flag Mode to mark mines. Click revealed numbers to chord!',
+    rating: '⭐ 4.8',
+    difficulty: 'Logical',
+    mobileOptimized: true,
+    width: 680,
+    height: 640,
+    themeColor: '#00e5ff'
+  },
+  {
+    id: 'highway-racer',
+    title: 'Retro Highway Racer',
+    file: 'highway_racer.html',
+    category: 'racing',
+    categoryLabel: 'Arcade Racing',
+    badge: '60 FPS Nitro',
+    description: 'Fast-paced arcade highway traffic dodging! Maneuver sports cars through bustling multi-lane traffic, collect gold coins, and burn nitro.',
+    keys: ['A/D or ARROWS', 'SPACE NITRO', 'S BRAKE', 'TOUCH BTNS'],
+    instructions: 'Steer between lanes to dodge traffic. Collect nitro bottles to trigger speed lines and coins to maximize score!',
+    rating: '⭐ 4.9',
+    difficulty: 'Fast Reflex',
+    mobileOptimized: true,
+    width: 520,
+    height: 720,
     themeColor: '#f59e0b'
   }
 ];
@@ -755,6 +806,125 @@ function getGameArtworkSVG(gameId) {
             <path d="M 90 100 Q 140 130 185 110" stroke="#f59e0b" stroke-width="3" fill="none" stroke-dasharray="6,4"/>
           </g>
           <text x="200" y="195" text-anchor="middle" fill="#f59e0b" font-family="sans-serif" font-weight="900" font-size="13" letter-spacing="2">FUSION CORE REACHED</text>
+        </svg>
+      `;
+
+    case 'memory-match':
+      return `
+        <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="mem-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0e0720"/>
+              <stop offset="100%" stop-color="#05020c"/>
+            </linearGradient>
+            <filter id="card-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#c084fc" flood-opacity="0.8"/>
+            </filter>
+            <filter id="match-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#10b981" flood-opacity="0.8"/>
+            </filter>
+          </defs>
+          <rect width="400" height="220" fill="url(#mem-bg)"/>
+          <g transform="translate(60, 30)">
+            <rect x="0" y="20" width="60" height="85" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="2.5" filter="url(#match-glow)"/>
+            <text x="30" y="68" text-anchor="middle" font-size="30">🎮</text>
+            <rect x="70" y="20" width="60" height="85" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="2.5" filter="url(#match-glow)"/>
+            <text x="100" y="68" text-anchor="middle" font-size="30">🎮</text>
+            <rect x="145" y="15" width="60" height="85" rx="8" fill="linear-gradient(135deg, #2e1065, #0f172a)" stroke="#c084fc" stroke-width="2" filter="url(#card-glow)"/>
+            <text x="175" y="65" text-anchor="middle" fill="#c084fc" font-size="28">✦</text>
+            <rect x="215" y="25" width="60" height="85" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+            <text x="245" y="73" text-anchor="middle" font-size="30">🚀</text>
+          </g>
+          <rect x="135" y="148" width="130" height="26" rx="13" fill="#1e1b4b" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="200" y="165" text-anchor="middle" fill="#f59e0b" font-weight="900" font-size="11" letter-spacing="1">🔥 3X COMBO!</text>
+          <text x="200" y="198" text-anchor="middle" fill="#c084fc" font-family="sans-serif" font-weight="bold" font-size="12" letter-spacing="2">3D MEMORY FLIP</text>
+        </svg>
+      `;
+
+    case 'neon-minesweeper':
+      return `
+        <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="mine-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#020712"/>
+              <stop offset="100%" stop-color="#060c18"/>
+            </linearGradient>
+            <filter id="mine-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#00e5ff" flood-opacity="0.8"/>
+            </filter>
+            <filter id="flag-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ef4444" flood-opacity="0.8"/>
+            </filter>
+          </defs>
+          <rect width="400" height="220" fill="url(#mine-bg)"/>
+          <rect x="90" y="20" width="220" height="34" rx="6" fill="#020408" stroke="#00e5ff" stroke-width="1.5"/>
+          <text x="125" y="44" text-anchor="middle" fill="#ef4444" font-family="monospace" font-weight="bold" font-size="16">010</text>
+          <circle cx="200" cy="37" r="12" fill="#111827" stroke="#fff" stroke-width="1"/>
+          <text x="200" y="42" text-anchor="middle" font-size="13">😎</text>
+          <text x="275" y="44" text-anchor="middle" fill="#00e5ff" font-family="monospace" font-weight="bold" font-size="16">042</text>
+          <g transform="translate(100, 68)">
+            <rect x="0" y="0" width="36" height="36" rx="4" fill="#080d1a" stroke="#1e293b"/>
+            <text x="18" y="25" text-anchor="middle" fill="#00e5ff" font-weight="900" font-size="16" filter="url(#mine-glow)">1</text>
+            <rect x="40" y="0" width="36" height="36" rx="4" fill="#080d1a" stroke="#1e293b"/>
+            <text x="58" y="25" text-anchor="middle" fill="#10b981" font-weight="900" font-size="16">2</text>
+            <rect x="80" y="0" width="36" height="36" rx="4" fill="#080d1a" stroke="#1e293b"/>
+            <text x="98" y="25" text-anchor="middle" fill="#00e5ff" font-weight="900" font-size="16">1</text>
+            <rect x="120" y="0" width="36" height="36" rx="4" fill="#1e293b" stroke="#334155"/>
+            <text x="138" y="26" text-anchor="middle" font-size="18" filter="url(#flag-glow)">🚩</text>
+            <rect x="160" y="0" width="36" height="36" rx="4" fill="#1e293b" stroke="#334155"/>
+            <rect x="0" y="40" width="36" height="36" rx="4" fill="#080d1a" stroke="#1e293b"/>
+            <text x="18" y="65" text-anchor="middle" fill="#00e5ff" font-weight="900" font-size="16">1</text>
+            <rect x="40" y="40" width="36" height="36" rx="4" fill="#1e293b" stroke="#ef4444" stroke-width="1.5"/>
+            <text x="58" y="65" text-anchor="middle" font-size="18">💣</text>
+            <rect x="80" y="40" width="36" height="36" rx="4" fill="#080d1a" stroke="#1e293b"/>
+            <text x="98" y="65" text-anchor="middle" fill="#f43f5e" font-weight="900" font-size="16">3</text>
+            <rect x="120" y="40" width="36" height="36" rx="4" fill="#1e293b" stroke="#334155"/>
+            <rect x="160" y="40" width="36" height="36" rx="4" fill="#1e293b" stroke="#334155"/>
+          </g>
+          <text x="200" y="195" text-anchor="middle" fill="#00e5ff" font-family="sans-serif" font-weight="900" font-size="13" letter-spacing="2">CYBER GRID DEFUSAL</text>
+        </svg>
+      `;
+
+    case 'highway-racer':
+      return `
+        <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="hr-sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1e1b4b"/>
+              <stop offset="60%" stop-color="#701a75"/>
+              <stop offset="100%" stop-color="#f59e0b"/>
+            </linearGradient>
+            <linearGradient id="hr-road" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1e293b"/>
+              <stop offset="100%" stop-color="#0f172a"/>
+            </linearGradient>
+            <filter id="nitro-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#00e5ff" flood-opacity="0.9"/>
+            </filter>
+          </defs>
+          <rect width="400" height="220" fill="url(#hr-sky)"/>
+          <polygon points="150,70 250,70 360,220 40,220" fill="url(#hr-road)"/>
+          <line x1="200" y1="70" x2="200" y2="220" stroke="#facc15" stroke-width="4" stroke-dasharray="14,14"/>
+          <line x1="175" y1="70" x2="120" y2="220" stroke="#fff" stroke-width="2" stroke-dasharray="10,12"/>
+          <line x1="225" y1="70" x2="280" y2="220" stroke="#fff" stroke-width="2" stroke-dasharray="10,12"/>
+          <line x1="150" y1="70" x2="40" y2="220" stroke="#ef4444" stroke-width="3"/>
+          <line x1="250" y1="70" x2="360" y2="220" stroke="#ef4444" stroke-width="3"/>
+          <rect x="175" y="80" width="22" height="35" rx="3" fill="#94a3b8" stroke="#334155"/>
+          <circle cx="180" cy="85" r="2" fill="#fed7aa"/>
+          <circle cx="192" cy="85" r="2" fill="#fed7aa"/>
+          <rect x="220" y="110" width="20" height="32" rx="3" fill="#38bdf8"/>
+          <circle cx="150" cy="140" r="6" fill="#f59e0b" stroke="#fef08a" stroke-width="1.5"/>
+          <circle cx="156" cy="120" r="5" fill="#f59e0b" stroke="#fef08a" stroke-width="1.5"/>
+          <g transform="translate(178, 146)">
+            <path d="M 10 44 L 14 58 L 18 44 Z" fill="#00e5ff" filter="url(#nitro-glow)"/>
+            <path d="M 26 44 L 30 58 L 34 44 Z" fill="#00e5ff" filter="url(#nitro-glow)"/>
+            <rect x="6" y="0" width="32" height="46" rx="6" fill="#f59e0b"/>
+            <rect x="20" y="0" width="4" height="46" fill="#ffffff"/>
+            <rect x="10" y="12" width="24" height="16" rx="3" fill="#0f172a"/>
+            <polygon points="8,0 0,-36 18,-36 12,0" fill="rgba(254, 240, 138, 0.4)"/>
+            <polygon points="32,0 26,-36 44,-36 36,0" fill="rgba(254, 240, 138, 0.4)"/>
+          </g>
+          <text x="200" y="210" text-anchor="middle" fill="#fef08a" font-family="sans-serif" font-weight="900" font-size="12" letter-spacing="2">60 FPS TRAFFIC DODGE</text>
         </svg>
       `;
 

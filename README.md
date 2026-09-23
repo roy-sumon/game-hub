@@ -11,7 +11,7 @@
 
 ## 🎮 About GameHub
 
-**GameHub** is a modern, high-performance web arcade portal designed with a sleek **Steam / Epic Games** aesthetic. It brings together 15 diverse, handcrafted HTML5 games across Racing, Martial Arts, Tactical Combat, Sci-Fi Shoot'em-ups, Arcade Classics, Brain Puzzles, and Typing speed challenges.
+**GameHub** is a modern, high-performance web arcade portal designed with a sleek **Steam / Epic Games** aesthetic. It brings together 18 diverse, handcrafted HTML5 games across Racing, Martial Arts, Tactical Combat, Sci-Fi Shoot'em-ups, Arcade Classics, Brain Puzzles, and Typing speed challenges.
 
 Built with **pure HTML5, CSS3, and modern Vanilla JavaScript**, GameHub runs smoothly with zero dependencies, zero build steps, and instant load times.
 
@@ -50,10 +50,13 @@ Built with **pure HTML5, CSS3, and modern Vanilla JavaScript**, GameHub runs smo
 | 9 | **Midnight Debugger** | 💻 Clicker / Reflex | `Click / Touch Squashing` | Patch production bugs before the server crashes and client stability drops to zero! |
 | 10 | **Mosquito Crusher** | 🦟 Casual Reflex | `Click / Touch Swatting` | Swat irritating mosquitoes buzzing around the bedroom before they bite and disturb your sleep! |
 | 11 | **TypeMaster Pro** | ⌨️ Typing & Skill | Keyboard Typing | Clean typing speed test with real-time WPM, character accuracy tracker, and custom word lists. |
-| 12 | **Image Puzzle Master** | 🧩 Art Puzzle | `Touch Swipe / Click` | Reconstruct 6 bespoke visual landscapes across 3x3 Easy to 6x6 Master difficulty with star ratings. |
+| 12 | **Image Puzzle Master** | 🧩 Art & Custom Photo | `Touch Swipe / Click / Upload` | Solve sliding puzzles of real world masterpieces (*The Starry Night, The Great Wave, Mona Lisa, Mount Fuji*) or upload any photo from your device! |
 | 13 | **Cyber Tic-Tac-Toe Deluxe** | ⚔️ Strategy Duel | `Touch / Click` | Holographic neon duel vs Novice, Tactician, or Unbeatable Minimax AI, plus 2-player local mode. |
 | 14 | **Neon Viper: Cyber Snake** | 🐍 Cyber Arcade | `Arrows / Swipe / D-Pad` | Bioluminescent viper arcade game with power-up foods, speed levels, and labyrinth obstacles. |
 | 15 | **2048 Neon Fusion** | 🔢 Logic Puzzle | `Arrows / WASD / Swipe` | Cyberpunk sliding tile puzzle with 3D glowing tiles, merge pop animations, and undo moves. |
+| 16 | **Memory Flip Master** | 🎴 Memory / Brain | `Touch / Click / Peek` | 3D card flipping match challenge with combo streaks, 4 themes (Gaming, Animals, Sci-Fi, Food), and star ratings. |
+| 17 | **Neon Minesweeper** | 💣 Cyber Grid | `L-Click Dig / R-Click Flag` | Cyberpunk minefield defusal with guaranteed safe first click, mobile flag mode toggle, and rapid chording. |
+| 18 | **Retro Highway Racer** | 🏎️ Arcade Racing | `Arrows / WASD / Touch Btns` | 60 FPS top-down arcade traffic racer with nitro boost, sports cars, semi trucks, police sirens, and coins. |
 
 ---
 

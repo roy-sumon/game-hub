@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
+  <title>Neon Viper: Cyber Snake — Realistic Modern Snake</title>
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-surface: #0c111c;
+      --bg-card: #131a29;
+      --viper-head: #10b981;
+      --viper-glow: rgba(16, 185, 129, 0.4);
+      --viper-cyan: #00e5ff;
+      --food-pink: #ff007f;
+      --food-gold: #f59e0b;
+      --food-ghost: #a855f7;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      overflow-x: hidden;
+    }
+
+    .game-wrapper {
+      width: 100%;
+      max-width: 580px;
+      background: var(--bg-surface);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 50px rgba(16, 185, 129, 0.08);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 10px;
+    }
+
+    .header-title-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .game-title {
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #10b981, #00e5ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .game-subtitle {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    /* Scoreboard */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .stat-pill {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.84rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stat-pill.score { color: var(--viper-head); }
+    .stat-pill.best { color: var(--food-gold); }
+    .stat-pill.power { color: var(--food-ghost); }
+
+    /* Controls & Difficulty Row */
+    .options-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 8px 12px;
+      border-radius: 10px;
+    }
+
+    .segmented-control {
+      display: flex;
+      background: var(--bg-card);
+      padding: 3px;
+      border-radius: 8px;
+      gap: 3px;
+    }
+
+    .seg-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .seg-btn.active {
+      background: var(--viper-head);
+      color: #000;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Arena Canvas Container */
+    .arena-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: 480px;
+      margin: 0 auto;
+      background: #05080e;
+      border: 4px solid #141f30;
+      border-radius: 16px;
+      box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.9), 0 10px 30px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Overlays (Start / Game Over) */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(5, 8, 14, 0.92);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+      z-index: 10;
+      animation: popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.88); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .overlay-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      margin-bottom: 8px;
+    }
+
+    .overlay-title.gameover {
+      color: #ef4444;
+      text-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+    }
+
+    .overlay-title.start {
+      color: var(--viper-head);
+      text-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+    }
+
+    .overlay-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      max-width: 80%;
+      line-height: 1.5;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: #fff;
+      border: none;
+      padding: 12px 32px;
+      border-radius: 30px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+      transition: all 0.2s;
+    }
+
+    .btn-start:hover {
+      filter: brightness(1.1);
+      transform: scale(1.04);
+    }
+
+    /* Virtual D-Pad for Mobile */
+    .dpad-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .dpad-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .dpad-btn {
+      width: 52px;
+      height: 48px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      touch-action: manipulation;
+    }
+
+    .dpad-btn:active {
+      background: var(--viper-head);
+      color: #000;
+      transform: scale(0.95);
+    }
+
+    @media (max-width: 650px) {
+      .dpad-container {
+        display: flex;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-wrapper">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-title-box">
+        <span style="font-size: 26px;">🐍</span>
+        <div>
+          <h1 class="game-title">NEON VIPER</h1>
+          <p class="game-subtitle">Realistic Cyber Snake • Bioluminescent Hunter</p>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-pill score">
+          <span>⚡</span> <span id="scoreVal">0</span>
+        </div>
+        <div class="stat-pill best">
+          <span>🏆</span> <span id="bestVal">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Options Bar -->
+    <div class="options-row">
+      <!-- Speed/Difficulty -->
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">Speed:</span>
+        <div class="segmented-control" id="speedControl">
+          <button class="seg-btn" data-speed="120">Normal</button>
+          <button class="seg-btn active" data-speed="85">Fast</button>
+          <button class="seg-btn" data-speed="60">Hyper 🔥</button>
+        </div>
+      </div>
+
+      <!-- Mode -->
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">Arena:</span>
+        <div class="segmented-control" id="modeControl">
+          <button class="seg-btn active" data-mode="open">Open</button>
+          <button class="seg-btn" data-mode="maze">Labyrinth 🧱</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arena Container -->
+    <div class="arena-container" id="arenaContainer">
+      <canvas id="gameCanvas" width="600" height="600"></canvas>
+
+      <!-- Start Screen Overlay -->
+      <div class="overlay" id="startOverlay">
+        <h2 class="overlay-title start">NEON VIPER READY</h2>
+        <p class="overlay-desc">Slither through the cyber grid! Hunt energy orbs, grab golden apples & power-ups. Use Arrow keys, Swipe gestures, or the Virtual D-Pad.</p>
+        <button class="btn-start" onclick="startGame()">START HUNTING ▶</button>
+      </div>
+
+      <!-- Game Over Overlay -->
+      <div class="overlay hidden" id="gameOverOverlay">
+        <h2 class="overlay-title gameover">SYSTEM OVERLOAD! 💥</h2>
+        <p class="overlay-desc" id="overScoreDesc">You crashed into the grid boundary.</p>
+        <button class="btn-start" onclick="startGame()">HUNT AGAIN ↺</button>
+      </div>
+    </div>
+
+    <!-- Mobile Virtual D-Pad -->
+    <div class="dpad-container">
+      <button class="dpad-btn" id="dpadUp">▲</button>
+      <div class="dpad-row">
+        <button class="dpad-btn" id="dpadLeft">◀</button>
+        <button class="dpad-btn" id="dpadDown">▼</button>
+        <button class="dpad-btn" id="dpadRight">▶</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- WEB AUDIO API SYNTHESIZER ---
+    let audioCtx = null;
+    function playTone(freq, type = 'sine', duration = 0.08) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function soundEat() { playTone(540, 'triangle', 0.07); }
+    function soundGold() {
+      [650, 850, 1100].forEach((f, i) => setTimeout(() => playTone(f, 'sine', 0.1), i * 60));
+    }
+    function soundPowerup() {
+      [400, 600, 900].forEach((f, i) => setTimeout(() => playTone(f, 'square', 0.1), i * 80));
+    }
+    function soundCrash() { playTone(120, 'sawtooth', 0.35); }
+
+    // --- GAME ENGINE ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const GRID_SIZE = 25; // 25x25 grid
+    const CELL_SIZE = canvas.width / GRID_SIZE; // 24px per cell
+
+    let snake = [];
+    let dir = { x: 1, y: 0 };
+    let nextDir = { x: 1, y: 0 };
+    let food = null; // { x, y, type: 'normal'|'gold'|'ghost' }
+    let obstacles = [];
+    let particles = [];
+    let score = 0;
+    let highScore = parseInt(localStorage.getItem('neon_viper_best') || '0');
+    let gameSpeed = 85;
+    let arenaMode = 'open';
+    let isRunning = false;
+    let ghostActiveTimer = 0;
+    let gameLoopId = null;
+
+    // DOM References
+    const scoreValEl = document.getElementById('scoreVal');
+    const bestValEl = document.getElementById('bestVal');
+    const startOverlay = document.getElementById('startOverlay');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const overScoreDesc = document.getElementById('overScoreDesc');
+    const arenaContainer = document.getElementById('arenaContainer');
+
+    bestValEl.innerText = highScore;
+
+    function startGame() {
+      startOverlay.classList.add('hidden');
+      gameOverOverlay.classList.add('hidden');
+
+      score = 0;
+      scoreValEl.innerText = score;
+      ghostActiveTimer = 0;
+      particles = [];
+
+      // Initial Snake in center
+      const startX = Math.floor(GRID_SIZE / 2);
+      const startY = Math.floor(GRID_SIZE / 2);
+      snake = [
+        { x: startX, y: startY },
+        { x: startX - 1, y: startY },
+        { x: startX - 2, y: startY }
+      ];
+
+      dir = { x: 1, y: 0 };
+      nextDir = { x: 1, y: 0 };
+
+      generateObstacles();
+      spawnFood();
+
+      isRunning = true;
+      clearInterval(gameLoopId);
+      gameLoopId = setInterval(gameStep, gameSpeed);
+    }
+
+    function generateObstacles() {
+      obstacles = [];
+      if (arenaMode !== 'maze') return;
+
+      // 4 Cyber Wall pillars
+      const walls = [
+        { x: 5, y: 5, w: 4, h: 1 },
+        { x: GRID_SIZE - 9, y: 5, w: 4, h: 1 },
+        { x: 5, y: GRID_SIZE - 6, w: 4, h: 1 },
+        { x: GRID_SIZE - 9, y: GRID_SIZE - 6, w: 4, h: 1 },
+        { x: Math.floor(GRID_SIZE / 2) - 2, y: Math.floor(GRID_SIZE / 2) - 4, w: 1, h: 8 },
+        { x: Math.floor(GRID_SIZE / 2) + 2, y: Math.floor(GRID_SIZE / 2) - 4, w: 1, h: 8 }
+      ];
+
+      walls.forEach(b => {
+        for (let ix = 0; ix < b.w; ix++) {
+          for (let iy = 0; iy < b.h; iy++) {
+            obstacles.push({ x: b.x + ix, y: b.y + iy });
+          }
+        }
+      });
+    }
+
+    function spawnFood() {
+      const emptyCells = [];
+      for (let x = 0; x < GRID_SIZE; x++) {
+        for (let y = 0; y < GRID_SIZE; y++) {
+          const inSnake = snake.some(s => s.x === x && s.y === y);
+          const inObs = obstacles.some(o => o.x === x && o.y === y);
+          if (!inSnake && !inObs) {
+            emptyCells.push({ x, y });
+          }
+        }
+      }
+
+      if (emptyCells.length === 0) return;
+      const spot = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+
+      const rand = Math.random();
+      let type = 'normal';
+      if (rand > 0.88) type = 'ghost';
+      else if (rand > 0.72) type = 'gold';
+
+      food = { x: spot.x, y: spot.y, type, pulse: 0 };
+    }
+
+    function gameStep() {
+      if (!isRunning) return;
+
+      // Update Direction
+      dir = { ...nextDir };
+
+      // Calculate new head
+      const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+      // Ghost mode countdown
+      if (ghostActiveTimer > 0) ghostActiveTimer--;
+
+      // Boundary Checks
+      if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE) {
+        if (ghostActiveTimer > 0) {
+          // Wrap around safely in Ghost Mode!
+          head.x = (head.x + GRID_SIZE) % GRID_SIZE;
+          head.y = (head.y + GRID_SIZE) % GRID_SIZE;
+        } else {
+          endGame("Crashed into electric perimeter wall!");
+          return;
+        }
+      }
+
+      // Obstacle Collision
+      if (ghostActiveTimer <= 0 && obstacles.some(o => o.x === head.x && o.y === head.y)) {
+        endGame("Collided with cyber security block!");
+        return;
+      }
+
+      // Self Collision
+      if (snake.some((s, idx) => idx > 0 && s.x === head.x && s.y === head.y)) {
+        endGame("Viper tangled into itself!");
+        return;
+      }
+
+      // Advance Snake
+      snake.unshift(head);
+
+      // Slither Spark Particles
+      if (Math.random() > 0.4) {
+        particles.push({
+          x: (head.x + 0.5) * CELL_SIZE,
+          y: (head.y + 0.5) * CELL_SIZE,
+          vx: (Math.random() - 0.5) * 2,
+          vy: (Math.random() - 0.5) * 2,
+          life: 1.0,
+          color: ghostActiveTimer > 0 ? '#a855f7' : '#10b981'
+        });
+      }
+
+      // Food Eaten Check
+      if (food && head.x === food.x && head.y === food.y) {
+        if (food.type === 'gold') {
+          score += 50;
+          soundGold();
+          createBurst((head.x + 0.5) * CELL_SIZE, (head.y + 0.5) * CELL_SIZE, '#f59e0b', 18);
+        } else if (food.type === 'ghost') {
+          score += 25;
+          ghostActiveTimer = 50; // ~4-5 seconds
+          soundPowerup();
+          createBurst((head.x + 0.5) * CELL_SIZE, (head.y + 0.5) * CELL_SIZE, '#a855f7', 22);
+        } else {
+          score += 10;
+          soundEat();
+          createBurst((head.x + 0.5) * CELL_SIZE, (head.y + 0.5) * CELL_SIZE, '#ff007f', 12);
+        }
+
+        scoreValEl.innerText = score;
+        if (score > highScore) {
+          highScore = score;
+          bestValEl.innerText = highScore;
+          localStorage.setItem('neon_viper_best', highScore);
+        }
+
+        spawnFood();
+      } else {
+        snake.pop(); // normal move
+      }
+
+      render();
+    }
+
+    function createBurst(x, y, color, count) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 1;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1.0,
+          color
+        });
+      }
+    }
+
+    function endGame(reason) {
+      isRunning = false;
+      clearInterval(gameLoopId);
+      soundCrash();
+
+      overScoreDesc.innerHTML = `${reason}<br>Final Score: <strong style="color:#00e5ff">${score}</strong>`;
+      gameOverOverlay.classList.remove('hidden');
+    }
+
+    // --- RENDER REALISTIC NEON ARENA ---
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Arena Grid Lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= canvas.width; x += CELL_SIZE) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y <= canvas.height; y += CELL_SIZE) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // Obstacles
+      obstacles.forEach(o => {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(o.x * CELL_SIZE + 1, o.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(o.x * CELL_SIZE + 2, o.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+      });
+
+      // Particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx; p.y += p.vy;
+        p.life -= 0.04;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.life * 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1.0;
+
+      // Food Rendering (Pulsing Holographic Glow)
+      if (food) {
+        food.pulse = (food.pulse + 0.1) % (Math.PI * 2);
+        const glowSize = 4 + Math.sin(food.pulse) * 3;
+        const fx = (food.x + 0.5) * CELL_SIZE;
+        const fy = (food.y + 0.5) * CELL_SIZE;
+        const radius = CELL_SIZE * 0.38;
+
+        ctx.save();
+        if (food.type === 'gold') {
+          ctx.shadowColor = '#f59e0b';
+          ctx.shadowBlur = 16 + glowSize;
+          ctx.fillStyle = '#f59e0b';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius, 0, Math.PI * 2);
+          ctx.fill();
+          // Crown/Star highlight
+          ctx.fillStyle = '#fff';
+          ctx.beginPath();
+          ctx.arc(fx - 2, fy - 2, radius * 0.35, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (food.type === 'ghost') {
+          ctx.shadowColor = '#a855f7';
+          ctx.shadowBlur = 20 + glowSize;
+          ctx.fillStyle = '#c084fc';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius * 1.1, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        } else {
+          ctx.shadowColor = '#ff007f';
+          ctx.shadowBlur = 14 + glowSize;
+          ctx.fillStyle = '#ff007f';
+          ctx.beginPath();
+          ctx.arc(fx, fy, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(fx - 2, fy - 2, radius * 0.3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // Bioluminescent Snake Rendering
+      const isGhost = ghostActiveTimer > 0;
+      snake.forEach((seg, idx) => {
+        const sx = seg.x * CELL_SIZE;
+        const sy = seg.y * CELL_SIZE;
+        const segRadius = CELL_SIZE * 0.45;
+        const cx = sx + CELL_SIZE * 0.5;
+        const cy = sy + CELL_SIZE * 0.5;
+
+        ctx.save();
+        if (idx === 0) {
+          // --- VIPER HEAD ---
+          ctx.shadowColor = isGhost ? '#a855f7' : '#00e5ff';
+          ctx.shadowBlur = 18;
+          ctx.fillStyle = isGhost ? '#a855f7' : '#10b981';
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, segRadius * 1.15, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Viper Eyes
+          const eyeOffset = segRadius * 0.55;
+          let e1x = cx, e1y = cy, e2x = cx, e2y = cy;
+          if (dir.x === 1) { e1x = cx + 4; e1y = cy - eyeOffset; e2x = cx + 4; e2y = cy + eyeOffset; }
+          else if (dir.x === -1) { e1x = cx - 4; e1y = cy - eyeOffset; e2x = cx - 4; e2y = cy + eyeOffset; }
+          else if (dir.y === 1) { e1x = cx - eyeOffset; e1y = cy + 4; e2x = cx + eyeOffset; e2y = cy + 4; }
+          else if (dir.y === -1) { e1x = cx - eyeOffset; e1y = cy - 4; e2x = cx + eyeOffset; e2y = cy - 4; }
+
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowBlur = 6;
+          ctx.beginPath(); ctx.arc(e1x, e1y, 3, 0, Math.PI * 2); ctx.fill();
+          ctx.beginPath(); ctx.arc(e2x, e2y, 3, 0, Math.PI * 2); ctx.fill();
+        } else {
+          // --- BODY SEGMENTS ---
+          const taper = Math.max(0.65, 1 - (idx / snake.length) * 0.35);
+          const ratio = idx / snake.length;
+
+          // Gradient color transition along spine
+          if (isGhost) {
+            ctx.fillStyle = `rgba(168, 85, 247, ${0.4 + (1 - ratio) * 0.5})`;
+            ctx.shadowColor = '#a855f7';
+          } else {
+            ctx.fillStyle = idx % 2 === 0 ? '#059669' : '#047857';
+            ctx.shadowColor = '#10b981';
+          }
+          ctx.shadowBlur = 6;
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, segRadius * taper, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Bioluminescent Spine Dot
+          ctx.fillStyle = isGhost ? '#ffffff' : '#00e5ff';
+          ctx.beginPath();
+          ctx.arc(cx, cy, 2.5 * taper, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      });
+    }
+
+    // --- CONTROLS & INPUT ---
+    function setDirection(dx, dy) {
+      if (!isRunning) return;
+      // Prevent 180-degree reverse turns
+      if (dx !== 0 && dir.x === -dx) return;
+      if (dy !== 0 && dir.y === -dy) return;
+      nextDir = { x: dx, y: dy };
+    }
+
+    window.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowUp': case 'KeyW': setDirection(0, -1); e.preventDefault(); break;
+        case 'ArrowDown': case 'KeyS': setDirection(0, 1); e.preventDefault(); break;
+        case 'ArrowLeft': case 'KeyA': setDirection(0, -1); e.preventDefault(); break;
+        case 'ArrowRight': case 'KeyD': setDirection(1, 0); e.preventDefault(); break;
+      }
+    });
+
+    // Touch Swipe Detection
+    let touchStartX = 0, touchStartY = 0;
+    arenaContainer.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches[0]) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    arenaContainer.addEventListener('touchend', (e) => {
+      if (!touchStartX || !touchStartY || !isRunning) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+
+      if (Math.max(absX, absY) > 20) {
+        if (absX > absY) {
+          setDirection(dx > 0 ? 1 : -1, 0);
+        } else {
+          setDirection(0, dy > 0 ? 1 : -1);
+        }
+      }
+      touchStartX = 0; touchStartY = 0;
+    }, { passive: true });
+
+    // Mobile D-Pad
+    document.getElementById('dpadUp').addEventListener('click', () => setDirection(0, -1));
+    document.getElementById('dpadDown').addEventListener('click', () => setDirection(0, 1));
+    document.getElementById('dpadLeft').addEventListener('click', () => setDirection(-1, 0));
+    document.getElementById('dpadRight').addEventListener('click', () => setDirection(1, 0));
+
+    // Options Handlers
+    document.querySelectorAll('#speedControl .seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#speedControl .seg-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        gameSpeed = parseInt(btn.dataset.speed);
+        if (isRunning) {
+          clearInterval(gameLoopId);
+          gameLoopId = setInterval(gameStep, gameSpeed);
+        }
+      });
+    });
+
+    document.querySelectorAll('#modeControl .seg-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#modeControl .seg-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        arenaMode = btn.dataset.mode;
+        if (!isRunning) generateObstacles();
+      });
+    });
+
+    // Render idle frame on load
+    render();
+  </script>
+</body>
+</html>

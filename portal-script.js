@@ -192,6 +192,74 @@ const GAMES_CATALOG = [
     width: 1000,
     height: 650,
     themeColor: '#64748b'
+  },
+  {
+    id: 'image-puzzle',
+    title: 'Image Puzzle Master',
+    file: 'image_puzzle.html',
+    category: 'puzzle',
+    categoryLabel: 'Art Puzzle',
+    badge: 'Multi-Level',
+    description: 'Reconstruct stunning procedural landscapes across 6 diverse art stages. Choose from 3x3 Easy to 6x6 Master difficulty with star ratings and time trials.',
+    keys: ['TOUCH SWIPE', 'MOUSE CLICK', 'PREVIEW'],
+    instructions: 'Slide tiles into the empty space to solve the picture. Toggle numbers for hints or click Preview to see the original artwork!',
+    rating: '⭐ 4.9',
+    difficulty: 'Adaptable',
+    mobileOptimized: true,
+    width: 700,
+    height: 750,
+    themeColor: '#00e5ff'
+  },
+  {
+    id: 'tic-tac-toe',
+    title: 'Cyber Tic-Tac-Toe Deluxe',
+    file: 'tictactoe.html',
+    category: 'puzzle',
+    categoryLabel: 'Cyber Duel',
+    badge: 'Minimax AI',
+    description: 'Holographic glowing neon arcade duel. Challenge Novice, Tactician, or the unbeatable Grandmaster Minimax AI, or pass-and-play with a friend on 3x3 and 4x4 grids.',
+    keys: ['TOUCH / CLICK', '1P VS AI', '2P LOCAL'],
+    instructions: 'Place your laser symbol to get 3 (or 4) in a row. Watch out for defensive AI blocks!',
+    rating: '⭐ 4.8',
+    difficulty: 'Tactical',
+    mobileOptimized: true,
+    width: 540,
+    height: 680,
+    themeColor: '#ff007f'
+  },
+  {
+    id: 'cyber-snake',
+    title: 'Neon Viper: Cyber Snake',
+    file: 'snake.html',
+    category: 'arcade',
+    categoryLabel: 'Cyber Arcade',
+    badge: 'Bioluminescent',
+    description: 'A realistic, glowing neon cyber-snake arcade game. Slither through dark grids, hunt pink energy orbs and golden apples, and trigger ghost mode power-ups.',
+    keys: ['ARROWS / WASD', 'TOUCH SWIPE', 'VIRTUAL D-PAD'],
+    instructions: 'Steer your bioluminescent viper to consume pellets. Avoid walls and yourself unless Ghost Mode is activated!',
+    rating: '⭐ 4.8',
+    difficulty: 'Fast Reflex',
+    mobileOptimized: true,
+    width: 600,
+    height: 680,
+    themeColor: '#10b981'
+  },
+  {
+    id: 'neon-2048',
+    title: '2048 Neon Fusion',
+    file: 'neon_2048.html',
+    category: 'puzzle',
+    categoryLabel: 'Logic Puzzle',
+    badge: 'Addictive',
+    description: 'Sleek cyberpunk sliding tile puzzle. Merge identical glowing numeric energy cores to unlock the mythical 2048 fusion tile with undo support.',
+    keys: ['ARROWS / WASD', 'TOUCH SWIPE', 'UNDO'],
+    instructions: 'Swipe or press arrows to slide tiles. When two tiles of the same number collide, they merge into one!',
+    rating: '⭐ 4.9',
+    difficulty: 'Brain Teaser',
+    mobileOptimized: true,
+    width: 500,
+    height: 640,
+    themeColor: '#f59e0b'
   }
 ];
 
@@ -523,6 +591,170 @@ function getGameArtworkSVG(gameId) {
           <rect x="260" y="55" width="85" height="75" rx="10" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
           <text x="302" y="88" text-anchor="middle" fill="#10b981" font-family="sans-serif" font-weight="900" font-size="24">135</text>
           <text x="302" y="112" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-weight="bold" font-size="11">WPM</text>
+        </svg>
+      `;
+
+    case 'image-puzzle':
+      return `
+        <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="puz-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0e1726"/>
+              <stop offset="100%" stop-color="#020617"/>
+            </linearGradient>
+            <filter id="puz-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#00e5ff" flood-opacity="0.8"/>
+            </filter>
+          </defs>
+          <rect width="400" height="220" fill="url(#puz-grad)"/>
+          <line x1="20" y1="20" x2="380" y2="20" stroke="#1e293b" stroke-width="1"/>
+          <line x1="20" y1="200" x2="380" y2="200" stroke="#1e293b" stroke-width="1"/>
+          <g transform="translate(130, 25)">
+            <rect x="0" y="0" width="140" height="140" rx="10" fill="#080c14" stroke="#1e293b" stroke-width="3"/>
+            <rect x="6" y="6" width="38" height="38" rx="6" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="25" y="30" text-anchor="middle" fill="#fff" font-weight="900" font-size="14">1</text>
+            <rect x="51" y="6" width="38" height="38" rx="6" fill="#0369a1" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="70" y="30" text-anchor="middle" fill="#fff" font-weight="900" font-size="14">2</text>
+            <rect x="96" y="6" width="38" height="38" rx="6" fill="#075985" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="115" y="30" text-anchor="middle" fill="#fff" font-weight="900" font-size="14">3</text>
+            <rect x="6" y="51" width="38" height="38" rx="6" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="25" y="75" text-anchor="middle" fill="#fff" font-weight="900" font-size="14">4</text>
+            <rect x="51" y="51" width="38" height="38" rx="6" fill="#00e5ff" stroke="#fff" stroke-width="2" filter="url(#puz-glow)"/>
+            <text x="70" y="75" text-anchor="middle" fill="#000" font-weight="900" font-size="16">5</text>
+            <rect x="96" y="51" width="38" height="38" rx="6" fill="#0369a1" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="115" y="75" text-anchor="middle" fill="#fff" font-weight="900" font-size="14">6</text>
+            <rect x="6" y="96" width="38" height="38" rx="6" fill="#075985" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="25" y="120" text-anchor="middle" fill="#fff" font-weight="900" font-size="14">7</text>
+            <rect x="51" y="96" width="38" height="38" rx="6" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="70" y="120" text-anchor="middle" fill="#fff" font-weight="900" font-size="14">8</text>
+            <rect x="96" y="96" width="38" height="38" rx="6" fill="#0f172a" stroke="#00e5ff" stroke-width="1" stroke-dasharray="4,4"/>
+          </g>
+          <circle cx="50" cy="110" r="28" fill="#1e293b" stroke="#00e5ff" stroke-width="2"/>
+          <text x="50" y="118" text-anchor="middle" font-size="24">🧩</text>
+          <circle cx="350" cy="110" r="28" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+          <text x="350" y="118" text-anchor="middle" font-size="24">⭐</text>
+          <text x="200" y="195" text-anchor="middle" fill="#00e5ff" font-family="sans-serif" font-weight="bold" font-size="13" letter-spacing="1">SLIDE TO SOLVE</text>
+        </svg>
+      `;
+
+    case 'tic-tac-toe':
+      return `
+        <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="ttt-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0b0816"/>
+              <stop offset="100%" stop-color="#04020a"/>
+            </linearGradient>
+            <filter id="laser-glow-cyan" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#00e5ff" flood-opacity="0.9"/>
+            </filter>
+            <filter id="laser-glow-pink" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#ff007f" flood-opacity="0.9"/>
+            </filter>
+          </defs>
+          <rect width="400" height="220" fill="url(#ttt-bg)"/>
+          <g transform="translate(110, 20)">
+            <line x1="60" y1="10" x2="60" y2="160" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
+            <line x1="120" y1="10" x2="120" y2="160" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
+            <line x1="10" y1="60" x2="170" y2="60" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
+            <line x1="10" y1="110" x2="170" y2="110" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
+            <g transform="translate(15, 15)" filter="url(#laser-glow-cyan)">
+              <line x1="5" y1="5" x2="35" y2="35" stroke="#00e5ff" stroke-width="7" stroke-linecap="round"/>
+              <line x1="35" y1="5" x2="5" y2="35" stroke="#00e5ff" stroke-width="7" stroke-linecap="round"/>
+              <line x1="5" y1="5" x2="35" y2="35" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              <line x1="35" y1="5" x2="5" y2="35" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            </g>
+            <g transform="translate(70, 15)" filter="url(#laser-glow-pink)">
+              <circle cx="20" cy="20" r="16" fill="none" stroke="#ff007f" stroke-width="7"/>
+              <circle cx="20" cy="20" r="16" fill="none" stroke="#fff" stroke-width="2"/>
+            </g>
+            <g transform="translate(15, 65)" filter="url(#laser-glow-cyan)">
+              <line x1="5" y1="5" x2="35" y2="35" stroke="#00e5ff" stroke-width="7" stroke-linecap="round"/>
+              <line x1="35" y1="5" x2="5" y2="35" stroke="#00e5ff" stroke-width="7" stroke-linecap="round"/>
+            </g>
+            <g transform="translate(70, 65)" filter="url(#laser-glow-cyan)">
+              <line x1="5" y1="5" x2="35" y2="35" stroke="#00e5ff" stroke-width="7" stroke-linecap="round"/>
+              <line x1="35" y1="5" x2="5" y2="35" stroke="#00e5ff" stroke-width="7" stroke-linecap="round"/>
+            </g>
+            <g transform="translate(125, 65)" filter="url(#laser-glow-cyan)">
+              <line x1="5" y1="5" x2="35" y2="35" stroke="#00e5ff" stroke-width="7" stroke-linecap="round"/>
+              <line x1="35" y1="5" x2="5" y2="35" stroke="#00e5ff" stroke-width="7" stroke-linecap="round"/>
+            </g>
+            <line x1="5" y1="85" x2="175" y2="85" stroke="#00e5ff" stroke-width="5" stroke-linecap="round" filter="url(#laser-glow-cyan)"/>
+            <line x1="5" y1="85" x2="175" y2="85" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <text x="200" y="200" text-anchor="middle" fill="#ff007f" font-family="sans-serif" font-weight="900" font-size="13" letter-spacing="2">CYBER DUEL</text>
+        </svg>
+      `;
+
+    case 'cyber-snake':
+      return `
+        <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="snake-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#06120e"/>
+              <stop offset="100%" stop-color="#020806"/>
+            </linearGradient>
+            <filter id="viper-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#10b981" flood-opacity="0.8"/>
+            </filter>
+            <filter id="apple-glow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#f59e0b" flood-opacity="0.9"/>
+            </filter>
+          </defs>
+          <rect width="400" height="220" fill="url(#snake-bg)"/>
+          <g filter="url(#viper-glow)">
+            <circle cx="80" cy="140" r="10" fill="#047857"/>
+            <circle cx="105" cy="140" r="11" fill="#059669"/>
+            <circle cx="130" cy="130" r="12" fill="#059669"/>
+            <circle cx="155" cy="110" r="13" fill="#10b981"/>
+            <circle cx="175" cy="85" r="14" fill="#10b981"/>
+            <circle cx="200" cy="75" r="15" fill="#34d399"/>
+            <circle cx="228" cy="85" r="16" fill="#34d399"/>
+            <circle cx="250" cy="105" r="17" fill="#10b981"/>
+            <circle cx="282" cy="115" r="21" fill="#10b981"/>
+            <circle cx="282" cy="115" r="7" fill="#00e5ff"/>
+            <circle cx="290" cy="105" r="3.5" fill="#fff"/>
+            <circle cx="290" cy="125" r="3.5" fill="#fff"/>
+            <path d="M 303 115 L 315 115 L 320 110 M 315 115 L 320 120" stroke="#f43f5e" stroke-width="2" stroke-linecap="round"/>
+          </g>
+          <g transform="translate(345, 115)" filter="url(#apple-glow)">
+            <circle cx="0" cy="0" r="12" fill="#f59e0b"/>
+            <circle cx="-3" cy="-3" r="4" fill="#fff"/>
+            <path d="M 0 -12 Q 4 -18 8 -16" stroke="#10b981" stroke-width="2" fill="none"/>
+          </g>
+          <circle cx="100" cy="65" r="7" fill="#ff007f"/>
+          <circle cx="190" cy="165" r="7" fill="#00e5ff"/>
+          <text x="200" y="200" text-anchor="middle" fill="#10b981" font-family="sans-serif" font-weight="900" font-size="13" letter-spacing="2">BIOLUMINESCENT VIPER</text>
+        </svg>
+      `;
+
+    case 'neon-2048':
+      return `
+        <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bg-2048" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0c0e18"/>
+              <stop offset="100%" stop-color="#06070d"/>
+            </linearGradient>
+            <filter id="tile-glow-gold" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#f59e0b" flood-opacity="0.8"/>
+            </filter>
+            <filter id="tile-glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#00e5ff" flood-opacity="0.8"/>
+            </filter>
+          </defs>
+          <rect width="400" height="220" fill="url(#bg-2048)"/>
+          <g transform="translate(70, 30)">
+            <rect x="20" y="70" width="70" height="65" rx="10" fill="#581c87" stroke="#c084fc" stroke-width="2"/>
+            <text x="55" y="112" text-anchor="middle" fill="#c084fc" font-family="sans-serif" font-weight="900" font-size="20">512</text>
+            <rect x="98" y="25" width="75" height="70" rx="10" fill="#0f3d56" stroke="#00e5ff" stroke-width="2" filter="url(#tile-glow-cyan)"/>
+            <text x="135.5" y="68" text-anchor="middle" fill="#00e5ff" font-family="sans-serif" font-weight="900" font-size="19">1024</text>
+            <rect x="180" y="55" width="90" height="85" rx="12" fill="linear-gradient(135deg, #f59e0b, #e11d48)" stroke="#ffd700" stroke-width="3" filter="url(#tile-glow-gold)"/>
+            <text x="225" y="108" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-weight="900" font-size="26">2048</text>
+            <path d="M 90 100 Q 140 130 185 110" stroke="#f59e0b" stroke-width="3" fill="none" stroke-dasharray="6,4"/>
+          </g>
+          <text x="200" y="195" text-anchor="middle" fill="#f59e0b" font-family="sans-serif" font-weight="900" font-size="13" letter-spacing="2">FUSION CORE REACHED</text>
         </svg>
       `;
 

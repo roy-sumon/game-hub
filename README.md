@@ -11,7 +11,7 @@
 
 ## 🎮 About GameHub
 
-**GameHub** is a modern, high-performance web arcade portal designed with a sleek **Steam / Epic Games** aesthetic. It brings together 11 diverse, handcrafted HTML5 games across Racing, Martial Arts, Tactical Combat, Sci-Fi Shoot'em-ups, Arcade Classics, and Typing speed challenges.
+**GameHub** is a modern, high-performance web arcade portal designed with a sleek **Steam / Epic Games** aesthetic. It brings together 15 diverse, handcrafted HTML5 games across Racing, Martial Arts, Tactical Combat, Sci-Fi Shoot'em-ups, Arcade Classics, Brain Puzzles, and Typing speed challenges.
 
 Built with **pure HTML5, CSS3, and modern Vanilla JavaScript**, GameHub runs smoothly with zero dependencies, zero build steps, and instant load times.
 
@@ -27,7 +27,7 @@ Built with **pure HTML5, CSS3, and modern Vanilla JavaScript**, GameHub runs smo
   - 📱 **Mobile Devices & Small Phones** (down to 320px)
 - **Instant Search & Category Filters**:
   - Global `Ctrl + K` or `/` quick search shortcut.
-  - Category filters: *All, Racing, Action & Combat, Classic Arcade, Casual & Fun, Sci-Fi Shooter, Typing & Skill, Mobile Ready, Favorites*.
+  - Category filters: *All, Racing, Action & Combat, Classic Arcade, Puzzle & Strategy, Casual & Fun, Sci-Fi Shooter, Typing & Skill, Mobile Ready, Favorites*.
 - **Favorites & Persistence**: Mark your favorite games with heart toggles, saved seamlessly in `localStorage`.
 - **Surprise Me 🎲 (Random Game Generator)**: Instant random game selection for fast casual play.
 - **Mobile Touch Controls**: Integrated on-screen controls, virtual buttons, and touch gestures for mobile browsers.
@@ -50,6 +50,10 @@ Built with **pure HTML5, CSS3, and modern Vanilla JavaScript**, GameHub runs smo
 | 9 | **Midnight Debugger** | 💻 Clicker / Reflex | `Click / Touch Squashing` | Patch production bugs before the server crashes and client stability drops to zero! |
 | 10 | **Mosquito Crusher** | 🦟 Casual Reflex | `Click / Touch Swatting` | Swat irritating mosquitoes buzzing around the bedroom before they bite and disturb your sleep! |
 | 11 | **TypeMaster Pro** | ⌨️ Typing & Skill | Keyboard Typing | Clean typing speed test with real-time WPM, character accuracy tracker, and custom word lists. |
+| 12 | **Image Puzzle Master** | 🧩 Art Puzzle | `Touch Swipe / Click` | Reconstruct 6 bespoke visual landscapes across 3x3 Easy to 6x6 Master difficulty with star ratings. |
+| 13 | **Cyber Tic-Tac-Toe Deluxe** | ⚔️ Strategy Duel | `Touch / Click` | Holographic neon duel vs Novice, Tactician, or Unbeatable Minimax AI, plus 2-player local mode. |
+| 14 | **Neon Viper: Cyber Snake** | 🐍 Cyber Arcade | `Arrows / Swipe / D-Pad` | Bioluminescent viper arcade game with power-up foods, speed levels, and labyrinth obstacles. |
+| 15 | **2048 Neon Fusion** | 🔢 Logic Puzzle | `Arrows / WASD / Swipe` | Cyberpunk sliding tile puzzle with 3D glowing tiles, merge pop animations, and undo moves. |
 
 ---
 
@@ -86,3 +90,4 @@ npx serve
 ## 📜 License & Copyright
 
 © 2026 **GameHub**. Crafted with ❤️ by **[Sumon Roy](https://github.com/roy-sumon)**. All rights reserved.
+

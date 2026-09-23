@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chai & Coffee Rush: Stay Awake!</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background: #1e1b4b;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            color: #fbbf24;
+            font-size: 2.2rem;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .stats-bar span {
+            color: #38bdf8;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #312e81;
+        }
+
+        canvas {
+            background: linear-gradient(180deg, #0f172a 0%, #312e81 100%);
+            display: block;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .overlay h2 {
+            font-size: 2.5rem;
+            color: #f43f5e;
+            margin-bottom: 10px;
+        }
+
+        .overlay p {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1e1b4b;
+            background: #fbbf24;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background: #f59e0b;
+            transform: scale(1.05);
+        }
+
+        .sleep-container {
+            width: 180px;
+            height: 15px;
+            background: #334155;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #475569;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .sleep-fill {
+            width: 0%;
+            height: 100%;
+            background: #ef4444;
+            transition: width 0.1s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>☕ CHAI & COFFEE RUSH ☕</h1>
+        <div class="stats-bar">
+            <div>Score: <span id="score">0</span></div>
+            <div>Ghum Level: 
+                <div class="sleep-container">
+                    <div id="sleep-bar" class="sleep-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        
+        <div id="startScreen" class="overlay">
+            <h2>Ghum Katanor Mission!</h2>
+            <p>Catch Hot Chai & Coffee to stay awake! Avoid Sleeping Pills and Pillows at all costs, or you'll fall asleep on the keyboard!</p>
+            <button class="btn" onclick="startGame()">START STAYING AWAKE</button>
+        </div>
+
+        <div id="gameOverScreen" class="overlay" style="display: none;">
+            <h2 style="color: #38bdf8;">ZZZ... YOU FELL ASLEEP! 😴</h2>
+            <p id="finalScoreText">You survived with 0 points before passing out.</p>
+            <button class="btn" onclick="restartGame()">WAKE UP & TRY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const sleepBar = document.getElementById('sleep-bar');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScoreText = document.getElementById('finalScoreText');
+
+        let score = 0;
+        let sleepLevel = 0; // 0 to 100 (100 = Game Over)
+        let isGameRunning = false;
+        let animationId;
+        let spawnTimer;
+
+        // Player (Mug)
+        const player = {
+            x: canvas.width / 2 - 40,
+            y: canvas.height - 60,
+            width: 80,
+            height: 45,
+            speed: 10,
+            dx: 0
+        };
+
+        // Falling Items
+        let items = [];
+
+        const itemTypes = [
+            { icon: '☕', type: 'coffee', points: 10, sleepChange: -10, speed: 3 },
+            { icon: '🍵', type: 'chai', points: 15, sleepChange: -15, speed: 4 },
+            { icon: '💊', type: 'pill', points: -10, sleepChange: 25, speed: 5 },
+            { icon: '🛌', type: 'pillow', points: -20, sleepChange: 40, speed: 2 }
+        ];
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            score = 0;
+            sleepLevel = 0;
+            items = [];
+            scoreEl.innerText = score;
+            sleepBar.style.width = sleepLevel + '%';
+            isGameRunning = true;
+
+            clearInterval(spawnTimer);
+            spawnTimer = setInterval(spawnItem, 700);
+
+            draw();
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function spawnItem() {
+            if (!isGameRunning) return;
+
+            let rand = Math.random();
+            let chosenType;
+            if (rand < 0.4) chosenType = itemTypes[0]; // Coffee
+            else if (rand < 0.7) chosenType = itemTypes[1]; // Chai
+            else if (rand < 0.9) chosenType = itemTypes[2]; // Pill
+            else chosenType = itemTypes[3]; // Pillow
+
+            const x = Math.random() * (canvas.width - 50);
+            items.push({
+                x: x,
+                y: -50,
+                size: 40,
+                speed: chosenType.speed + Math.random() * 2,
+                data: chosenType
+            });
+        }
+
+        function update() {
+            // Move player
+            player.x += player.dx;
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+            // Move items
+            for (let i = items.length - 1; i >= 0; i--) {
+                let item = items[i];
+                item.y += item.speed;
+
+                // Check collision with player mug
+                if (
+                    item.x + item.size > player.x &&
+                    item.x < player.x + player.width &&
+                    item.y + item.size > player.y &&
+                    item.y < player.y + player.height
+                ) {
+                    score += item.data.points;
+                    if (score < 0) score = 0;
+                    scoreEl.innerText = score;
+
+                    sleepLevel += item.data.sleepChange;
+                    if (sleepLevel < 0) sleepLevel = 0;
+                    if (sleepLevel > 100) sleepLevel = 100;
+                    sleepBar.style.width = sleepLevel + '%';
+
+                    items.splice(i, 1);
+
+                    if (sleepLevel >= 100) {
+                        endGame();
+                        return;
+                    }
+                    continue;
+                }
+
+                // Remove out-of-bound items
+                if (item.y > canvas.height) {
+                    items.splice(i, 1);
+                }
+            }
+
+            // Passive sleep increase over time
+            sleepLevel += 0.03;
+            if (sleepLevel > 100) sleepLevel = 100;
+            sleepBar.style.width = sleepLevel + '%';
+            if (sleepLevel >= 100) {
+                endGame();
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Player (Mug)
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.roundRect(player.x, player.y, player.width, player.height, [0, 0, 15, 15]);
+            ctx.fill();
+
+            // Mug handle
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.arc(player.x + player.width + 2, player.y + 20, 12, -Math.PI/2, Math.PI/2, false);
+            ctx.stroke();
+
+            // Draw Items
+            ctx.font = '32px Arial';
+            items.forEach(item => {
+                ctx.fillText(item.data.icon, item.x, item.y);
+            });
+
+            update();
+
+            if (isGameRunning) {
+                animationId = requestAnimationFrame(draw);
+            }
+        }
+
+        function endGame() {
+            isGameRunning = false;
+            clearInterval(spawnTimer);
+            cancelAnimationFrame(animationId);
+
+            finalScoreText.innerText = `You scored ${score} points before falling into deep sleep!`;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        // Controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'd') player.dx = player.speed;
+            if (e.key === 'ArrowLeft' || e.key === 'a') player.dx = -player.speed;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (['ArrowRight', 'ArrowLeft', 'd', 'a'].includes(e.key)) player.dx = 0;
+        });
+
+        function handlePointerX(clientX) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const mouseX = (clientX - rect.left) * scaleX;
+            if (mouseX > 0 && mouseX < canvas.width) {
+                player.x = mouseX - player.width / 2;
+            }
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            handlePointerX(e.clientX);
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches && e.touches[0]) {
+                handlePointerX(e.touches[0].clientX);
+            }
+        }, { passive: true });
+        document.addEventListener('touchstart', (e) => {
+            if (e.touches && e.touches[0]) {
+                handlePointerX(e.touches[0].clientX);
+            }
+        }, { passive: true });
+    </script>
+</body>
+</html>

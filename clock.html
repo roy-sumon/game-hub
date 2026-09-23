@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Natural Driving & Garage System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #111; color: #fff; text-align: center; }
+    
+    #game-container { position: relative; width: 400px; max-width: 96vw; height: 600px; margin: 10px auto; background: #333; overflow: hidden; border: 4px solid #444; border-radius: 8px; touch-action: manipulation; }
+    #track { position: absolute; width: 100%; height: 100%; background: #444; }
+    .line { position: absolute; width: 8px; height: 80px; background: #fff; left: 196px; }
+    
+    .car { position: absolute; width: 40px; height: 70px; border-radius: 5px; transition: left 0.1s ease-out; }
+    #player { background: #e74c3c; bottom: 20px; left: 180px; z-index: 2; border: 2px solid #b22222; }
+    .enemy { background: #f1c40f; top: -100px; }
+    .coin { position: absolute; width: 20px; height: 20px; background: #f39c12; border-radius: 50%; border: 2px solid #ffd700; top: -50px; }
+
+    #hud { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; z-index: 10; font-weight: bold; background: rgba(0,0,0,0.6); padding: 8px 12px; border-radius: 5px; }
+
+    /* UI Overlay Screens */
+    .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; }
+    .hidden { display: none !important; }
+
+    button { padding: 10px 20px; margin: 8px; font-size: 16px; font-weight: bold; cursor: pointer; border: none; border-radius: 5px; background: #2ecc71; color: white; transition: 0.2s; }
+    button:hover { background: #27ae60; }
+    button.shop-btn { background: #3498db; }
+    button.shop-btn:hover { background: #2980b9; }
+
+    /* Garage / Shop Style */
+    .shop-item { background: #222; padding: 12px; margin: 8px; border-radius: 6px; width: 80%; display: flex; justify-content: space-between; align-items: center; border: 1px solid #444; }
+    .shop-item span { font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <div id="game-container">
+    <div id="hud">
+      <div>Coins: <span id="coin-count">0</span></div>
+      <div>Score: <span id="score-count">0</span>m</div>
+    </div>
+
+    <div id="track"></div>
+    <div id="player" class="car"></div>
+
+    <div id="mobile-ctrls" style="position: absolute; bottom: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; z-index: 10; pointer-events: none;">
+      <button id="btn-left" style="pointer-events: auto; background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 50%; width: 56px; height: 56px; font-size: 22px; color: #fff; touch-action: manipulation; display: flex; align-items: center; justify-content: center;">◀</button>
+      <button id="btn-right" style="pointer-events: auto; background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 50%; width: 56px; height: 56px; font-size: 22px; color: #fff; touch-action: manipulation; display: flex; align-items: center; justify-content: center;">▶</button>
+    </div>
+
+    <!-- Main Menu Screen -->
+    <div id="main-menu" class="screen">
+      <h1>3D RACER</h1>
+      <br>
+      <button onclick="startGame()">START GAME</button>
+      <button class="shop-btn" onclick="openShop()">GARAGE & SHOP</button>
+    </div>
+
+    <!-- Garage / Shop Screen -->
+    <div id="shop-menu" class="screen hidden">
+      <h2>GARAGE & UPGRADES</h2>
+      <p style="margin-bottom: 15px; color: #f39c12;">Coins: <span id="shop-coins">0</span></p>
+
+      <div class="shop-item">
+        <span>Top Speed (Lvl <span id="lvl-speed">1</span>)</span>
+        <button onclick="buyUpgrade('speed')">50 Coins</button>
+      </div>
+      <div class="shop-item">
+        <span>Handling (Lvl <span id="lvl-handling">1</span>)</span>
+        <button onclick="buyUpgrade('handling')">40 Coins</button>
+      </div>
+      <div class="shop-item">
+        <span>Sport Paint (Blue)</span>
+        <button onclick="buyPaint('#3498db')">100 Coins</button>
+      </div>
+
+      <button onclick="closeShop()" style="background: #e74c3c; margin-top: 15px;">BACK</button>
+    </div>
+  </div>
+
+  <script>
+    // Game State & Economy Data
+    let coins = 0;
+    let score = 0;
+    let isPlaying = false;
+    
+    let playerStats = {
+      x: 180,
+      speed: 5,
+      handling: 7,
+      color: '#e74c3c',
+      speedLevel: 1,
+      handlingLevel: 1
+    };
+
+    const playerEl = document.getElementById('player');
+    const coinCountEl = document.getElementById('coin-count');
+    const scoreCountEl = document.getElementById('score-count');
+    const shopCoinsEl = document.getElementById('shop-coins');
+
+    // Controls
+    let keys = {};
+    document.addEventListener('keydown', e => keys[e.key] = true);
+    document.addEventListener('keyup', e => keys[e.key] = false);
+
+    const btnLeft = document.getElementById('btn-left');
+    const btnRight = document.getElementById('btn-right');
+    if (btnLeft && btnRight) {
+      btnLeft.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowLeft'] = true; }, { passive: false });
+      btnLeft.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowLeft'] = false; }, { passive: false });
+      btnLeft.addEventListener('mousedown', () => keys['ArrowLeft'] = true);
+      btnLeft.addEventListener('mouseup', () => keys['ArrowLeft'] = false);
+
+      btnRight.addEventListener('touchstart', e => { e.preventDefault(); keys['ArrowRight'] = true; }, { passive: false });
+      btnRight.addEventListener('touchend', e => { e.preventDefault(); keys['ArrowRight'] = false; }, { passive: false });
+      btnRight.addEventListener('mousedown', () => keys['ArrowRight'] = true);
+      btnRight.addEventListener('mouseup', () => keys['ArrowRight'] = false);
+    }
+
+    function updateHUD() {
+      coinCountEl.innerText = coins;
+      scoreCountEl.innerText = Math.floor(score);
+      shopCoinsEl.innerText = coins;
+    }
+
+    function openShop() {
+      document.getElementById('main-menu').classList.add('hidden');
+      document.getElementById('shop-menu').classList.remove('hidden');
+      updateHUD();
+    }
+
+    function closeShop() {
+      document.getElementById('shop-menu').classList.add('hidden');
+      document.getElementById('main-menu').classList.remove('hidden');
+    }
+
+    // Upgrades & Purchasing Logic
+    function buyUpgrade(type) {
+      if (type === 'speed' && coins >= 50) {
+        coins -= 50;
+        playerStats.speed += 1;
+        playerStats.speedLevel += 1;
+        document.getElementById('lvl-speed').innerText = playerStats.speedLevel;
+      } else if (type === 'handling' && coins >= 40) {
+        coins -= 40;
+        playerStats.handling += 2;
+        playerStats.handlingLevel += 1;
+        document.getElementById('lvl-handling').innerText = playerStats.handlingLevel;
+      } else {
+        alert("কয়েন পর্যাপ্ত নয়!");
+      }
+      updateHUD();
+    }
+
+    function buyPaint(colorCode) {
+      if (coins >= 100) {
+        coins -= 100;
+        playerStats.color = colorCode;
+        playerEl.style.background = colorCode;
+        alert("পেইন্ট পরিবর্তন করা হয়েছে!");
+      } else {
+        alert("কয়েন পর্যাপ্ত নয়!");
+      }
+      updateHUD();
+    }
+
+    function startGame() {
+      document.getElementById('main-menu').classList.add('hidden');
+      isPlaying = true;
+      score = 0;
+      gameLoop();
+    }
+
+    // Main Game Loop
+    function gameLoop() {
+      if (!isPlaying) return;
+
+      // Smooth Steering Logic
+      if (keys['ArrowLeft'] && playerStats.x > 10) {
+        playerStats.x -= playerStats.handling;
+      }
+      if (keys['ArrowRight'] && playerStats.x < 350) {
+        playerStats.x += playerStats.handling;
+      }
+      playerEl.style.left = playerStats.x + 'px';
+
+      // Distance Score & Passive Coin Earning
+      score += playerStats.speed * 0.1;
+      if (Math.floor(score) % 100 === 0 && Math.floor(score) > 0) {
+        coins += 1; // দূরত্ব অতিক্রম করলে কয়েন জমা হবে
+      }
+
+      updateHUD();
+      requestAnimationFrame(gameLoop);
+    }
+  </script>
+</body>
+</html>

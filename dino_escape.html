@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino Runner: Escape the Comet!</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background: #0f172a;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            color: #f97316;
+            font-size: 2.2rem;
+            text-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .stats-bar span {
+            color: #38bdf8;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 30px rgba(249, 115, 22, 0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #334155;
+            max-width: 95vw;
+            width: 800px;
+        }
+
+        canvas {
+            background: linear-gradient(180deg, #1e1b4b 0%, #431407 100%);
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 800 / 400;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .overlay h2 {
+            font-size: 2.5rem;
+            color: #ea580c;
+            margin-bottom: 10px;
+        }
+
+        .overlay p {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            background: #ea580c;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(234, 88, 12, 0.4);
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background: #c2410c;
+            transform: scale(1.05);
+        }
+
+        .controls-hint {
+            margin-top: 15px;
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🦖 DINO RUNNER: ESCAPE! ☄️</h1>
+        <div class="stats-bar">
+            <div>Distance: <span id="score">0</span>m</div>
+            <div>Speed: <span id="speed">1.0</span>x</div>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        
+        <div id="startScreen" class="overlay">
+            <h2>RUN FOR YOUR LIFE!</h2>
+            <p>The meteor apocalypse is here! Jump over fire cacti and flying pterodactyls! Press <b>SPACE</b> or <b>CLICK</b> to Double Jump.</p>
+            <button class="btn" onclick="startGame()">START RUNNING</button>
+        </div>
+
+        <div id="gameOverScreen" class="overlay" style="display: none;">
+            <h2 style="color: #ef4444;">EXTINCTION EVENT! ☄️</h2>
+            <p id="finalScoreText">You ran 0 meters before becoming a fossil!</p>
+            <button class="btn" onclick="restartGame()">TRY AGAIN</button>
+        </div>
+    </div>
+
+    <div class="controls-hint">Controls: Press <b>SPACE / UP ARROW</b> or <b>LEFT CLICK</b> to Jump (Double Jump supported!)</div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const speedEl = document.getElementById('speed');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScoreText = document.getElementById('finalScoreText');
+
+        let score = 0;
+        let gameSpeed = 6;
+        let isGameRunning = false;
+        let animationId;
+        let frameCount = 0;
+
+        // Player (Dino)
+        const dino = {
+            x: 80,
+            y: 280,
+            width: 45,
+            height: 50,
+            dy: 0,
+            gravity: 0.7,
+            jumpForce: -13,
+            groundY: 280,
+            jumpCount: 0,
+            maxJumps: 2
+        };
+
+        // Obstacles & Particles
+        let obstacles = [];
+        let particles = [];
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            score = 0;
+            gameSpeed = 6;
+            obstacles = [];
+            particles = [];
+            dino.y = dino.groundY;
+            dino.dy = 0;
+            dino.jumpCount = 0;
+            isGameRunning = true;
+            
+            draw();
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function spawnObstacle() {
+            let isAir = Math.random() > 0.6;
+            obstacles.push({
+                x: canvas.width + 50,
+                y: isAir ? 210 : 290,
+                width: isAir ? 40 : 35,
+                height: isAir ? 30 : 40,
+                icon: isAir ? '🦅' : '🌵',
+                passed: false
+            });
+        }
+
+        function createJumpParticles() {
+            for (let i = 0; i < 6; i++) {
+                particles.push({
+                    x: dino.x + dino.width / 2,
+                    y: dino.y + dino.height,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: Math.random() * -2,
+                    size: Math.random() * 4 + 2,
+                    color: '#ea580c',
+                    alpha: 1
+                });
+            }
+        }
+
+        function update() {
+            frameCount++;
+            score += Math.floor(gameSpeed / 5);
+            scoreEl.innerText = score;
+
+            // Speed progression
+            if (frameCount % 300 === 0) {
+                gameSpeed += 0.5;
+                speedEl.innerText = (gameSpeed / 6).toFixed(1);
+            }
+
+            // Dino Jump Physics
+            dino.dy += dino.gravity;
+            dino.y += dino.dy;
+
+            if (dino.y >= dino.groundY) {
+                dino.y = dino.groundY;
+                dino.dy = 0;
+                dino.jumpCount = 0;
+            }
+
+            // Spawn Obstacles
+            if (frameCount % Math.max(40, Math.floor(120 - gameSpeed * 5)) === 0) {
+                spawnObstacle();
+            }
+
+            // Move Obstacles
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                obs.x -= gameSpeed;
+
+                // Collision Detection
+                if (
+                    dino.x < obs.x + obs.width &&
+                    dino.x + dino.width > obs.x &&
+                    dino.y < obs.y + obs.height &&
+                    dino.y + dino.height > obs.y
+                ) {
+                    endGame();
+                    return;
+                }
+
+                if (obs.x < -50) {
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            // Particle Updates
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= 0.05;
+                if (p.alpha <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Ground
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(0, 330, canvas.width, 70);
+            ctx.fillStyle = '#22c55e';
+            ctx.fillRect(0, 330, canvas.width, 8);
+
+            // Dino Render
+            ctx.font = '45px Arial';
+            ctx.fillText('🦖', dino.x, dino.y + 40);
+
+            // Obstacles Render
+            ctx.font = '35px Arial';
+            obstacles.forEach(obs => {
+                ctx.fillText(obs.icon, obs.x, obs.y + 30);
+            });
+
+            // Particles Render
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            update();
+
+            if (isGameRunning) {
+                animationId = requestAnimationFrame(draw);
+            }
+        }
+
+        function jump() {
+            if (!isGameRunning) return;
+            if (dino.jumpCount < dino.maxJumps) {
+                dino.dy = dino.jumpForce;
+                dino.jumpCount++;
+                createJumpParticles();
+            }
+        }
+
+        function endGame() {
+            isGameRunning = false;
+            cancelAnimationFrame(animationId);
+            finalScoreText.innerText = `You ran ${score} meters before becoming a fossil!`;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        // Input Controls
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                e.preventDefault();
+                jump();
+            }
+        });
+
+        canvas.addEventListener('mousedown', () => {
+            jump();
+        });
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            jump();
+        }, { passive: false });
+    </script>
+</body>
+</html>

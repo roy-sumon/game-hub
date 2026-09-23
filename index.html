@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="theme-color" content="#090c10">
+  <meta name="author" content="Sumon Roy">
+  <meta name="description" content="GameHub - Play 11 handcrafted free web games online. Fast, responsive, zero-install arcade curated by Sumon Roy.">
+  <title>GameHub — Indie Web Games Hub by Sumon Roy</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="portal-style.css">
+</head>
+<body>
+
+  <!-- ========================================================================
+       TOP NAVBAR
+       ======================================================================== -->
+  <header class="site-nav">
+    <div class="container nav-inner">
+      <a href="#" class="brand-link">
+        <div class="brand-icon-box">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 15c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm12 0c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3.76-7.85l-1.55-3.11c-.34-.69-1.05-1.12-1.82-1.12L5.61 2.92c-.77 0-1.48.43-1.82 1.12L2.24 7.15C2.08 7.46 2 7.81 2 8.16v7.68c0 1.1.9 2 2 2h1.22c.98 0 1.83-.71 1.98-1.68l.38-2.52c.12-.78.79-1.36 1.58-1.36h5.68c.79 0 1.46.58 1.58 1.36l.38 2.52c.15.97 1 1.68 1.98 1.68H20c1.1 0 2-.9 2-2V8.16c0-.35-.08-.7-.24-1.01z"/>
+          </svg>
+        </div>
+        <div class="brand-name">
+          <span>GAME</span><span class="hub-badge">HUB</span>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <div class="live-badge">
+          <span class="pulse-dot"></span>
+          <span><strong id="totalGamesStat">11</strong> <span class="badge-text">Games Online</span></span>
+        </div>
+        <button id="randomGameBtn" class="btn-random-game" title="Pick a random game">
+          <span>🎲</span> <span class="btn-text">Surprise Me</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN CONTENT CONTAINER
+       ======================================================================== -->
+  <main class="container">
+
+    <!-- STEAM/EPIC STYLE FEATURED SPOTLIGHT -->
+    <section class="hero-spotlight" aria-label="Featured Spotlight Game">
+      <div class="spotlight-card">
+        <div class="spotlight-visual" onclick="launchTheater('hill-climb-racer')" style="cursor: pointer;" title="Play Featured Game">
+          <div id="spotlightArtBox" class="spotlight-visual-content">
+            <!-- Dynamic SVG Scene injected by portal-script.js -->
+          </div>
+          <div class="spotlight-overlay-gradient"></div>
+        </div>
+
+        <div class="spotlight-info">
+          <div class="spotlight-badge">🔥 Featured Game of the Week</div>
+          <h1 id="spotlightTitle" class="spotlight-title">Hill Climb Racer Extreme</h1>
+          <p id="spotlightDesc" class="spotlight-desc">
+            Drive endless hill terrain, perform front & back flips, collect coins, and upgrade your vehicle engine, suspension & tires in the garage!
+          </p>
+
+          <div id="spotlightMeta" class="spotlight-meta">
+            <!-- Badges injected by portal-script.js -->
+          </div>
+
+          <div class="spotlight-actions">
+            <button id="spotlightPlayBtn" type="button" class="btn-spotlight-play" onclick="launchTheater('hill-climb-racer')">
+              <span>▶</span> Play Featured Game
+            </button>
+            <a id="spotlightPopoutBtn" href="hillClimbRacer.html" target="_blank" rel="noopener" class="btn-spotlight-popout" title="Open in dedicated tab">
+              <span>↗</span> Open Tab
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEARCH & CATEGORY CONTROLS PANEL -->
+    <section class="controls-panel" aria-label="Game Filter & Search Bar">
+      <div class="controls-top">
+        <div class="search-field">
+          <svg viewBox="0 0 24 24">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Search by name, tags, or keys (Press '/' or Ctrl+K)" 
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button id="searchClear" class="search-reset" aria-label="Clear Search">✕</button>
+        </div>
+
+        <div class="sort-select-box">
+          <select id="sortSelect" aria-label="Sort Collection">
+            <option value="featured">✨ Featured Order</option>
+            <option value="name-asc">🔤 Alphabetical (A - Z)</option>
+            <option value="name-desc">🔤 Alphabetical (Z - A)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Categories Filter Tabs -->
+      <nav class="filter-tabs" aria-label="Category Navigation">
+        <button class="tab-btn active" data-category="all">
+          <span>⚡ All Games</span>
+        </button>
+        <button class="tab-btn" data-category="racing">
+          <span>🏎️ Racing</span>
+        </button>
+        <button class="tab-btn" data-category="action">
+          <span>⚔️ Action & Combat</span>
+        </button>
+        <button class="tab-btn" data-category="arcade">
+          <span>🕹️ Classic Arcade</span>
+        </button>
+        <button class="tab-btn" data-category="casual">
+          <span>☕ Casual & Fun</span>
+        </button>
+        <button class="tab-btn" data-category="scifi">
+          <span>🚀 Sci-Fi Shooter</span>
+        </button>
+        <button class="tab-btn" data-category="skill">
+          <span>⌨️ Typing & Skill</span>
+        </button>
+        <button class="tab-btn" data-category="mobile">
+          <span>📱 Mobile Ready</span>
+        </button>
+        <button class="tab-btn" data-category="favorites">
+          <span>❤️ Favorites</span>
+        </button>
+      </nav>
+    </section>
+
+    <!-- GAMES CATALOG GRID -->
+    <section class="catalog-section" aria-label="Games Catalog">
+      <div class="catalog-header">
+        <h2>
+          <span>🎮 Games Library</span>
+        </h2>
+        <span id="gamesCount" class="catalog-count">Loading games...</span>
+      </div>
+
+      <div id="gamesGrid" class="game-grid">
+        <!-- Rendered with bespoke SVG artwork by portal-script.js -->
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================================
+       IN-APP GAME THEATER MODAL
+       ======================================================================== -->
+  <div id="theaterModal" class="theater-overlay" role="dialog" aria-modal="true" aria-labelledby="theaterTitle">
+    <div class="theater-topbar">
+      <div class="theater-title-block">
+        <div class="theater-icon-box">🎮</div>
+        <div>
+          <h2 id="theaterTitle" class="theater-heading">Game Title</h2>
+          <span id="theaterCategory" class="genre-badge" style="font-size: 0.68rem;">Category</span>
+        </div>
+      </div>
+
+      <div class="theater-actions">
+        <button id="theaterReload" type="button" class="theater-controls-btn" title="Restart Game" onclick="if(window.theaterFrame && window.currentActiveGame) window.theaterFrame.src = window.currentActiveGame.file;">
+          <span>🔄</span> <span class="btn-label">Restart</span>
+        </button>
+        <button id="theaterFullscreen" type="button" class="theater-controls-btn" title="Toggle Fullscreen">
+          <span>⛶</span> <span class="btn-label">Fullscreen</span>
+        </button>
+        <a id="theaterPopout" href="#" target="_blank" rel="noopener" class="theater-controls-btn" title="Open in Standalone Window">
+          <span>↗</span> <span class="btn-label">Open Tab</span>
+        </a>
+        <button id="theaterClose" type="button" class="theater-controls-btn btn-exit" title="Back to GameHub (ESC)" onclick="dismissTheater()">
+          <span>✕</span> <span class="btn-label">Close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Rotate Hint -->
+    <div id="theaterRotateHint" class="theater-rotate-hint">
+      <span>🔄 Tip: Rotate to landscape for best controls</span>
+    </div>
+
+    <!-- Screen Area -->
+    <div class="theater-screen-area">
+      <div id="iframeScaler" class="theater-frame-box">
+        <iframe id="theaterFrame" class="theater-frame" src="about:blank" title="Game Player" allow="fullscreen; autoplay; gamepad"></iframe>
+      </div>
+    </div>
+
+    <div class="theater-bottom-tips">
+      <div>
+        <span>💡 <strong>Quick Controls:</strong> </span>
+        <span id="theaterInstructions">Use keyboard or touch controls to play.</span>
+      </div>
+      <div>
+        <span>Press <kbd style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace;">ESC</kbd> to return to GameHub</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       FOOTER WITH SUMON ROY COPYRIGHT & ATTRIBUTION
+       ======================================================================== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top-row">
+        <div>
+          <div class="footer-brand">
+            <span style="color: var(--accent-cyan);">⚡</span>
+            <span>GameHub</span>
+          </div>
+          <p class="footer-tagline">Play handcrafted, high-speed indie games directly in your browser with zero installs.</p>
+        </div>
+
+        <div class="footer-links">
+          <a href="#searchInput">Find Games</a>
+          <a href="#" onclick="window.pickRandomGame(); return false;">Random Game</a>
+          <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">Back to Top ↑</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom-row">
+        <div>
+          <p>© 2026 GameHub. Crafted with ❤️ by <span class="author-highlight">Sumon Roy</span>. All rights reserved.</p>
+        </div>
+        <div>
+          <p>Built with Pure HTML5, CSS3 & JavaScript. Optimized for All Screen Sizes.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script Controller -->
+  <script src="portal-script.js"></script>
+</body>
+</html>

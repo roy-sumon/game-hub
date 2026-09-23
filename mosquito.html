@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mosquito Crusher: Ghum Bhab Cut!</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background: #0f172a;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            color: #ef4444;
+            font-size: 2.2rem;
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .stats-bar span {
+            color: #38bdf8;
+        }
+
+        #game-board {
+            position: relative;
+            width: 800px;
+            max-width: 95vw;
+            height: 500px;
+            max-height: 70vh;
+            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+            border: 3px solid #334155;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        /* Mosquito Styling */
+        .mosquito {
+            position: absolute;
+            font-size: 35px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            z-index: 10;
+        }
+
+        /* Splat effect on kill */
+        .splat {
+            position: absolute;
+            font-size: 30px;
+            pointer-events: none;
+            animation: fadeOut 1s forwards;
+            z-index: 5;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0; transform: scale(0.8); }
+        }
+
+        /* Floating funny texts */
+        .floating-text {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            color: #facc15;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+            z-index: 20;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-30px); }
+        }
+
+        /* Overlay screens */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .overlay h2 {
+            font-size: 2.5rem;
+            color: #f43f5e;
+            margin-bottom: 10px;
+        }
+
+        .overlay p {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            background: #ef4444;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        /* Blood meter (HP) */
+        .hp-container {
+            width: 200px;
+            height: 15px;
+            background: #334155;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #475569;
+        }
+
+        .hp-fill {
+            width: 100%;
+            height: 100%;
+            background: #ef4444;
+            transition: width 0.2s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🦟 MOSQUITO CRUSHER 🦟</h1>
+        <div class="stats-bar">
+            <div>Kills: <span id="kill-count">0</span></div>
+            <div>Blood Left:</div>
+            <div class="hp-container">
+                <div id="hp-bar" class="hp-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-board">
+        <!-- Start Screen -->
+        <div id="start-screen" class="overlay">
+            <h2>গুম তাড়াও - মশা মারো!</h2>
+            <p>Mosquitoes are invading your bed! Click/tap on them quickly before they suck all your blood!</p>
+            <button class="btn" onclick="startGame()">START DEFENSE</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="overlay" style="display: none;">
+            <h2 id="over-title">YOU DIED OF DENGUE! 🦟</h2>
+            <p id="over-msg">The mosquitoes sucked all your blood. Ghum pura uthe gese?</p>
+            <button class="btn" onclick="startGame()">TRY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        const board = document.getElementById('game-board');
+        const killEl = document.getElementById('kill-count');
+        const hpBar = document.getElementById('hp-bar');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+
+        let kills = 0;
+        let blood = 100;
+        let gameActive = false;
+        let spawnTimer;
+        let moveTimer;
+        let mosquitoes = [];
+
+        const taunts = [
+            "PICHKE GESI!", "FATTE GESI!", "BOOM!", "KHATAM!", "NO MORE VUN VUN!", "DISPATCHED!"
+        ];
+
+        const mosquitoTypes = [
+            { icon: '🦟', speed: 2, damage: 10, points: 1 },  // Normal
+            { icon: '🪰', speed: 4, damage: 5, points: 2 },   // Fast Fly
+            { icon: '👾', speed: 1, damage: 25, points: 5 }   // Boss Mosquito
+        ];
+
+        function startGame() {
+            // Reset
+            kills = 0;
+            blood = 100;
+            gameActive = true;
+            mosquitoes.forEach(m => m.element.remove());
+            mosquitoes = [];
+            
+            killEl.innerText = kills;
+            hpBar.style.width = '100%';
+            
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+
+            // Loops
+            clearInterval(spawnTimer);
+            clearInterval(moveTimer);
+
+            spawnTimer = setInterval(spawnMosquito, 800);
+            moveTimer = setInterval(updateGame, 30);
+        }
+
+        function spawnMosquito() {
+            if (!gameActive) return;
+
+            // Pick random type
+            let rand = Math.random();
+            let type = mosquitoTypes[0];
+            if (rand > 0.8) type = mosquitoTypes[2]; // Boss
+            else if (rand > 0.5) type = mosquitoTypes[1]; // Fast
+
+            const el = document.createElement('div');
+            el.className = 'mosquito';
+            el.innerText = type.icon;
+            
+            if (type.points === 5) {
+                el.style.fontSize = '50px'; // Boss size
+            }
+
+            const x = Math.random() * (board.clientWidth - 60);
+            const y = Math.random() * (board.clientHeight - 60);
+
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+
+            const mObj = {
+                element: el,
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * type.speed * 4,
+                vy: (Math.random() - 0.5) * type.speed * 4,
+                type: type
+            };
+
+            el.addEventListener('mousedown', () => killMosquito(mObj));
+            el.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                killMosquito(mObj);
+            }, { passive: false });
+
+            board.appendChild(el);
+            mosquitoes.push(mObj);
+        }
+
+        function killMosquito(mObj) {
+            if (!gameActive) return;
+
+            // FX - Splat
+            const splat = document.createElement('div');
+            splat.className = 'splat';
+            splat.innerText = '💥';
+            splat.style.left = mObj.x + 'px';
+            splat.style.top = mObj.y + 'px';
+            board.appendChild(splat);
+            setTimeout(() => splat.remove(), 1000);
+
+            // FX - Funny Floating Text
+            const text = document.createElement('div');
+            text.className = 'floating-text';
+            text.innerText = taunts[Math.floor(Math.random() * taunts.length)];
+            text.style.left = mObj.x + 'px';
+            text.style.top = mObj.y + 'px';
+            board.appendChild(text);
+            setTimeout(() => text.remove(), 800);
+
+            // Remove Mosquito
+            mObj.element.remove();
+            mosquitoes = mosquitoes.filter(m => m !== mObj);
+
+            // Score
+            kills += mObj.type.points;
+            killEl.innerText = kills;
+        }
+
+        function updateGame() {
+            if (!gameActive) return;
+
+            mosquitoes.forEach((mObj) => {
+                // Move
+                mObj.x += mObj.vx;
+                mObj.y += mObj.vy;
+
+                // Bounce off walls
+                if (mObj.x <= 0 || mObj.x >= board.clientWidth - 50) mObj.vx *= -1;
+                if (mObj.y <= 0 || mObj.y >= board.clientHeight - 50) mObj.vy *= -1;
+
+                mObj.element.style.left = mObj.x + 'px';
+                mObj.element.style.top = mObj.y + 'px';
+
+                // Random Bite Chance (Take Blood)
+                if (Math.random() < 0.005) {
+                    blood -= mObj.type.damage;
+                    if (blood < 0) blood = 0;
+                    hpBar.style.width = blood + '%';
+
+                    // Screen Flash Red
+                    board.style.borderColor = '#ef4444';
+                    setTimeout(() => board.style.borderColor = '#334155', 150);
+
+                    if (blood <= 0) {
+                        endGame();
+                    }
+                }
+            });
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(spawnTimer);
+            clearInterval(moveTimer);
+            
+            document.getElementById('over-msg').innerText = `You squashed ${kills} mosquitoes before passing out!`;
+            gameOverScreen.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

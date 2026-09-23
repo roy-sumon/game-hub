@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flappy Ghost - The Haunting Hunt</title>
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #000;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
+
+#gameCanvas {
+  display: block;
+}
+
+#uiContainer {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  text-align: right;
+}
+
+#scoreText, #highScoreText {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+#scoreText {
+  color: #ff0;
+}
+
+#highScoreText {
+  color: #fff;
+}
+
+#gameOverMessage, #winMessage {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+#gameOverMessage {
+  color: #f00;
+}
+
+#winMessage {
+  color: #0f0;
+}
+
+#playAgainButton {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  background-color: #fff;
+  color: #000;
+  border: none;
+  border-radius: 5px;
+}
+</style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <div id="uiContainer">
+    <div id="scoreText">Score: 0</div>
+    <div id="highScoreText">High Score: 0</div>
+  </div>
+  <div id="gameOverMessage">
+    <h1>Game Over!</h1>
+    <p>Your silly score is <span id="finalScore">0</span>.</p>
+    <button id="playAgainButton" onclick="resetGame()">Play Again</button>
+  </div>
+  <div id="winMessage">
+    <h1>You Survived the Hunt!</h1>
+    <p>Your hauntingly high score is <span id="finalScore">0</span>.</p>
+    <button id="playAgainButton" onclick="resetGame()">Play Again</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const uiContainer = document.getElementById("uiContainer");
+    const scoreText = document.getElementById("scoreText");
+    const highScoreText = document.getElementById("highScoreText");
+    const gameOverMessage = document.getElementById("gameOverMessage");
+    const winMessage = document.getElementById("winMessage");
+    const finalScore = document.getElementById("finalScore");
+
+    const ghostWidth = 40;
+    const ghostHeight = 40;
+    const obstacleWidth = 80;
+    const obstacleHeight = 400;
+    const obstacleGap = 150;
+    const initialSpeed = 2;
+    const speedIncrease = 0.1;
+    const gravity = 0.5;
+    const flapForce = -8;
+
+    let ghost;
+    let obstacles;
+    let score;
+    let highScore = 0;
+    let gameSpeed;
+    let dayTime;
+    let isGameOver;
+    let isWin;
+
+    function resetGame() {
+      ghost = {
+        x: canvas.width / 4,
+        y: canvas.height / 2,
+        vy: 0,
+      };
+      obstacles = [];
+      score = 0;
+      gameSpeed = initialSpeed;
+      dayTime = false;
+      isGameOver = false;
+      isWin = false;
+      gameOverMessage.style.display = "none";
+      winMessage.style.display = "none";
+      scoreText.innerText = "Score: 0";
+      highScoreText.innerText = "High Score: " + highScore;
+      spawnObstacle();
+    }
+
+    function spawnObstacle() {
+      let gapY = Math.random() * (canvas.height - obstacleHeight - obstacleGap) + obstacleGap;
+      obstacles.push({
+        x: canvas.width,
+        gapY: gapY,
+        passed: false,
+      });
+    }
+
+    function drawGhost() {
+      ctx.fillStyle = "white";
+      ctx.fillRect(ghost.x, ghost.y, ghostWidth, ghostHeight);
+      // Ghost smile animation based on score
+      let smile = "";
+      if (score < 50) {
+        smile = ":)";
+      } else if (score < 100) {
+        smile = "D:";
+      } else {
+        smile = ";)";
+      }
+      ctx.fillStyle = "black";
+      ctx.font = "20px Arial";
+      ctx.fillText(smile, ghost.x + 10, ghost.y + 25);
+    }
+
+    function drawObstacles() {
+      for (let obstacle of obstacles) {
+        ctx.fillStyle = "#888"; // Gray obstacles for gravestones/cauldrons
+        ctx.fillRect(obstacle.x, 0, obstacleWidth, obstacle.gapY - obstacleGap);
+        ctx.fillRect(obstacle.x, obstacle.gapY, obstacleWidth, canvas.height - obstacle.gapY);
+      }
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!isGameOver && !isWin) {
+        ghost.vy += gravity;
+        ghost.y += ghost.vy;
+
+        for (let obstacle of obstacles) {
+          obstacle.x -= gameSpeed;
+
+          // Collision detection
+          if (
+            ghost.x + ghostWidth > obstacle.x &&
+            ghost.x < obstacle.x + obstacleWidth &&
+            (ghost.y < obstacle.gapY - obstacleGap || ghost.y + ghostHeight > obstacle.gapY)
+          ) {
+            isGameOver = true;
+            break;
+          }
+
+          // Scoring and game speed increase
+          if (!obstacle.passed && obstacle.x + obstacleWidth < ghost.x) {
+            obstacle.passed = true;
+            score++;
+            scoreText.innerText = "Score: " + score;
+            gameSpeed += speedIncrease;
+            // Day/Night cycle
+            if (score % 20 === 0) {
+              dayTime = !dayTime;
+            }
+          }
+        }
+
+        // Clean up passed obstacles
+        obstacles = obstacles.filter((obstacle) => obstacle.x > -obstacleWidth);
+
+        if (obstacles.length === 0 || obstacles[obstacles.length - 1].x < canvas.width - canvas.width / 2) {
+          spawnObstacle();
+        }
+
+        // Check for boundary collision
+        if (ghost.y + ghostHeight > canvas.height) {
+          isGameOver = true;
+        }
+
+        // Day/Night Cycle
+        if (dayTime) {
+          canvas.style.backgroundColor = "#fff";
+          uiContainer.style.color = "#000";
+        } else {
+          canvas.style.backgroundColor = "#000";
+          uiContainer.style.color = "#fff";
+        }
+
+        // Game Over and Victory
+        if (isGameOver) {
+          finalScore.innerText = score;
+          gameOverMessage.style.display = "block";
+          if (score > highScore) {
+            highScore = score;
+          }
+        } else if (score >= 200) {
+          finalScore.innerText = score;
+          winMessage.style.display = "block";
+          isWin = true;
+          if (score > highScore) {
+            highScore = score;
+          }
+        }
+      }
+
+      drawGhost();
+      drawObstacles();
+
+      requestAnimationFrame(update);
+    }
+
+    function triggerFlap() {
+      if (!isGameOver && !isWin) {
+        ghost.vy = flapForce;
+      }
+    }
+
+    window.addEventListener("mousedown", triggerFlap);
+    window.addEventListener("touchstart", (e) => {
+      triggerFlap();
+    }, { passive: true });
+
+    window.addEventListener("keydown", (event) => {
+      if (event.code === "Space" && !isGameOver && !isWin) {
+        ghost.vy = flapForce;
+        // Boo! sound effect could be added here
+      }
+    });
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    resetGame();
+    update();
+  </script>
+</body>
+</html>

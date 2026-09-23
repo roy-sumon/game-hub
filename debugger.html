@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Midnight Debugger: Bug Attack!</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background: #0f172a;
+            color: #38bdf8;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            color: #f43f5e;
+            font-size: 2rem;
+            text-shadow: 0 0 10px rgba(244, 63, 94, 0.5);
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 5px;
+            color: #cbd5e1;
+        }
+
+        .stats-bar span {
+            color: #4ade80;
+        }
+
+        #game-board {
+            position: relative;
+            width: 850px;
+            max-width: 95vw;
+            height: 500px;
+            max-height: 70vh;
+            background: #090d16;
+            border: 3px solid #1e293b;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.9);
+        }
+
+        /* Code background lines */
+        .code-line {
+            position: absolute;
+            color: #1e293b;
+            font-size: 13px;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Bug Styling */
+        .bug {
+            position: absolute;
+            font-size: 32px;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.05s;
+        }
+
+        .bug:hover {
+            transform: scale(1.2);
+        }
+
+        /* Floating Console Logs */
+        .console-log {
+            position: absolute;
+            font-size: 13px;
+            font-weight: bold;
+            color: #facc15;
+            pointer-events: none;
+            animation: slideUp 0.8s ease-out forwards;
+            z-index: 20;
+        }
+
+        @keyframes slideUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-35px); }
+        }
+
+        /* Overlays */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(9, 13, 22, 0.92);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .overlay h2 {
+            font-size: 2.5rem;
+            color: #f43f5e;
+            margin-bottom: 10px;
+        }
+
+        .overlay p {
+            font-size: 1rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            text-align: center;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #0f172a;
+            background: #4ade80;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.4);
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            background: #22c55e;
+            transform: scale(1.05);
+        }
+
+        .server-container {
+            width: 160px;
+            height: 14px;
+            background: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            border: 1px solid #334155;
+        }
+
+        .server-fill {
+            width: 100%;
+            height: 100%;
+            background: #4ade80;
+            transition: width 0.2s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>💻 MIDNIGHT DEBUGGER 🐛</h1>
+        <div class="stats-bar">
+            <div>Bugs Fixed: <span id="fixed-count">0</span></div>
+            <div>Server Stability: 
+                <div class="server-container">
+                    <div id="stability-bar" class="server-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-board">
+        <!-- Start Screen -->
+        <div id="start-screen" class="overlay">
+            <h2>PRODUCTION SERVER DOWN!</h2>
+            <p>Midnight coding has unleashed a swarm of nasty production bugs! Click them quickly to patch the code before your client fires you.</p>
+            <button class="btn" onclick="startGame()">START DEBUGGING</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="overlay" style="display: none;">
+            <h2 style="color: #f43f5e;">WHITE SCREEN OF DEATH! 💀</h2>
+            <p id="over-msg">Too many bugs escaped. Time to go to sleep!</p>
+            <button class="btn" onclick="startGame()">REBOOT SERVER</button>
+        </div>
+    </div>
+
+    <script>
+        const board = document.getElementById('game-board');
+        const fixedEl = document.getElementById('fixed-count');
+        const stabilityBar = document.getElementById('stability-bar');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+
+        let fixedCount = 0;
+        let stability = 100;
+        let gameActive = false;
+        let spawnTimer;
+        let moveTimer;
+        let bugs = [];
+
+        const devLogs = [
+            "FIXED!", "PATCHED!", "COMPILED!", "GIT PUSHED!", "NO ERRORS!", "IT WORKED!", "CLEAN CODE!"
+        ];
+
+        const bugTypes = [
+            { icon: '🐛', speed: 1.5, damage: 8, points: 1, name: 'Syntax Bug' },
+            { icon: '🐞', speed: 3, damage: 5, points: 2, name: 'Memory Leak' },
+            { icon: '🕷️', speed: 0.8, damage: 20, points: 5, name: 'Infinite Loop Boss' }
+        ];
+
+        // Background fake code generator
+        for(let i=0; i<15; i++) {
+            let line = document.createElement('div');
+            line.className = 'code-line';
+            line.style.top = (i * 32) + 'px';
+            line.style.left = (Math.random() * 50) + 'px';
+            line.innerText = `const shopifyTheme = liquid.load('${Math.random().toString(36).substring(7)}'); // status: pending...`;
+            board.appendChild(line);
+        }
+
+        function startGame() {
+            fixedCount = 0;
+            stability = 100;
+            gameActive = true;
+            bugs.forEach(b => b.element.remove());
+            bugs = [];
+            
+            fixedEl.innerText = fixedCount;
+            stabilityBar.style.width = '100%';
+            stabilityBar.style.backgroundColor = '#4ade80';
+            
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+
+            clearInterval(spawnTimer);
+            clearInterval(moveTimer);
+
+            spawnTimer = setInterval(spawnBug, 900);
+            moveTimer = setInterval(updateGame, 30);
+        }
+
+        function spawnBug() {
+            if (!gameActive) return;
+
+            let rand = Math.random();
+            let type = bugTypes[0];
+            if (rand > 0.8) type = bugTypes[2]; // Boss
+            else if (rand > 0.5) type = bugTypes[1]; // Fast
+
+            const el = document.createElement('div');
+            el.className = 'bug';
+            el.innerText = type.icon;
+            
+            if (type.points === 5) el.style.fontSize = '45px';
+
+            const x = Math.random() * (board.clientWidth - 70);
+            const y = Math.random() * (board.clientHeight - 70);
+
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+
+            const bugObj = {
+                element: el,
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * type.speed * 3,
+                vy: (Math.random() - 0.5) * type.speed * 3,
+                type: type
+            };
+
+            el.addEventListener('mousedown', () => squashBug(bugObj));
+            el.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                squashBug(bugObj);
+            }, { passive: false });
+
+            board.appendChild(el);
+            bugs.push(bugObj);
+        }
+
+        function squashBug(bugObj) {
+            if (!gameActive) return;
+
+            // Floating Console Log
+            const log = document.createElement('div');
+            log.className = 'console-log';
+            log.innerText = devLogs[Math.floor(Math.random() * devLogs.length)];
+            log.style.left = bugObj.x + 'px';
+            log.style.top = bugObj.y + 'px';
+            board.appendChild(log);
+            setTimeout(() => log.remove(), 800);
+
+            bugObj.element.remove();
+            bugs = bugs.filter(b => b !== bugObj);
+
+            fixedCount += bugObj.type.points;
+            fixedEl.innerText = fixedCount;
+        }
+
+        function updateGame() {
+            if (!gameActive) return;
+
+            bugs.forEach((bugObj) => {
+                bugObj.x += bugObj.vx;
+                bugObj.y += bugObj.vy;
+
+                if (bugObj.x <= 0 || bugObj.x >= board.clientWidth - 50) bugObj.vx *= -1;
+                if (bugObj.y <= 0 || bugObj.y >= board.clientHeight - 50) bugObj.vy *= -1;
+
+                bugObj.element.style.left = bugObj.x + 'px';
+                bugObj.element.style.top = bugObj.y + 'px';
+
+                // Passive damage over time from bugs
+                if (Math.random() < 0.004) {
+                    stability -= bugObj.type.damage;
+                    if (stability < 0) stability = 0;
+                    stabilityBar.style.width = stability + '%';
+
+                    if (stability < 40) stabilityBar.style.backgroundColor = '#f43f5e';
+                    else stabilityBar.style.backgroundColor = '#4ade80';
+
+                    // Screen Flash
+                    board.style.borderColor = '#f43f5e';
+                    setTimeout(() => board.style.borderColor = '#1e293b', 150);
+
+                    if (stability <= 0) {
+                        endGame();
+                    }
+                }
+            });
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(spawnTimer);
+            clearInterval(moveTimer);
+            
+            document.getElementById('over-msg').innerText = `You successfully fixed ${fixedCount} bugs before the server completely crashed!`;
+            gameOverScreen.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

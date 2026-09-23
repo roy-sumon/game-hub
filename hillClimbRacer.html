@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hill Climb Racer Extreme</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0b0f19;
+      color: #f8fafc;
+    }
+    /* Section & Container Styling */
+    #game-section-main {
+      background-color: #0b0f19;
+      padding: 15px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      box-sizing: border-box;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    #game-section-main * { 
+      box-sizing: border-box; 
+    }
+
+    #game-section-main .game-container {
+      width: 100%;
+      max-width: 950px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    #game-section-main .game-title {
+      font-size: 26px;
+      font-weight: 900;
+      color: #38bdf8;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+    }
+    #game-section-main .game-subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 15px;
+    }
+
+    /* Canvas Wrapper */
+    .canvas-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      height: 480px;
+      max-height: 65vh;
+      margin: 0 auto;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 25px rgba(56, 189, 248, 0.2);
+      background: #0f172a;
+      border: 2px solid #1e293b;
+    }
+    .canvas-wrapper canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Stunt Message */
+    .stunt-message {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      color: #f59e0b;
+      font-size: 26px;
+      font-weight: 900;
+      text-shadow: 0 0 10px rgba(0,0,0,0.8);
+      pointer-events: none;
+      z-index: 5;
+      transition: transform 0.2s ease-out, opacity 0.3s ease;
+      opacity: 0;
+    }
+    .stunt-message.active {
+      transform: translate(-50%, -50%) scale(1.2);
+      opacity: 1;
+    }
+
+    /* Overlay Menu & Shop */
+    .game-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      z-index: 10;
+      padding: 20px;
+    }
+    .overlay-content h3 {
+      font-size: 30px;
+      margin: 0 0 10px 0;
+      color: #f59e0b;
+      font-weight: 900;
+    }
+    .overlay-content p {
+      font-size: 14px;
+      margin-bottom: 15px;
+      color: #cbd5e1;
+    }
+    .overlay-stats {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 20px;
+      background: rgba(255,255,255,0.08);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      color: #fbbf24;
+      font-weight: 700;
+    }
+
+    .menu-btn-group {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .game-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: 800;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+    }
+    .game-btn.shop-btn {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+    }
+    .game-btn.back-btn {
+      background: #64748b;
+      margin-top: 15px;
+      font-size: 14px;
+      padding: 8px 20px;
+    }
+
+    /* Shop Layout */
+    .shop-panel { width: 100%; max-width: 500px; }
+    .shop-balance { color: #fbbf24; font-weight: bold; font-size: 16px; }
+    .shop-items-grid { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; }
+    .shop-card {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 12px 16px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .item-info { display: flex; flex-direction: column; text-align: left; }
+    .item-info strong { color: #f8fafc; font-size: 14px; }
+    .item-info span { color: #94a3b8; font-size: 12px; }
+    .buy-btn {
+      background: #f59e0b;
+      color: #0f172a;
+      border: none;
+      padding: 8px 14px;
+      font-weight: 800;
+      font-size: 12px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    .buy-btn:hover { background: #d97706; }
+
+    /* HUD Overlay */
+    .game-hud {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      right: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      font-weight: 800;
+      font-size: 13px;
+      color: #0f172a;
+      gap: 8px;
+    }
+    .hud-item {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 6px 14px;
+      border-radius: 30px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .level-badge { background: #8b5cf6; color: #ffffff; }
+    .fuel-item { color: #ef4444; }
+    .fuel-bar-bg { width: 60px; height: 8px; background: #cbd5e1; border-radius: 10px; overflow: hidden; }
+    .fuel-bar-fill { width: 100%; height: 100%; background: #ef4444; }
+
+    /* Touch Controls */
+    .game-controls { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
+    .ctrl-btn {
+      flex: 1; max-width: 220px; padding: 16px; border: none; border-radius: 12px;
+      font-weight: 800; font-size: 15px; color: white; cursor: pointer; user-select: none; touch-action: manipulation;
+    }
+    .ctrl-btn.gas { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .ctrl-btn.brake { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+
+    @media (max-width: 650px) {
+      #game-section-main .game-title { font-size: 24px; }
+      .game-hud { font-size: 10px; flex-wrap: wrap; }
+      .hud-item { padding: 4px 10px; }
+      .fuel-bar-bg { width: 40px; }
+      .ctrl-btn { padding: 12px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="game-section-wrapper" id="game-section-main">
+  <div class="game-container">
+    <div class="game-header">
+      <h2 class="game-title">HILL CLIMB RACER EXTREME</h2>
+      <p class="game-subtitle">Drive endless hills, collect coins & upgrade your vehicle!</p>
+    </div>
+
+    <div class="canvas-wrapper">
+      <canvas id="hillClimbCanvas" width="900" height="506"></canvas>
+
+      <div id="stuntMsg" class="stunt-message"></div>
+
+      <div id="gameOverlay" class="game-overlay">
+        <div id="mainOverlayContent" class="overlay-content">
+          <h3 id="overlayTitle">HILL CLIMB RACER EXTREME</h3>
+          <p id="overlayScore">Conquer endless hills, collect coins & upgrade your ride!</p>
+          <div class="overlay-stats">
+            <span>🪙 TOTAL COINS: <strong id="totalCoinsDisplay">0</strong></span>
+            <span>🏆 BEST: <strong id="bestDistDisplay">0</strong>m</span>
+          </div>
+          <div class="menu-btn-group">
+            <button id="startBtn" class="game-btn">START ENGINE</button>
+            <button id="shopBtn" class="game-btn shop-btn">GARAGE & SHOP 🚗</button>
+          </div>
+        </div>
+
+        <div id="shopContent" class="overlay-content shop-panel" style="display: none;">
+          <h3>GARAGE & UPGRADES</h3>
+          <p class="shop-balance">Bank Balance: 🪙 <span id="shopCoinDisplay">0</span></p>
+
+          <div class="shop-items-grid">
+            <div class="shop-card">
+              <div class="item-info">
+                <strong>ENGINE POWER</strong>
+                <span>Level: <span id="lvlEngine">1</span></span>
+              </div>
+              <button id="buyEngine" class="buy-btn">Upgrade (🪙 <span id="costEngine">50</span>)</button>
+            </div>
+
+            <div class="shop-card">
+              <div class="item-info">
+                <strong>TIRE GRIP</strong>
+                <span>Level: <span id="lvlGrip">1</span></span>
+              </div>
+              <button id="buyGrip" class="buy-btn">Upgrade (🪙 <span id="costGrip">40</span>)</button>
+            </div>
+
+            <div class="shop-card">
+              <div class="item-info">
+                <strong>FUEL TANK</strong>
+                <span>Level: <span id="lvlFuel">1</span></span>
+              </div>
+              <button id="buyFuel" class="buy-btn">Upgrade (🪙 <span id="costFuel">60</span>)</button>
+            </div>
+          </div>
+
+          <button id="closeShopBtn" class="game-btn back-btn">BACK TO MENU</button>
+        </div>
+      </div>
+
+      <div class="game-hud">
+        <div class="hud-item level-badge">LVL <span id="levelDisplay">1</span></div>
+        <div class="hud-item">SPEED: <span id="speedDisplay">0</span> km/h</div>
+        <div class="hud-item fuel-item">
+          FUEL:
+          <div class="fuel-bar-bg">
+            <div id="fuelBarFill" class="fuel-bar-fill"></div>
+          </div>
+        </div>
+        <div class="hud-item">COINS: 🪙 <span id="coinDisplay">0</span></div>
+        <div class="hud-item">DIST: <span id="scoreDisplay">0</span> m</div>
+      </div>
+    </div>
+
+    <div class="game-controls">
+      <button id="btnBrake" class="ctrl-btn brake">◀ BRAKE / TILT BACK</button>
+      <button id="btnGas" class="ctrl-btn gas">GAS / ACCELERATE ▶</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('hillClimbCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const overlay = document.getElementById('gameOverlay');
+  const mainContent = document.getElementById('mainOverlayContent');
+  const shopContent = document.getElementById('shopContent');
+
+  const overlayTitle = document.getElementById('overlayTitle');
+  const overlayScore = document.getElementById('overlayScore');
+  const startBtn = document.getElementById('startBtn');
+  const shopBtn = document.getElementById('shopBtn');
+  const closeShopBtn = document.getElementById('closeShopBtn');
+
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const speedDisplay = document.getElementById('speedDisplay');
+  const coinDisplay = document.getElementById('coinDisplay');
+  const levelDisplay = document.getElementById('levelDisplay');
+  const fuelBarFill = document.getElementById('fuelBarFill');
+  const totalCoinsDisplay = document.getElementById('totalCoinsDisplay');
+  const shopCoinDisplay = document.getElementById('shopCoinDisplay');
+  const bestDistDisplay = document.getElementById('bestDistDisplay');
+  const stuntMsg = document.getElementById('stuntMsg');
+
+  const btnGas = document.getElementById('btnGas');
+  const btnBrake = document.getElementById('btnBrake');
+
+  // Upgrade UI Elements
+  const buyEngine = document.getElementById('buyEngine');
+  const buyGrip = document.getElementById('buyGrip');
+  const buyFuel = document.getElementById('buyFuel');
+  const lvlEngine = document.getElementById('lvlEngine');
+  const lvlGrip = document.getElementById('lvlGrip');
+  const lvlFuel = document.getElementById('lvlFuel');
+  const costEngine = document.getElementById('costEngine');
+  const costGrip = document.getElementById('costGrip');
+  const costFuel = document.getElementById('costFuel');
+
+  let gameState = 'START'; 
+  let score = 0;
+  let coins = 0;
+  let fuel = 100;
+  let maxFuel = 100;
+  let currentLevel = 1;
+  let animationFrameId;
+
+  // Persistent Saved Upgrades & Data
+  let totalCoins = parseInt(localStorage.getItem('hill_car_coins') || '0');
+  let bestDistance = parseInt(localStorage.getItem('hill_car_best') || '0');
+  let upgrades = JSON.parse(localStorage.getItem('hill_car_upgrades') || '{"engine":1,"grip":1,"fuel":1}');
+
+  // Stunts
+  let totalAirRotation = 0;
+  let lastAngle = 0;
+
+  const themes = [
+    { sky: ['#38bdf8', '#bae6fd', '#fef08a'], terrain: '#78350f', grass: '#16a34a', mountain: '#94a3b8' },
+    { sky: ['#f97316', '#fdba74', '#fef08a'], terrain: '#9a3412', grass: '#ea580c', mountain: '#c2410c' },
+    { sky: ['#0f172a', '#1e1b4b', '#312e81'], terrain: '#1e293b', grass: '#38bdf8', mountain: '#475569' },
+    { sky: ['#4c0519', '#881337', '#f43f5e'], terrain: '#450a0a', grass: '#dc2626', mountain: '#9f1239' }
+  ];
+
+  function fitCanvas() {
+    const wrapper = canvas.parentElement;
+    canvas.width = wrapper.clientWidth;
+    canvas.height = wrapper.clientHeight;
+  }
+  window.addEventListener('resize', fitCanvas);
+  fitCanvas();
+
+  let cameraX = 0;
+  let cameraY = 0;
+  let baseGravity = 0.32;
+  let keys = { ArrowRight: false, ArrowLeft: false };
+
+  let particles = [];
+  let coinItems = [];
+  let fuelItems = [];
+  let boosterItems = [];
+  let generatedChunkX = 0;
+
+  const car = {
+    x: 100, y: 200, vx: 0, vy: 0, angle: 0,
+    angularVelocity: 0, wheelRotation: 0, bodyBounce: 0,
+    width: 90, height: 45, isGrounded: false
+  };
+
+  function getTerrainHeight(x) {
+    const difficultyFactor = 1 + Math.min(currentLevel * 0.18, 1.2);
+    return (Math.sin(x * 0.003) * 80 * difficultyFactor) + 
+           (Math.cos(x * 0.008) * 45 * difficultyFactor) + 
+           (Math.sin(x * 0.018) * 25 * difficultyFactor) + 
+           canvas.height * 0.65;
+  }
+
+  function getTerrainAngle(x) {
+    const delta = 5;
+    const y1 = getTerrainHeight(x - delta);
+    const y2 = getTerrainHeight(x + delta);
+    return Math.atan2(y2 - y1, delta * 2);
+  }
+
+  function generateProceduralCollectibles(startX, endX) {
+    for (let i = startX; i < endX; i += 220) {
+      const rand = Math.random();
+      const itemY = getTerrainHeight(i) - 40;
+      if (rand < 0.45) coinItems.push({ x: i, y: itemY, collected: false });
+      else if (rand < 0.62) fuelItems.push({ x: i, y: itemY, collected: false });
+      else if (rand < 0.70) boosterItems.push({ x: i, y: itemY, collected: false });
+    }
+  }
+
+  function updateShopUI() {
+    totalCoinsDisplay.innerText = totalCoins;
+    shopCoinDisplay.innerText = totalCoins;
+    bestDistDisplay.innerText = bestDistance;
+
+    lvlEngine.innerText = upgrades.engine;
+    lvlGrip.innerText = upgrades.grip;
+    lvlFuel.innerText = upgrades.fuel;
+
+    costEngine.innerText = upgrades.engine * 50;
+    costGrip.innerText = upgrades.grip * 40;
+    costFuel.innerText = upgrades.fuel * 60;
+  }
+
+  function buyUpgrade(type) {
+    let cost = 0;
+    if (type === 'engine') cost = upgrades.engine * 50;
+    if (type === 'grip') cost = upgrades.grip * 40;
+    if (type === 'fuel') cost = upgrades.fuel * 60;
+
+    if (totalCoins >= cost) {
+      totalCoins -= cost;
+      upgrades[type] += 1;
+      localStorage.setItem('hill_car_coins', totalCoins);
+      localStorage.setItem('hill_car_upgrades', JSON.stringify(upgrades));
+      updateShopUI();
+    } else {
+      alert("not enough coins!");
+    }
+  }
+
+  shopBtn.addEventListener('click', () => {
+    mainContent.style.display = 'none';
+    shopContent.style.display = 'block';
+    updateShopUI();
+  });
+
+  closeShopBtn.addEventListener('click', () => {
+    shopContent.style.display = 'none';
+    mainContent.style.display = 'block';
+  });
+
+  buyEngine.addEventListener('click', () => buyUpgrade('engine'));
+  buyGrip.addEventListener('click', () => buyUpgrade('grip'));
+  buyFuel.addEventListener('click', () => buyUpgrade('fuel'));
+
+  function createParticle(x, y, color, size, vx, vy) {
+    if (particles.length > 70) particles.shift();
+    particles.push({ x, y, color, size, vx, vy, life: 1.0 });
+  }
+
+  function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      let p = particles[i];
+      p.x += p.vx; p.y += p.vy;
+      p.life -= 0.03; p.size *= 0.96;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  function drawParticles() {
+    particles.forEach(p => {
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1.0;
+  }
+
+  function showStuntMessage(text) {
+    stuntMsg.innerText = text;
+    stuntMsg.classList.add('active');
+    setTimeout(() => stuntMsg.classList.remove('active'), 1200);
+  }
+
+  function resetGame() {
+    car.x = 100;
+    car.y = getTerrainHeight(100) - 50;
+    car.vx = 0; car.vy = 0; car.angle = 0;
+    car.angularVelocity = 0; car.wheelRotation = 0;
+    score = 0; coins = 0;
+
+    maxFuel = 100 + (upgrades.fuel - 1) * 25;
+    fuel = maxFuel;
+
+    currentLevel = 1;
+    totalAirRotation = 0; lastAngle = 0;
+    particles = []; coinItems = []; fuelItems = []; boosterItems = [];
+
+    generateProceduralCollectibles(300, 3000);
+    generatedChunkX = 3000;
+  }
+
+  function startGame() {
+    resetGame();
+    gameState = 'PLAYING';
+    overlay.style.display = 'none';
+    cancelAnimationFrame(animationFrameId);
+    gameLoop();
+  }
+
+  function gameOver(reason) {
+    gameState = 'GAMEOVER';
+    overlayTitle.innerText = reason || "CRASHED!";
+    overlayScore.innerText = `Distance: ${Math.floor(score)}m | Coins: ${coins}`;
+    startBtn.innerText = "TRY AGAIN";
+    overlay.style.display = 'flex';
+    shopContent.style.display = 'none';
+    mainContent.style.display = 'block';
+
+    totalCoins += coins;
+    if (score > bestDistance) bestDistance = Math.floor(score);
+    localStorage.setItem('hill_car_coins', totalCoins);
+    localStorage.setItem('hill_car_best', bestDistance);
+    updateShopUI();
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'ArrowRight' || e.code === 'KeyD' || e.code === 'Space') keys.ArrowRight = true;
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.ArrowLeft = true;
+  });
+
+  window.addEventListener('keyup', (e) => {
+    if (e.code === 'ArrowRight' || e.code === 'KeyD' || e.code === 'Space') keys.ArrowRight = false;
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.ArrowLeft = false;
+  });
+
+  const addTouchEvents = (btn, key) => {
+    btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; });
+    btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
+    btn.addEventListener('mousedown', () => keys[key] = true);
+    btn.addEventListener('mouseup', () => keys[key] = false);
+  };
+  addTouchEvents(btnGas, 'ArrowRight');
+  addTouchEvents(btnBrake, 'ArrowLeft');
+  startBtn.addEventListener('click', startGame);
+
+  function update() {
+    if (gameState !== 'PLAYING') return;
+
+    currentLevel = Math.floor(score / 300) + 1;
+    levelDisplay.innerText = currentLevel;
+
+    if (car.x + 2000 > generatedChunkX) {
+      generateProceduralCollectibles(generatedChunkX, generatedChunkX + 2500);
+      generatedChunkX += 2500;
+    }
+
+    const enginePower = 0.24 + (upgrades.engine * 0.04);
+    const fuelDepletionRate = 0.05 + (currentLevel * 0.004);
+
+    if (keys.ArrowRight && fuel > 0) {
+      if (car.isGrounded) {
+        car.vx += enginePower;
+        createParticle(car.x - Math.cos(car.angle) * 35, car.y - Math.sin(car.angle) * 10, '#64748b', 4 + Math.random()*4, -car.vx*0.2, (Math.random()-0.5)*2);
+      } else {
+        car.angularVelocity += 0.006;
+      }
+      fuel -= fuelDepletionRate;
+    }
+    if (keys.ArrowLeft) {
+      if (car.isGrounded) car.vx -= 0.2;
+      else car.angularVelocity -= 0.006;
+    }
+
+    car.vy += baseGravity + (currentLevel * 0.01);
+    car.x += car.vx;
+    car.y += car.vy;
+    car.angle += car.angularVelocity;
+
+    car.wheelRotation += car.vx * 0.12;
+    car.bodyBounce = car.isGrounded ? Math.sin(Date.now() * 0.025) * Math.min(Math.abs(car.vx) * 0.4, 3) : 0;
+
+    const gripFriction = 0.985 + (upgrades.grip * 0.003);
+    car.vx *= Math.min(0.995, gripFriction);
+    car.angularVelocity *= 0.94;
+
+    const terrainY = getTerrainHeight(car.x);
+    const targetAngle = getTerrainAngle(car.x);
+
+    if (!car.isGrounded) {
+      totalAirRotation += car.angle - lastAngle;
+      if (Math.abs(totalAirRotation) >= Math.PI * 1.85) {
+        coins += 25;
+        fuel = Math.min(maxFuel, fuel + 25);
+        showStuntMessage("FLIP BONUS +25 COINS!");
+        totalAirRotation = 0;
+      }
+    } else {
+      totalAirRotation = 0;
+    }
+    lastAngle = car.angle;
+
+    if (car.y + car.height/2 >= terrainY) {
+      car.y = terrainY - car.height/2;
+      car.vy = 0;
+
+      let relativeAngle = (car.angle - targetAngle) % (Math.PI * 2);
+      if (relativeAngle < -Math.PI) relativeAngle += Math.PI * 2;
+      if (relativeAngle > Math.PI) relativeAngle -= Math.PI * 2;
+
+      const crashLimit = Math.PI * (0.52 - Math.min(currentLevel * 0.015, 0.12));
+      if (Math.abs(relativeAngle) > crashLimit) {
+        gameOver("CRASHED & FLIPPED!");
+        return;
+      }
+
+      car.angle += (targetAngle - car.angle) * 0.25;
+      car.isGrounded = true;
+
+      if (Math.abs(car.vx) > 2) {
+        createParticle(car.x - 25, car.y + 10, '#d97706', 3 + Math.random()*4, -car.vx*0.3, -Math.random()*2);
+      }
+    } else {
+      car.isGrounded = false;
+    }
+
+    if (fuel <= 0 && Math.abs(car.vx) < 0.1) {
+      gameOver("OUT OF FUEL!");
+      return;
+    }
+
+    coinItems.forEach(c => {
+      if (!c.collected && Math.hypot(car.x - c.x, car.y - c.y) < 36) {
+        c.collected = true;
+        coins += 1;
+      }
+    });
+
+    fuelItems.forEach(f => {
+      if (!f.collected && Math.hypot(car.x - f.x, car.y - f.y) < 36) {
+        f.collected = true;
+        fuel = Math.min(maxFuel, fuel + 45);
+      }
+    });
+
+    boosterItems.forEach(b => {
+      if (!b.collected && Math.hypot(car.x - b.x, car.y - b.y) < 36) {
+        b.collected = true;
+        car.vx += 8.5;
+        showStuntMessage("NITRO BOOST!🚀");
+      }
+    });
+
+    cameraX += (car.x - cameraX - canvas.width * 0.25) * 0.1;
+    cameraY += (car.y - cameraY - canvas.height * 0.4) * 0.1;
+
+    if (car.vx > 0) score += car.vx * 0.04;
+
+    scoreDisplay.innerText = Math.floor(score);
+    speedDisplay.innerText = Math.floor(Math.abs(car.vx) * 8);
+    coinDisplay.innerText = coins;
+    fuelBarFill.style.width = `${Math.max(0, (fuel / maxFuel) * 100)}%`;
+
+    updateParticles();
+  }
+
+  function drawOriginalCar() {
+    ctx.save();
+    ctx.translate(0, car.bodyBounce);
+
+    const bodyGrad = ctx.createLinearGradient(0, -25, 0, 10);
+    bodyGrad.addColorStop(0, '#ef4444');
+    bodyGrad.addColorStop(0.5, '#dc2626');
+    bodyGrad.addColorStop(1, '#991b1b');
+
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(-38, -12, 76, 20, [4, 8, 4, 4]);
+    } else {
+      ctx.rect(-38, -12, 76, 20);
+    }
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(-20, -12); ctx.lineTo(-10, -26); ctx.lineTo(18, -26); ctx.lineTo(28, -12);
+    ctx.closePath();
+    ctx.fillStyle = '#b91c1c';
+    ctx.fill();
+
+    const winGrad = ctx.createLinearGradient(-10, -25, 20, -12);
+    winGrad.addColorStop(0, '#38bdf8');
+    winGrad.addColorStop(1, '#0284c7');
+
+    ctx.fillStyle = winGrad;
+    ctx.beginPath();
+    ctx.moveTo(-8, -13); ctx.lineTo(-2, -24); ctx.lineTo(15, -24); ctx.lineTo(22, -13);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(6, -24); ctx.lineTo(6, -13);
+    ctx.stroke();
+
+    ctx.fillStyle = '#fef08a';
+    ctx.beginPath();
+    ctx.arc(36, -4, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    const beamGrad = ctx.createRadialGradient(38, -4, 0, 65, -4, 30);
+    beamGrad.addColorStop(0, 'rgba(254, 240, 138, 0.5)');
+    beamGrad.addColorStop(1, 'rgba(254, 240, 138, 0)');
+    ctx.fillStyle = beamGrad;
+    ctx.beginPath();
+    ctx.moveTo(38, -4); ctx.lineTo(70, -15); ctx.lineTo(70, 10);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#f43f5e';
+    ctx.fillRect(-38, -8, 3, 6);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(-22, 6, 17, Math.PI, 0);
+    ctx.arc(22, 6, 17, Math.PI, 0);
+    ctx.fill();
+
+    ctx.restore();
+
+    drawWheel(-22, 8, 13, car.wheelRotation);
+    drawWheel(22, 8, 13, car.wheelRotation);
+  }
+
+  function drawWheel(x, y, radius, rotation) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius - 1, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i++) {
+      let angle = (i * Math.PI * 2) / 5;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(angle) * (radius * 0.5), Math.sin(angle) * (radius * 0.5));
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(0, 0, radius * 0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const themeIndex = (currentLevel - 1) % themes.length;
+    const currentTheme = themes[themeIndex];
+
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    skyGradient.addColorStop(0, currentTheme.sky[0]);
+    skyGradient.addColorStop(0.7, currentTheme.sky[1]);
+    skyGradient.addColorStop(1, currentTheme.sky[2]);
+    ctx.fillStyle = skyGradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#fde047';
+    ctx.beginPath();
+    ctx.arc(canvas.width - 100, 70, 35, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.save();
+    ctx.translate(-cameraX, -cameraY * 0.3);
+
+    ctx.fillStyle = currentTheme.mountain;
+    ctx.beginPath();
+    ctx.moveTo(cameraX - 100, canvas.height + 200);
+    for (let x = cameraX - 100; x < cameraX + canvas.width + 200; x += 20) {
+      let bgY = Math.sin(x * 0.001) * 120 + Math.cos(x * 0.003) * 60 + 200;
+      ctx.lineTo(x, bgY);
+    }
+    ctx.lineTo(cameraX + canvas.width + 200, canvas.height + 200);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(cameraX - 100, canvas.height + 500);
+    for (let x = cameraX - 100; x < cameraX + canvas.width + 200; x += 10) {
+      ctx.lineTo(x, getTerrainHeight(x));
+    }
+    ctx.lineTo(cameraX + canvas.width + 200, canvas.height + 500);
+    ctx.fillStyle = currentTheme.terrain;
+    ctx.fill();
+
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = currentTheme.grass;
+    ctx.stroke();
+
+    coinItems.forEach(c => {
+      if (!c.collected && c.x > cameraX - 50 && c.x < cameraX + canvas.width + 50) {
+        ctx.fillStyle = '#fbbf24';
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    });
+
+    fuelItems.forEach(f => {
+      if (!f.collected && f.x > cameraX - 50 && f.x < cameraX + canvas.width + 50) {
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(f.x - 8, f.y - 10, 16, 20);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(f.x - 3, f.y - 6, 6, 12);
+      }
+    });
+
+    boosterItems.forEach(b => {
+      if (!b.collected && b.x > cameraX - 50 && b.x < cameraX + canvas.width + 50) {
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 11, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillText('N2O', b.x - 9, b.y + 3);
+      }
+    });
+
+    drawParticles();
+
+    ctx.save();
+    ctx.translate(car.x, car.y);
+    ctx.rotate(car.angle);
+
+    drawOriginalCar();
+
+    ctx.restore();
+    ctx.restore();
+  }
+
+  function gameLoop() {
+    update();
+    draw();
+    if (gameState === 'PLAYING') {
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
+  }
+
+  updateShopUI();
+  resetGame();
+  draw();
+})();
+</script>
+
+</body>
+</html>

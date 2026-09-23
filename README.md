@@ -50,7 +50,7 @@ Built with **pure HTML5, CSS3, and modern Vanilla JavaScript**, GameHub runs smo
 | 9 | **Midnight Debugger** | 💻 Clicker / Reflex | `Click / Touch Squashing` | Patch production bugs before the server crashes and client stability drops to zero! |
 | 10 | **Mosquito Crusher** | 🦟 Casual Reflex | `Click / Touch Swatting` | Swat irritating mosquitoes buzzing around the bedroom before they bite and disturb your sleep! |
 | 11 | **TypeMaster Pro** | ⌨️ Typing & Skill | Keyboard Typing | Clean typing speed test with real-time WPM, character accuracy tracker, and custom word lists. |
-| 12 | **Image Puzzle Master** | 🧩 Art & Custom Photo | `Touch Swipe / Click / Upload` | Solve sliding puzzles of real world masterpieces (*The Starry Night, The Great Wave, Mona Lisa, Mount Fuji*) or upload any photo from your device! |
+| 12 | **Image Puzzle Master** | 🧩 Photo Campaign | `Touch Swipe / Click / Upload` | Real photograph campaign (*Eiffel Tower, Bengal Tiger, Taj Mahal, Giant Panda, Mt Fuji, Swiss Alps*) with progressive level unlocking + custom photo upload! |
 | 13 | **Cyber Tic-Tac-Toe Deluxe** | ⚔️ Strategy Duel | `Touch / Click` | Holographic neon duel vs Novice, Tactician, or Unbeatable Minimax AI, plus 2-player local mode. |
 | 14 | **Neon Viper: Cyber Snake** | 🐍 Cyber Arcade | `Arrows / Swipe / D-Pad` | Bioluminescent viper arcade game with power-up foods, speed levels, and labyrinth obstacles. |
 | 15 | **2048 Neon Fusion** | 🔢 Logic Puzzle | `Arrows / WASD / Swipe` | Cyberpunk sliding tile puzzle with 3D glowing tiles, merge pop animations, and undo moves. |

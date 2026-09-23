@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
-  <title>Image Puzzle Master — Sliding Art & Custom Photo Challenge</title>
+  <title>Image Puzzle Master — Real World Wonders & Wildlife Challenge</title>
   <style>
     :root {
       --bg-dark: #07090e;
@@ -52,7 +52,8 @@
       padding: 18px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
+      position: relative;
     }
 
     /* Header */
@@ -87,34 +88,76 @@
     }
 
     .game-subtitle {
-      font-size: 0.76rem;
+      font-size: 0.74rem;
       color: var(--text-muted);
     }
 
     .hud-stats {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
+      flex-wrap: wrap;
     }
 
     .stat-pill {
       background: var(--bg-card);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 6px 12px;
+      padding: 5px 12px;
       border-radius: 30px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       color: var(--accent-cyan);
     }
 
-    /* Carousel Bar */
+    .stat-pill.stars-pill {
+      color: var(--accent-gold);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    /* Campaign Bar */
+    .campaign-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: 12px;
+      padding: 8px 14px;
+      font-size: 0.78rem;
+    }
+
+    .campaign-title {
+      font-weight: 800;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-reset-campaign {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-reset-campaign:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    /* Carousel Selector */
     .selector-bar {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       background: rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: 14px;
@@ -140,21 +183,20 @@
       background: linear-gradient(135deg, rgba(192, 132, 252, 0.15), rgba(168, 85, 247, 0.25));
       border: 1px solid var(--accent-purple);
       color: #e9d5ff;
-      padding: 5px 12px;
+      padding: 4px 12px;
       border-radius: 8px;
-      font-size: 0.76rem;
+      font-size: 0.75rem;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       transition: all 0.2s;
     }
 
     .btn-upload:hover {
       background: linear-gradient(135deg, rgba(192, 132, 252, 0.3), rgba(168, 85, 247, 0.45));
       box-shadow: 0 0 12px rgba(192, 132, 252, 0.4);
-      transform: translateY(-1px);
     }
 
     .stages-carousel {
@@ -174,9 +216,10 @@
       border-radius: 4px;
     }
 
+    /* Stage Card */
     .stage-card {
-      flex: 0 0 92px;
-      height: 64px;
+      flex: 0 0 96px;
+      height: 68px;
       border-radius: 10px;
       border: 2px solid transparent;
       cursor: pointer;
@@ -192,7 +235,7 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      opacity: 0.65;
+      opacity: 0.75;
       transition: opacity 0.2s;
     }
 
@@ -207,6 +250,36 @@
       opacity: 1;
     }
 
+    /* Locked Card State */
+    .stage-card.locked {
+      cursor: not-allowed;
+      border-color: rgba(255, 255, 255, 0.08);
+      filter: grayscale(85%) brightness(0.6);
+    }
+
+    .stage-card.locked canvas {
+      opacity: 0.35;
+    }
+
+    .lock-badge-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(5, 8, 16, 0.7);
+      backdrop-filter: blur(1.5px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 0.68rem;
+      font-weight: 800;
+      gap: 2px;
+    }
+
+    .lock-icon {
+      font-size: 18px;
+    }
+
     .stage-card .badge-custom {
       position: absolute;
       top: 3px;
@@ -219,12 +292,20 @@
       font-weight: 800;
     }
 
+    .stage-stars-row {
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      font-size: 0.6rem;
+      letter-spacing: -1px;
+    }
+
     .stage-name {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      background: rgba(5, 8, 16, 0.88);
+      background: rgba(5, 8, 16, 0.9);
       backdrop-filter: blur(4px);
       font-size: 0.62rem;
       font-weight: 700;
@@ -330,8 +411,8 @@
     .tile {
       position: absolute;
       box-sizing: border-box;
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.35);
       cursor: pointer;
       transition: left 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.16s cubic-bezier(0.2, 0.8, 0.2, 1);
       display: flex;
@@ -361,7 +442,7 @@
       display: none;
     }
 
-    /* Modals */
+    /* Modals & Popups */
     .win-modal {
       position: absolute;
       inset: 0;
@@ -404,8 +485,25 @@
       letter-spacing: 1px;
     }
 
+    .unlock-banner {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(234, 179, 8, 0.35));
+      border: 1px solid var(--accent-gold);
+      color: #fef08a;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 900;
+      font-size: 0.85rem;
+      margin: 8px 0;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
     .win-stats {
-      margin: 12px 0;
+      margin: 10px 0;
       font-size: 0.92rem;
       color: var(--text-muted);
       line-height: 1.6;
@@ -417,7 +515,7 @@
 
     .stars-box {
       font-size: 26px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       letter-spacing: 4px;
     }
 
@@ -458,6 +556,31 @@
       display: block;
     }
 
+    /* Toast Notification */
+    .toast-notice {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-30px);
+      background: #1e1b4b;
+      border: 1px solid #c084fc;
+      color: #e9d5ff;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 15px rgba(192, 132, 252, 0.4);
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .toast-notice.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
     /* Footer Guidance */
     .footer-tips {
       font-size: 0.74rem;
@@ -477,8 +600,8 @@
         font-size: 1.15rem;
       }
       .stat-pill {
-        padding: 4px 10px;
-        font-size: 0.74rem;
+        padding: 4px 8px;
+        font-size: 0.72rem;
       }
       .diff-btn {
         padding: 5px 8px;
@@ -490,17 +613,23 @@
 <body>
 
   <div class="game-wrapper">
+    <!-- Toast Alert for Locked Levels -->
+    <div class="toast-notice" id="toastNotice">🔒 Complete previous level to unlock!</div>
+
     <!-- Header -->
     <div class="header">
       <div class="header-title-box">
         <div class="header-icon">🧩</div>
         <div>
           <h1 class="game-title">IMAGE PUZZLE MASTER</h1>
-          <p class="game-subtitle">Famous Real Masterpieces & Custom Photo Sliding Puzzle</p>
+          <p class="game-subtitle">Real World Photography • Progressive Level Unlock</p>
         </div>
       </div>
 
       <div class="hud-stats">
+        <div class="stat-pill stars-pill">
+          <span>⭐</span> <span id="totalStarsVal">0/24 Stars</span>
+        </div>
         <div class="stat-pill">
           <span>⏱️</span> <span id="timeVal">00:00</span>
         </div>
@@ -510,10 +639,21 @@
       </div>
     </div>
 
+    <!-- Campaign Status Banner -->
+    <div class="campaign-bar">
+      <div class="campaign-title">
+        <span>🏆 Level <strong id="hudLevelNum">1</strong>: <span id="hudLevelName">Eiffel Tower</span></span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="color: var(--text-muted);" id="hudProgressRatio">Unlocked: 1/8</span>
+        <button class="btn-reset-campaign" id="btnResetCampaign" title="Reset campaign progression">Reset ↺</button>
+      </div>
+    </div>
+
     <!-- Stage & Difficulty Controls -->
     <div class="selector-bar">
       <div class="selector-header">
-        <span class="selector-title">Famous Artworks & Custom Photos</span>
+        <span class="selector-title">Campaign Levels (Solve to Unlock)</span>
         <button class="btn-upload" id="btnUploadPhoto" title="Upload any picture from your device">
           <span>📁</span> <span>Upload Photo</span>
         </button>
@@ -558,644 +698,128 @@
       <!-- Victory Screen -->
       <div class="win-modal" id="winModal">
         <div class="win-icon">🏆</div>
-        <h2 class="win-title">PUZZLE SOLVED!</h2>
+        <h2 class="win-title">LEVEL SOLVED!</h2>
         <div class="stars-box" id="winStars">⭐⭐⭐</div>
+        <div class="unlock-banner" id="winUnlockBanner" style="display: none;">
+          🔓 NEXT LEVEL UNLOCKED!
+        </div>
         <div class="win-stats">
           Solved in <strong id="winMoves">0</strong> moves!<br>
           Completion Time: <strong id="winTime">00:00</strong>
         </div>
-        <button class="btn-action btn-shuffle" style="padding: 9px 22px; font-size: 0.95rem;" onclick="nextStage()">
-          <span>Next Artwork ▶</span>
+        <button class="btn-action btn-shuffle" id="btnNextLevel" style="padding: 9px 24px; font-size: 0.95rem;" onclick="nextStage()">
+          <span>Next Level ▶</span>
         </button>
       </div>
     </div>
 
     <!-- Bottom Guidance -->
     <div class="footer-tips">
-      <span>💡 Tap or Swipe tiles next to empty slot to slide</span>
-      <span>📷 Upload your own photo anytime to play custom puzzles</span>
+      <span>💡 Solve each level to unlock the next real photograph</span>
+      <span>📷 Upload your own photo anytime to play free custom puzzles</span>
     </div>
   </div>
 
   <!-- Full Preview Modal -->
   <div class="preview-modal" id="previewModal" onclick="closePreview()">
     <div class="preview-content" onclick="event.stopPropagation()">
-      <h3 style="font-size: 1.05rem; color: var(--accent-cyan);" id="previewTitle">Image Preview</h3>
+      <h3 style="font-size: 1.05rem; color: var(--accent-cyan);" id="previewTitle">Reference Photograph</h3>
       <canvas id="previewCanvas" width="450" height="450"></canvas>
       <button class="btn-action" onclick="closePreview()">Close Preview [✕]</button>
     </div>
   </div>
 
   <script>
-    // --- FAMOUS MASTERPIECES & REALISTIC ARTWORK PRESETS ---
+    // --- REAL PHOTOGRAPHIC CAMPAIGN STAGES ---
     const STAGES = [
       {
-        id: 'starry_night',
-        name: 'The Starry Night',
-        artist: 'Vincent van Gogh (1889)',
-        draw: (ctx, w, h) => {
-          // Night Sky Gradient
-          const sky = ctx.createLinearGradient(0, 0, 0, h * 0.75);
-          sky.addColorStop(0, '#0c1b33');
-          sky.addColorStop(0.4, '#152b52');
-          sky.addColorStop(0.7, '#1e3a8a');
-          sky.addColorStop(1, '#091428');
-          ctx.fillStyle = sky;
-          ctx.fillRect(0, 0, w, h);
-
-          // Dynamic Swirling Sky Currents (Van Gogh's brush stroke texture)
-          ctx.lineWidth = 4;
-          const swirlPoints = [
-            { cx: w * 0.42, cy: h * 0.32, r: 90, color: '#fef08a' },
-            { cx: w * 0.55, cy: h * 0.38, r: 120, color: '#93c5fd' },
-            { cx: w * 0.28, cy: h * 0.24, r: 65, color: '#38bdf8' }
-          ];
-          swirlPoints.forEach(sw => {
-            for (let angle = 0; angle < Math.PI * 4; angle += 0.2) {
-              const rad = (angle / (Math.PI * 4)) * sw.r;
-              const x = sw.cx + Math.cos(angle) * rad;
-              const y = sw.cy + Math.sin(angle) * (rad * 0.65);
-              ctx.strokeStyle = angle % 0.4 < 0.2 ? sw.color : '#60a5fa';
-              ctx.beginPath();
-              ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-              ctx.stroke();
-            }
-          });
-
-          // Golden Crescent Moon with Glowing Aureole
-          const moonX = w * 0.82, moonY = h * 0.18;
-          const moonGlow = ctx.createRadialGradient(moonX, moonY, 10, moonX, moonY, 70);
-          moonGlow.addColorStop(0, 'rgba(254, 240, 138, 0.9)');
-          moonGlow.addColorStop(0.4, 'rgba(250, 204, 21, 0.5)');
-          moonGlow.addColorStop(1, 'rgba(250, 204, 21, 0)');
-          ctx.fillStyle = moonGlow;
-          ctx.beginPath();
-          ctx.arc(moonX, moonY, 70, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = '#fef08a';
-          ctx.beginPath();
-          ctx.arc(moonX, moonY, 26, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#152b52';
-          ctx.beginPath();
-          ctx.arc(moonX - 9, moonY - 5, 23, 0, Math.PI * 2);
-          ctx.fill();
-
-          // 11 Swirling Radiant Stars
-          const stars = [
-            { x: w * 0.15, y: h * 0.12, r: 18 },
-            { x: w * 0.32, y: h * 0.16, r: 22 },
-            { x: w * 0.62, y: h * 0.15, r: 20 },
-            { x: w * 0.70, y: h * 0.28, r: 16 },
-            { x: w * 0.48, y: h * 0.22, r: 24 },
-            { x: w * 0.22, y: h * 0.38, r: 15 },
-            { x: w * 0.88, y: h * 0.40, r: 14 }
-          ];
-          stars.forEach(s => {
-            const glow = ctx.createRadialGradient(s.x, s.y, 2, s.x, s.y, s.r);
-            glow.addColorStop(0, '#ffffff');
-            glow.addColorStop(0.3, '#fef08a');
-            glow.addColorStop(0.7, 'rgba(234, 179, 8, 0.4)');
-            glow.addColorStop(1, 'rgba(234, 179, 8, 0)');
-            ctx.fillStyle = glow;
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, 3, 0, Math.PI * 2);
-            ctx.fill();
-          });
-
-          // Rolling Blue Alpilles Hills across horizon
-          ctx.fillStyle = '#0f172a';
-          ctx.beginPath();
-          ctx.moveTo(0, h * 0.65);
-          ctx.bezierCurveTo(w * 0.25, h * 0.58, w * 0.45, h * 0.64, w * 0.7, h * 0.60);
-          ctx.bezierCurveTo(w * 0.85, h * 0.58, w * 0.95, h * 0.62, w, h * 0.64);
-          ctx.lineTo(w, h);
-          ctx.lineTo(0, h);
-          ctx.fill();
-
-          // Saint-Rémy Village Houses & Church Steeple
-          ctx.fillStyle = '#1e293b';
-          for (let i = 0; i < 9; i++) {
-            const bx = w * 0.35 + i * 28;
-            const bh = 22 + (i % 3) * 8;
-            ctx.fillRect(bx, h * 0.72 - bh, 22, bh);
-            // Window glow
-            ctx.fillStyle = '#fef08a';
-            ctx.fillRect(bx + 6, h * 0.72 - bh + 6, 4, 6);
-            ctx.fillStyle = '#1e293b';
-          }
-          // Church steeple
-          ctx.beginPath();
-          ctx.moveTo(w * 0.58, h * 0.72);
-          ctx.lineTo(w * 0.60, h * 0.52);
-          ctx.lineTo(w * 0.62, h * 0.72);
-          ctx.fill();
-
-          // Foreground Ground
-          ctx.fillStyle = '#061325';
-          ctx.fillRect(0, h * 0.72, w, h * 0.28);
-
-          // Towering Cypress Tree on left (Flaming undulating silhouette)
-          ctx.fillStyle = '#051b14';
-          ctx.beginPath();
-          ctx.moveTo(w * 0.04, h);
-          ctx.bezierCurveTo(w * 0.08, h * 0.75, w * 0.02, h * 0.5, w * 0.12, h * 0.22);
-          ctx.bezierCurveTo(w * 0.14, h * 0.16, w * 0.18, h * 0.18, w * 0.18, h * 0.24);
-          ctx.bezierCurveTo(w * 0.26, h * 0.48, w * 0.22, h * 0.72, w * 0.28, h);
-          ctx.closePath();
-          ctx.fill();
-        }
+        id: 'eiffel_tower',
+        name: 'Eiffel Tower',
+        location: 'Paris, France',
+        src: 'assets/puzzle/eiffel_tower.jpg',
+        defaultGrid: 3
       },
       {
-        id: 'great_wave',
-        name: 'The Great Wave',
-        artist: 'Hokusai (c. 1831)',
-        draw: (ctx, w, h) => {
-          // Subtle Japanese Washi Paper Sky & Clouds
-          const sky = ctx.createLinearGradient(0, 0, 0, h * 0.65);
-          sky.addColorStop(0, '#f2ece1');
-          sky.addColorStop(0.5, '#e4d8c3');
-          sky.addColorStop(1, '#94a3b8');
-          ctx.fillStyle = sky;
-          ctx.fillRect(0, 0, w, h);
-
-          // Mount Fuji in the deep center distance
-          ctx.fillStyle = '#1e293b';
-          ctx.beginPath();
-          ctx.moveTo(w * 0.40, h * 0.68);
-          ctx.lineTo(w * 0.49, h * 0.54);
-          ctx.lineTo(w * 0.50, h * 0.54);
-          ctx.lineTo(w * 0.59, h * 0.68);
-          ctx.closePath();
-          ctx.fill();
-          // Fuji Snow Cap
-          ctx.fillStyle = '#ffffff';
-          ctx.beginPath();
-          ctx.moveTo(w * 0.46, h * 0.58);
-          ctx.lineTo(w * 0.49, h * 0.54);
-          ctx.lineTo(w * 0.50, h * 0.54);
-          ctx.lineTo(w * 0.53, h * 0.58);
-          ctx.bezierCurveTo(w * 0.51, h * 0.60, w * 0.48, h * 0.60, w * 0.46, h * 0.58);
-          ctx.fill();
-
-          // Traditional Japanese Wooden Cargo Boats
-          ctx.fillStyle = '#d97706';
-          ctx.beginPath();
-          ctx.ellipse(w * 0.45, h * 0.74, 55, 9, -0.15, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Surging Indigo & Prussian Blue Great Wave
-          const deepIndigo = '#0f2f5c';
-          const midBlue = '#1d4ed8';
-
-          // Secondary Background Wave
-          ctx.fillStyle = deepIndigo;
-          ctx.beginPath();
-          ctx.moveTo(w * 0.2, h);
-          ctx.bezierCurveTo(w * 0.4, h * 0.68, w * 0.7, h * 0.65, w, h * 0.72);
-          ctx.lineTo(w, h);
-          ctx.fill();
-
-          // Main Giant Cresting Wave
-          ctx.fillStyle = deepIndigo;
-          ctx.beginPath();
-          ctx.moveTo(0, h * 0.85);
-          ctx.bezierCurveTo(w * 0.1, h * 0.6, w * 0.12, h * 0.35, w * 0.38, h * 0.18);
-          // Curling Claw Crest
-          ctx.bezierCurveTo(w * 0.52, h * 0.12, w * 0.65, h * 0.22, w * 0.64, h * 0.38);
-          ctx.bezierCurveTo(w * 0.58, h * 0.46, w * 0.48, h * 0.42, w * 0.42, h * 0.48);
-          ctx.bezierCurveTo(w * 0.28, h * 0.62, w * 0.25, h * 0.85, 0, h);
-          ctx.closePath();
-          ctx.fill();
-
-          // Wave Blue Layer Highlights
-          ctx.strokeStyle = midBlue;
-          ctx.lineWidth = 6;
-          for (let arc = 0; arc < 4; arc++) {
-            ctx.beginPath();
-            ctx.arc(w * 0.38, h * 0.45 + arc * 14, 110 + arc * 18, 1.1 * Math.PI, 1.9 * Math.PI);
-            ctx.stroke();
-          }
-
-          // Iconic White Foam Claws & Spray
-          ctx.fillStyle = '#f8fafc';
-          const claws = [
-            { x: w * 0.40, y: h * 0.16, r: 16 },
-            { x: w * 0.48, y: h * 0.14, r: 18 },
-            { x: w * 0.56, y: h * 0.17, r: 20 },
-            { x: w * 0.62, y: h * 0.24, r: 17 },
-            { x: w * 0.65, y: h * 0.33, r: 15 },
-            { x: w * 0.54, y: h * 0.28, r: 12 },
-            { x: w * 0.46, y: h * 0.26, r: 14 }
-          ];
-          claws.forEach(c => {
-            ctx.beginPath();
-            ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-            ctx.fill();
-            // Foam finger extension
-            ctx.beginPath();
-            ctx.moveTo(c.x, c.y);
-            ctx.lineTo(c.x + 12, c.y - 12);
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = '#fff';
-            ctx.stroke();
-          });
-
-          // Scattered Sea Foam Droplets
-          for (let d = 0; d < 70; d++) {
-            const fx = w * 0.3 + Math.random() * w * 0.45;
-            const fy = h * 0.15 + Math.random() * h * 0.45;
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(fx, fy, 2.5, 2.5);
-          }
-        }
+        id: 'bengal_tiger',
+        name: 'Royal Bengal Tiger',
+        location: 'Sundarbans Forest',
+        src: 'assets/puzzle/bengal_tiger.jpg',
+        defaultGrid: 3
       },
       {
-        id: 'mona_lisa',
-        name: 'Mona Lisa',
-        artist: 'Leonardo da Vinci (1503)',
-        draw: (ctx, w, h) => {
-          // Warm Renaissance Chiaroscuro Background (Misty Italian Hills & Sfumato River)
-          const bg = ctx.createLinearGradient(0, 0, 0, h);
-          bg.addColorStop(0, '#536965');
-          bg.addColorStop(0.3, '#70836b');
-          bg.addColorStop(0.55, '#87764f');
-          bg.addColorStop(1, '#2c2217');
-          ctx.fillStyle = bg;
-          ctx.fillRect(0, 0, w, h);
-
-          // Winding Tuscan river and mountain bridges
-          ctx.strokeStyle = '#435e58';
-          ctx.lineWidth = 14;
-          ctx.beginPath();
-          ctx.moveTo(w * 0.7, h * 0.4);
-          ctx.bezierCurveTo(w * 0.85, h * 0.45, w * 0.72, h * 0.52, w * 0.88, h * 0.55);
-          ctx.stroke();
-
-          // Dark Florentine Balcony Ledge
-          ctx.fillStyle = '#1c150e';
-          ctx.fillRect(0, h * 0.86, w, h * 0.14);
-
-          // Mona Lisa Hair & Dark Translucent Veil
-          ctx.fillStyle = '#17110c';
-          ctx.beginPath();
-          ctx.ellipse(w * 0.5, h * 0.38, 95, 115, 0, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Flowing Dark Silk Dress with Golden Embroidery
-          ctx.fillStyle = '#1f241a';
-          ctx.beginPath();
-          ctx.moveTo(w * 0.22, h * 0.86);
-          ctx.bezierCurveTo(w * 0.28, h * 0.52, w * 0.38, h * 0.44, w * 0.5, h * 0.44);
-          ctx.bezierCurveTo(w * 0.62, h * 0.44, w * 0.72, h * 0.52, w * 0.78, h * 0.86);
-          ctx.closePath();
-          ctx.fill();
-
-          // Sfumato Neck & Decolletage
-          ctx.fillStyle = '#d4aa7d';
-          ctx.beginPath();
-          ctx.ellipse(w * 0.5, h * 0.44, 34, 40, 0, 0, Math.PI);
-          ctx.fill();
-
-          // Enigmatic Face
-          const face = ctx.createRadialGradient(w * 0.5, h * 0.32, 10, w * 0.5, h * 0.32, 60);
-          face.addColorStop(0, '#f0ceaa');
-          face.addColorStop(0.7, '#d2a77a');
-          face.addColorStop(1, '#a67c52');
-          ctx.fillStyle = face;
-          ctx.beginPath();
-          ctx.ellipse(w * 0.5, h * 0.33, 44, 56, 0, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Dark Soft Renaissance Ringlets Framing Face
-          ctx.fillStyle = '#1c140d';
-          ctx.beginPath();
-          ctx.ellipse(w * 0.41, h * 0.36, 14, 45, -0.1, 0, Math.PI * 2);
-          ctx.ellipse(w * 0.59, h * 0.36, 14, 45, 0.1, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Mysterious Eyes & Sfumato Shading
-          ctx.fillStyle = '#452c1a';
-          ctx.beginPath();
-          ctx.ellipse(w * 0.45, h * 0.31, 6, 3, -0.05, 0, Math.PI * 2);
-          ctx.ellipse(w * 0.55, h * 0.31, 6, 3, 0.05, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Gentle Aquiline Nose Shadow
-          ctx.strokeStyle = '#8d5d39';
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.moveTo(w * 0.50, h * 0.30);
-          ctx.lineTo(w * 0.50, h * 0.36);
-          ctx.lineTo(w * 0.48, h * 0.37);
-          ctx.stroke();
-
-          // Famous Subtle Enigmatic Smile
-          ctx.fillStyle = '#873c33';
-          ctx.beginPath();
-          ctx.ellipse(w * 0.50, h * 0.40, 8, 3, 0.05, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Crossed Hands in Foreground (Classical Mastery Pose)
-          ctx.fillStyle = '#d2a77a';
-          ctx.beginPath();
-          ctx.ellipse(w * 0.44, h * 0.82, 38, 16, -0.2, 0, Math.PI * 2);
-          ctx.ellipse(w * 0.56, h * 0.81, 40, 16, 0.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        id: 'taj_mahal',
+        name: 'Taj Mahal',
+        location: 'Agra, India',
+        src: 'assets/puzzle/taj_mahal.jpg',
+        defaultGrid: 3
+      },
+      {
+        id: 'cute_panda',
+        name: 'Giant Panda',
+        location: 'Chengdu Sanctuary',
+        src: 'assets/puzzle/cute_panda.jpg',
+        defaultGrid: 4
       },
       {
         id: 'mount_fuji',
-        name: 'Mount Fuji & Sakura',
-        artist: 'Japan Scenic Wonder',
-        draw: (ctx, w, h) => {
-          // Clear Japanese Morning Sky
-          const sky = ctx.createLinearGradient(0, 0, 0, h * 0.65);
-          sky.addColorStop(0, '#38bdf8');
-          sky.addColorStop(0.5, '#bae6fd');
-          sky.addColorStop(1, '#fed7aa');
-          ctx.fillStyle = sky;
-          ctx.fillRect(0, 0, w, h);
-
-          // Giant Symmetrical Mount Fuji
-          const fujiBaseY = h * 0.68;
-          ctx.fillStyle = '#1e3a8a';
-          ctx.beginPath();
-          ctx.moveTo(w * 0.12, fujiBaseY);
-          ctx.bezierCurveTo(w * 0.32, h * 0.52, w * 0.42, h * 0.35, w * 0.46, h * 0.31);
-          ctx.lineTo(w * 0.54, h * 0.31);
-          ctx.bezierCurveTo(w * 0.58, h * 0.35, w * 0.68, h * 0.52, w * 0.88, fujiBaseY);
-          ctx.closePath();
-          ctx.fill();
-
-          // Snow Cap with Glacial Ridges
-          ctx.fillStyle = '#ffffff';
-          ctx.beginPath();
-          ctx.moveTo(w * 0.46, h * 0.31);
-          ctx.lineTo(w * 0.54, h * 0.31);
-          ctx.lineTo(w * 0.60, h * 0.42);
-          ctx.lineTo(w * 0.57, h * 0.46);
-          ctx.lineTo(w * 0.53, h * 0.41);
-          ctx.lineTo(w * 0.50, h * 0.47);
-          ctx.lineTo(w * 0.47, h * 0.40);
-          ctx.lineTo(w * 0.43, h * 0.46);
-          ctx.lineTo(w * 0.40, h * 0.42);
-          ctx.closePath();
-          ctx.fill();
-
-          // Lake Kawaguchi Mirror Reflection
-          const lake = ctx.createLinearGradient(0, fujiBaseY, 0, h);
-          lake.addColorStop(0, '#0284c7');
-          lake.addColorStop(0.5, '#0369a1');
-          lake.addColorStop(1, '#075985');
-          ctx.fillStyle = lake;
-          ctx.fillRect(0, fujiBaseY, w, h - fujiBaseY);
-
-          // Mountain reflection shimmer
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-          for (let y = fujiBaseY + 10; y < h; y += 6) {
-            ctx.fillRect(w * 0.35, y, w * 0.3, 2);
-          }
-
-          // Foreground Japanese Pine & Cherry Blossom Trees
-          // Pine tree on right
-          ctx.fillStyle = '#064e3b';
-          for (let tr = 0; tr < 3; tr++) {
-            ctx.beginPath();
-            ctx.moveTo(w * 0.82, h * 0.6 + tr * 25);
-            ctx.lineTo(w * 0.95, h * 0.8 + tr * 25);
-            ctx.lineTo(w * 0.70, h * 0.8 + tr * 25);
-            ctx.fill();
-          }
-
-          // Cherry Blossom (Sakura) Branches in Foreground
-          ctx.strokeStyle = '#37271e';
-          ctx.lineWidth = 6;
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.bezierCurveTo(w * 0.25, h * 0.12, w * 0.4, h * 0.05, w * 0.55, h * 0.18);
-          ctx.stroke();
-
-          // Lush Pink Sakura Blossoms & Fluttering Petals
-          const blossoms = [
-            { x: w * 0.12, y: h * 0.08, r: 12 },
-            { x: w * 0.22, y: h * 0.14, r: 15 },
-            { x: w * 0.35, y: h * 0.11, r: 18 },
-            { x: w * 0.45, y: h * 0.16, r: 16 },
-            { x: w * 0.54, y: h * 0.21, r: 14 },
-            { x: w * 0.28, y: h * 0.22, r: 13 },
-            { x: w * 0.18, y: h * 0.25, r: 11 }
-          ];
-          blossoms.forEach(b => {
-            // 5 Petals
-            for (let p = 0; p < 5; p++) {
-              const ang = (p / 5) * Math.PI * 2;
-              const px = b.x + Math.cos(ang) * (b.r * 0.7);
-              const py = b.y + Math.sin(ang) * (b.r * 0.7);
-              ctx.fillStyle = p % 2 === 0 ? '#f472b6' : '#fbcfe8';
-              ctx.beginPath();
-              ctx.arc(px, py, b.r * 0.55, 0, Math.PI * 2);
-              ctx.fill();
-            }
-            ctx.fillStyle = '#f43f5e';
-            ctx.beginPath();
-            ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
-            ctx.fill();
-          });
-        }
+        name: 'Mount Fuji',
+        location: 'Honshu, Japan',
+        src: 'assets/puzzle/mount_fuji.jpg',
+        defaultGrid: 4
       },
       {
-        id: 'supercar',
-        name: 'Cyber Supercar',
-        artist: 'Neon Night Edition',
-        draw: (ctx, w, h) => {
-          // Wet Asphalt Cyber City at Night
-          const bg = ctx.createLinearGradient(0, 0, 0, h);
-          bg.addColorStop(0, '#090a14');
-          bg.addColorStop(0.5, '#120d24');
-          bg.addColorStop(0.85, '#05070f');
-          bg.addColorStop(1, '#000000');
-          ctx.fillStyle = bg;
-          ctx.fillRect(0, 0, w, h);
-
-          // Neon Rain Streaks
-          ctx.strokeStyle = 'rgba(0, 229, 255, 0.15)';
-          ctx.lineWidth = 1.5;
-          for (let i = 0; i < 40; i++) {
-            const rx = (i * 27) % w;
-            const ry = (i * 43) % (h * 0.7);
-            ctx.beginPath();
-            ctx.moveTo(rx, ry);
-            ctx.lineTo(rx - 8, ry + 26);
-            ctx.stroke();
-          }
-
-          // Wet Road Neon Light Reflections
-          const roadReflection = ctx.createRadialGradient(w * 0.5, h * 0.85, 20, w * 0.5, h * 0.85, 200);
-          roadReflection.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
-          roadReflection.addColorStop(0.4, 'rgba(168, 85, 247, 0.25)');
-          roadReflection.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.fillStyle = roadReflection;
-          ctx.fillRect(0, h * 0.7, w, h * 0.3);
-
-          // Supercar Body (Aerodynamic Rear Profile)
-          const carY = h * 0.52;
-          ctx.fillStyle = '#0f172a';
-          ctx.beginPath();
-          ctx.moveTo(w * 0.18, carY + 80);
-          ctx.lineTo(w * 0.15, carY + 30);
-          ctx.bezierCurveTo(w * 0.22, carY - 20, w * 0.35, carY - 50, w * 0.50, carY - 52);
-          ctx.bezierCurveTo(w * 0.65, carY - 50, w * 0.78, carY - 20, w * 0.85, carY + 30);
-          ctx.lineTo(w * 0.82, carY + 80);
-          ctx.closePath();
-          ctx.fill();
-
-          // Glossy Carbon Metallic Finish
-          ctx.fillStyle = '#1e293b';
-          ctx.beginPath();
-          ctx.moveTo(w * 0.24, carY + 70);
-          ctx.lineTo(w * 0.28, carY + 10);
-          ctx.bezierCurveTo(w * 0.36, carY - 35, w * 0.64, carY - 35, w * 0.72, carY + 10);
-          ctx.lineTo(w * 0.76, carY + 70);
-          ctx.closePath();
-          ctx.fill();
-
-          // Rear Window Slats (Louver)
-          ctx.fillStyle = '#090d16';
-          for (let s = 0; s < 4; s++) {
-            ctx.fillRect(w * 0.36, carY - 25 + s * 10, w * 0.28, 4);
-          }
-
-          // Aggressive Carbon Diffuser & Quad Exhaust
-          ctx.fillStyle = '#09090b';
-          ctx.fillRect(w * 0.22, carY + 75, w * 0.56, 25);
-          // Diffuser fins
-          ctx.fillStyle = '#00e5ff';
-          for (let f = 0; f < 5; f++) {
-            ctx.fillRect(w * 0.3 + f * 30, carY + 80, 3, 18);
-          }
-
-          // Massive High-Grip Racing Tires
-          ctx.fillStyle = '#000000';
-          ctx.fillRect(w * 0.12, carY + 45, 42, 60);
-          ctx.fillRect(w * 0.78, carY + 45, 42, 60);
-
-          // Continuous Neon LED Tail-Light Blade (Crimson & Amber)
-          ctx.shadowColor = '#ef4444';
-          ctx.shadowBlur = 18;
-          ctx.strokeStyle = '#ef4444';
-          ctx.lineWidth = 7;
-          ctx.beginPath();
-          ctx.moveTo(w * 0.17, carY + 28);
-          ctx.lineTo(w * 0.32, carY + 22);
-          ctx.lineTo(w * 0.68, carY + 22);
-          ctx.lineTo(w * 0.83, carY + 28);
-          ctx.stroke();
-
-          // Inner white neon core
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 2.5;
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-
-          // Glowing Exhaust Tips
-          const exhGrad = ctx.createRadialGradient(w * 0.38, carY + 86, 2, w * 0.38, carY + 86, 15);
-          exhGrad.addColorStop(0, '#38bdf8');
-          exhGrad.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.fillStyle = exhGrad;
-          ctx.beginPath();
-          ctx.arc(w * 0.38, carY + 86, 12, 0, Math.PI * 2);
-          ctx.arc(w * 0.62, carY + 86, 12, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        id: 'golden_retriever',
+        name: 'Golden Retriever',
+        location: 'Playful Companion',
+        src: 'assets/puzzle/golden_retriever.jpg',
+        defaultGrid: 4
       },
       {
-        id: 'deep_space',
-        name: 'James Webb Nebula',
-        artist: 'Cosmic Deep Space',
-        draw: (ctx, w, h) => {
-          // Vast Obsidian Space
-          ctx.fillStyle = '#030008';
-          ctx.fillRect(0, 0, w, h);
-
-          // Sparkling Background Stars
-          for (let i = 0; i < 220; i++) {
-            const sx = (i * 67 + 13) % w;
-            const sy = (i * 89 + 37) % h;
-            const sr = (i % 5 === 0) ? 2 : 1;
-            ctx.fillStyle = i % 3 === 0 ? '#38bdf8' : (i % 4 === 0 ? '#fed7aa' : '#ffffff');
-            ctx.beginPath();
-            ctx.arc(sx, sy, sr, 0, Math.PI * 2);
-            ctx.fill();
-          }
-
-          // Luminous Cosmic Gas Filaments (Magenta, Violet, Orange)
-          const neb1 = ctx.createRadialGradient(w * 0.35, h * 0.45, 20, w * 0.35, h * 0.45, 220);
-          neb1.addColorStop(0, 'rgba(236, 72, 153, 0.75)');
-          neb1.addColorStop(0.4, 'rgba(168, 85, 247, 0.5)');
-          neb1.addColorStop(0.8, 'rgba(59, 130, 246, 0.25)');
-          neb1.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.fillStyle = neb1;
-          ctx.beginPath();
-          ctx.arc(w * 0.35, h * 0.45, 220, 0, Math.PI * 2);
-          ctx.fill();
-
-          const neb2 = ctx.createRadialGradient(w * 0.68, h * 0.38, 15, w * 0.68, h * 0.38, 180);
-          neb2.addColorStop(0, 'rgba(249, 115, 22, 0.7)');
-          neb2.addColorStop(0.5, 'rgba(234, 179, 8, 0.35)');
-          neb2.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.fillStyle = neb2;
-          ctx.beginPath();
-          ctx.arc(w * 0.68, h * 0.38, 180, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Pillars of Creation Dust Columns
-          ctx.fillStyle = 'rgba(20, 10, 30, 0.85)';
-          ctx.beginPath();
-          ctx.moveTo(w * 0.3, h);
-          ctx.bezierCurveTo(w * 0.32, h * 0.65, w * 0.28, h * 0.45, w * 0.36, h * 0.35);
-          ctx.bezierCurveTo(w * 0.42, h * 0.42, w * 0.46, h * 0.65, w * 0.48, h);
-          ctx.fill();
-
-          // Iconic JWST 6-Point Diffraction Star
-          const starX = w * 0.62, starY = h * 0.30;
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 1.8;
-          for (let p = 0; p < 6; p++) {
-            const ang = (p / 6) * Math.PI * 2;
-            ctx.beginPath();
-            ctx.moveTo(starX, starY);
-            ctx.lineTo(starX + Math.cos(ang) * 55, starY + Math.sin(ang) * 55);
-            ctx.stroke();
-          }
-          ctx.fillStyle = '#ffffff';
-          ctx.beginPath();
-          ctx.arc(starX, starY, 6, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        id: 'swiss_alps',
+        name: 'Swiss Alps',
+        location: 'Kandersteg, Switzerland',
+        src: 'assets/puzzle/swiss_alps.jpg',
+        defaultGrid: 5
+      },
+      {
+        id: 'great_wall',
+        name: 'Great Wall of China',
+        location: 'Huairou, Beijing',
+        src: 'assets/puzzle/great_wall.jpg',
+        defaultGrid: 5
       }
     ];
 
-    // --- GAME STATE ---
+    // --- GAME STATE & LOCALSTORAGE PROGRESSION ---
+    let unlockedLevel = parseInt(localStorage.getItem('gh_puzzle_unlocked') || '0', 10);
+    // Boundary check
+    if (isNaN(unlockedLevel) || unlockedLevel < 0) unlockedLevel = 0;
+    if (unlockedLevel >= STAGES.length) unlockedLevel = STAGES.length - 1;
+
+    let levelStars = {};
+    try {
+      levelStars = JSON.parse(localStorage.getItem('gh_puzzle_stars') || '{}');
+    } catch (e) {
+      levelStars = {};
+    }
+
     let currentStageIndex = 0;
-    let gridSize = 3; // 3x3 default
-    let tiles = []; // { id, targetPos, currentPos, element }
+    let gridSize = 3;
+    let tiles = [];
     let emptySlot = 0;
     let moves = 0;
     let timerSeconds = 0;
     let timerInterval = null;
     let isPlaying = false;
     let showNumbers = true;
-    let cachedSourceCanvas = document.createElement('canvas');
+    let toastTimeout = null;
+
+    const loadedImages = {};
+    const cachedSourceCanvas = document.createElement('canvas');
     cachedSourceCanvas.width = 600;
     cachedSourceCanvas.height = 600;
 
-    // Web Audio Synthesizer
+    // --- AUDIO SYNTHESIZER ---
     let audioCtx = null;
     function playTone(freq, duration = 0.08, type = 'sine') {
       try {
@@ -1226,76 +850,169 @@
     const boardContainer = document.getElementById('boardContainer');
     const timeValEl = document.getElementById('timeVal');
     const movesValEl = document.getElementById('movesVal');
+    const totalStarsVal = document.getElementById('totalStarsVal');
+    const hudLevelNum = document.getElementById('hudLevelNum');
+    const hudLevelName = document.getElementById('hudLevelName');
+    const hudProgressRatio = document.getElementById('hudProgressRatio');
     const winModal = document.getElementById('winModal');
+    const winUnlockBanner = document.getElementById('winUnlockBanner');
     const previewModal = document.getElementById('previewModal');
     const previewCanvas = document.getElementById('previewCanvas');
     const previewTitle = document.getElementById('previewTitle');
     const userPhotoInput = document.getElementById('userPhotoInput');
     const btnUploadPhoto = document.getElementById('btnUploadPhoto');
+    const toastNotice = document.getElementById('toastNotice');
 
     // --- INITIALIZATION ---
     function init() {
+      preloadImages();
       renderStageCarousel();
       loadStage(0);
+      updateCampaignHUD();
       setupEventListeners();
+    }
+
+    function preloadImages() {
+      STAGES.forEach((stg, i) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          loadedImages[stg.id] = img;
+          renderStageThumbnail(i);
+        };
+        img.src = stg.src;
+      });
+    }
+
+    function renderStageThumbnail(idx) {
+      const c = document.getElementById(`thumb_${idx}`);
+      if (!c) return;
+      const ctx = c.getContext('2d');
+      const stg = STAGES[idx];
+      const img = stg.isCustom ? stg.customImg : loadedImages[stg.id];
+      if (img && img.complete) {
+        const minDim = Math.min(img.width, img.height);
+        const sx = (img.width - minDim) / 2;
+        const sy = (img.height - minDim) / 2;
+        ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, c.width, c.height);
+      }
     }
 
     function renderStageCarousel() {
       const carousel = document.getElementById('stageCarousel');
-      carousel.innerHTML = STAGES.map((stg, i) => `
-        <div class="stage-card ${i === currentStageIndex ? 'active' : ''}" onclick="selectStage(${i})">
-          <canvas id="thumb_${i}" width="100" height="70"></canvas>
-          ${stg.isCustom ? '<span class="badge-custom">MY PHOTO</span>' : ''}
-          <div class="stage-name" title="${stg.name}">${stg.name}</div>
-        </div>
-      `).join('');
+      carousel.innerHTML = STAGES.map((stg, i) => {
+        const isLocked = !stg.isCustom && i > unlockedLevel;
+        const starsCount = levelStars[i] || 0;
+        const starsText = starsCount > 0 ? '⭐'.repeat(starsCount) : '';
 
-      // Draw thumbnails
+        return `
+          <div class="stage-card ${i === currentStageIndex ? 'active' : ''} ${isLocked ? 'locked' : ''}" onclick="selectStage(${i})">
+            <canvas id="thumb_${i}" width="100" height="70"></canvas>
+            ${isLocked ? `
+              <div class="lock-badge-overlay">
+                <span class="lock-icon">🔒</span>
+                <span>Level ${i + 1}</span>
+              </div>
+            ` : ''}
+            ${stg.isCustom ? '<span class="badge-custom">MY PHOTO</span>' : ''}
+            ${!isLocked && starsText ? `<div class="stage-stars-row">${starsText}</div>` : ''}
+            <div class="stage-name" title="${stg.name}">${stg.isCustom ? stg.name : `L${i + 1}: ${stg.name}`}</div>
+          </div>
+        `;
+      }).join('');
+
+      // Re-draw all thumbnails that are loaded
       STAGES.forEach((stg, i) => {
-        const c = document.getElementById(`thumb_${i}`);
-        if (c) {
-          const ctx = c.getContext('2d');
-          if (stg.img) {
-            // Draw custom image centered
-            const minDim = Math.min(stg.img.width, stg.img.height);
-            const sx = (stg.img.width - minDim) / 2;
-            const sy = (stg.img.height - minDim) / 2;
-            ctx.drawImage(stg.img, sx, sy, minDim, minDim, 0, 0, c.width, c.height);
-          } else if (stg.draw) {
-            stg.draw(ctx, c.width, c.height);
-          }
-        }
+        renderStageThumbnail(i);
       });
     }
 
     window.selectStage = function(idx) {
+      const stg = STAGES[idx];
+      if (!stg.isCustom && idx > unlockedLevel) {
+        // Locked level clicked!
+        playTone(180, 0.16, 'sawtooth');
+        showToast(`🔒 Complete Level ${unlockedLevel + 1} to unlock this photo!`);
+        return;
+      }
+
       if (idx === currentStageIndex && isPlaying) return;
       currentStageIndex = idx;
       renderStageCarousel();
       loadStage(idx);
     };
 
+    function showToast(msg) {
+      toastNotice.innerText = msg;
+      toastNotice.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toastNotice.classList.remove('show'), 2400);
+    }
+
+    function updateCampaignHUD() {
+      const stg = STAGES[currentStageIndex];
+      if (stg.isCustom) {
+        hudLevelNum.innerText = '★';
+        hudLevelName.innerText = stg.name;
+      } else {
+        hudLevelNum.innerText = (currentStageIndex + 1);
+        hudLevelName.innerText = stg.name;
+      }
+
+      const totalPossibleStars = (STAGES.filter(s => !s.isCustom).length) * 3;
+      let earnedStars = 0;
+      Object.values(levelStars).forEach(s => { earnedStars += s; });
+      totalStarsVal.innerText = `${earnedStars}/${totalPossibleStars} Stars`;
+      hudProgressRatio.innerText = `Unlocked: ${unlockedLevel + 1}/${STAGES.filter(s => !s.isCustom).length}`;
+    }
+
     function loadStage(idx) {
+      currentStageIndex = idx;
       const stg = STAGES[idx];
       const ctx = cachedSourceCanvas.getContext('2d');
       ctx.clearRect(0, 0, cachedSourceCanvas.width, cachedSourceCanvas.height);
 
-      if (stg.img) {
-        // Draw user custom image square center-cropped
-        const minDim = Math.min(stg.img.width, stg.img.height);
-        const sx = (stg.img.width - minDim) / 2;
-        const sy = (stg.img.height - minDim) / 2;
-        ctx.drawImage(stg.img, sx, sy, minDim, minDim, 0, 0, cachedSourceCanvas.width, cachedSourceCanvas.height);
-      } else if (stg.draw) {
-        stg.draw(ctx, cachedSourceCanvas.width, cachedSourceCanvas.height);
+      const img = stg.isCustom ? stg.customImg : loadedImages[stg.id];
+      if (img && img.complete) {
+        const minDim = Math.min(img.width, img.height);
+        const sx = (img.width - minDim) / 2;
+        const sy = (img.height - minDim) / 2;
+        ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, cachedSourceCanvas.width, cachedSourceCanvas.height);
+      } else {
+        // Fallback or wait for load
+        const temp = new Image();
+        temp.crossOrigin = "anonymous";
+        temp.onload = () => {
+          loadedImages[stg.id] = temp;
+          loadStage(idx);
+        };
+        temp.src = stg.src;
+        return;
       }
 
       // Render Preview Canvas
       const pCtx = previewCanvas.getContext('2d');
       pCtx.drawImage(cachedSourceCanvas, 0, 0, previewCanvas.width, previewCanvas.height);
-      previewTitle.innerText = `${stg.name} — Full Reference`;
+      previewTitle.innerText = `${stg.name} (${stg.location || 'Custom'}) — Full Photo`;
 
+      // Set default grid size for campaign levels
+      if (!stg.isCustom && stg.defaultGrid) {
+        gridSize = stg.defaultGrid;
+        updateDifficultyButtons();
+      }
+
+      updateCampaignHUD();
       resetGame();
+    }
+
+    function updateDifficultyButtons() {
+      document.querySelectorAll('.diff-btn').forEach(btn => {
+        if (parseInt(btn.dataset.grid) === gridSize) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
     }
 
     function resetGame() {
@@ -1331,7 +1048,7 @@
         tileEl.style.width = `${tileSizePct}%`;
         tileEl.style.height = `${tileSizePct}%`;
 
-        // Image Slice via background
+        // Slice via background
         tileEl.style.backgroundImage = `url(${srcUrl})`;
         tileEl.style.backgroundSize = `${gridSize * 100}% ${gridSize * 100}%`;
         tileEl.style.backgroundPosition = `${(targetCol / (gridSize - 1)) * 100}% ${(targetRow / (gridSize - 1)) * 100}%`;
@@ -1426,14 +1143,43 @@
         isPlaying = false;
         playWinJingle();
 
-        let stars = '⭐⭐⭐';
+        // Calculate Stars
+        let starCount = 3;
         const parMoves = gridSize * gridSize * 4;
-        if (moves > parMoves * 2) stars = '⭐';
-        else if (moves > parMoves) stars = '⭐⭐';
+        if (moves > parMoves * 2) starCount = 1;
+        else if (moves > parMoves) starCount = 2;
 
-        document.getElementById('winStars').innerText = stars;
+        document.getElementById('winStars').innerText = '⭐'.repeat(starCount);
         document.getElementById('winMoves').innerText = moves;
         document.getElementById('winTime').innerText = formatTime(timerSeconds);
+
+        const stg = STAGES[currentStageIndex];
+        let unlockedNew = false;
+
+        if (!stg.isCustom) {
+          // Save stars
+          if (!levelStars[currentStageIndex] || starCount > levelStars[currentStageIndex]) {
+            levelStars[currentStageIndex] = starCount;
+            localStorage.setItem('gh_puzzle_stars', JSON.stringify(levelStars));
+          }
+
+          // Unlock next level if current was highest
+          if (currentStageIndex === unlockedLevel && unlockedLevel < STAGES.filter(s => !s.isCustom).length - 1) {
+            unlockedLevel++;
+            localStorage.setItem('gh_puzzle_unlocked', unlockedLevel.toString());
+            unlockedNew = true;
+          }
+        }
+
+        if (unlockedNew) {
+          winUnlockBanner.style.display = 'block';
+          winUnlockBanner.innerText = `🔓 LEVEL ${unlockedLevel + 1} UNLOCKED!`;
+        } else {
+          winUnlockBanner.style.display = 'none';
+        }
+
+        renderStageCarousel();
+        updateCampaignHUD();
 
         setTimeout(() => {
           winModal.classList.add('open');
@@ -1459,7 +1205,10 @@
     // --- NEXT STAGE ---
     window.nextStage = function() {
       winModal.classList.remove('open');
-      const nextIdx = (currentStageIndex + 1) % STAGES.length;
+      const totalCampaign = STAGES.filter(s => !s.isCustom).length;
+      let nextIdx = currentStageIndex + 1;
+      if (nextIdx > unlockedLevel) nextIdx = unlockedLevel;
+      if (nextIdx >= totalCampaign) nextIdx = 0;
       selectStage(nextIdx);
     };
 
@@ -1560,18 +1309,35 @@
             const customStage = {
               id: 'custom_' + Date.now(),
               name: cleanName,
+              location: 'My Device',
               isCustom: true,
-              img: img
+              customImg: img,
+              defaultGrid: gridSize
             };
             // Add custom stage to the beginning of stages
             STAGES.unshift(customStage);
             currentStageIndex = 0;
             renderStageCarousel();
             loadStage(0);
+            showToast('📷 Custom photo puzzle ready to play!');
           };
           img.src = event.target.result;
         };
         reader.readAsDataURL(file);
+      });
+
+      // Reset Campaign Progress Button
+      document.getElementById('btnResetCampaign').addEventListener('click', () => {
+        if (confirm('Are you sure you want to reset all unlocked levels and stars back to Level 1?')) {
+          localStorage.removeItem('gh_puzzle_unlocked');
+          localStorage.removeItem('gh_puzzle_stars');
+          unlockedLevel = 0;
+          levelStars = {};
+          currentStageIndex = 0;
+          renderStageCarousel();
+          loadStage(0);
+          showToast('↺ Campaign progress reset to Level 1');
+        }
       });
     }
 

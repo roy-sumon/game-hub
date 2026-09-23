@@ -121,7 +121,7 @@
 <body>
 
     <div class="header">
-        <h1>🦖 DINO RUNNER: ESCAPE! ☄️</h1>
+        <h1><span style="display: inline-block; transform: scaleX(-1);">🦖</span> DINO RUNNER: ESCAPE! ☄️</h1>
         <div class="stats-bar">
             <div>Distance: <span id="score">0</span>m</div>
             <div>Speed: <span id="speed">1.0</span>x</div>
@@ -290,9 +290,15 @@
             ctx.fillStyle = '#22c55e';
             ctx.fillRect(0, 330, canvas.width, 8);
 
-            // Dino Render
+            // Dino Render (Flipped horizontally so it faces right towards oncoming obstacles)
+            ctx.save();
+            ctx.translate(dino.x + dino.width / 2, dino.y + dino.height / 2);
+            ctx.scale(-1, 1); // Flip horizontally so face points right!
             ctx.font = '45px Arial';
-            ctx.fillText('🦖', dino.x, dino.y + 40);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🦖', 0, 0);
+            ctx.restore();
 
             // Obstacles Render
             ctx.font = '35px Arial';

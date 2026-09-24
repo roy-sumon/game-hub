@@ -165,10 +165,10 @@ const GAMES_CATALOG = [
     file: 'mosquito.html',
     category: 'casual',
     categoryLabel: 'Reflex Swat',
-    badge: 'Hilarious',
-    description: 'Ghum Bhab Cut! Annoying mosquitoes are buzzing around during sleep. Hone your lightning reflexes and swat them before they bite.',
-    keys: ['FAST CLICK', 'SCREEN TAP'],
-    instructions: 'Tap or click the buzzing mosquitoes quickly. Aim carefully as they zip across the room!',
+    badge: 'Fast Swat',
+    description: 'Relentless buzzing in the dark! Annoying mosquitoes are swarming your room. Hone your lightning reflexes and swat them before they drain all your blood.',
+    keys: ['TAP / CLICK SWAT', 'FAST REFLEX'],
+    instructions: 'Tap or click the buzzing mosquitoes quickly. Target golden mosquitoes for blood heals and combo multipliers!',
     rating: '⭐ 4.7',
     difficulty: 'Reflex Test',
     mobileOptimized: true,
@@ -606,7 +606,7 @@ function getGameArtworkSVG(gameId) {
           <circle cx="200" cy="110" r="40" stroke="#ef4444" stroke-width="2" stroke-dasharray="6,4" fill="none"/>
           <line x1="200" y1="60" x2="200" y2="160" stroke="#ef4444" stroke-width="1.5"/>
           <line x1="150" y1="110" x2="250" y2="110" stroke="#ef4444" stroke-width="1.5"/>
-          <text x="200" y="195" text-anchor="middle" fill="#f43f5e" font-weight="900" font-size="13" letter-spacing="2">GHUM BHAB CUT!</text>
+          <text x="200" y="195" text-anchor="middle" fill="#f43f5e" font-weight="900" font-size="13" letter-spacing="2">SWAT THE SWARM!</text>
         </svg>
       `;
 

@@ -1,357 +1,865 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosquito Crusher: Ghum Bhab Cut!</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mosquito Crusher — Swat &amp; Survive</title>
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-surface: #0e1422;
+      --bg-card: #151e32;
+      --accent-rose: #f43f5e;
+      --accent-cyan: #00e5ff;
+      --accent-gold: #f59e0b;
+      --accent-emerald: #10b981;
+      --accent-purple: #c084fc;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
 
-        body {
-            background: #0f172a;
-            color: #fff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow: hidden;
-            cursor: crosshair;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        .header {
-            text-align: center;
-            margin-bottom: 10px;
-        }
+    body {
+      background: var(--bg-dark);
+      background-image: radial-gradient(circle at 50% 25%, rgba(244, 63, 94, 0.1), transparent 70%);
+      color: var(--text-main);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      overflow: hidden;
+      touch-action: none;
+    }
 
-        .header h1 {
-            color: #ef4444;
-            font-size: 2.2rem;
-            text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
-        }
+    .game-wrapper {
+      width: 100%;
+      max-width: 760px;
+      height: calc(100vh - 20px);
+      height: calc(100dvh - 20px);
+      max-height: 680px;
+      background: var(--bg-surface);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 30px rgba(244, 63, 94, 0.1);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
 
-        .stats-bar {
-            display: flex;
-            gap: 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-top: 5px;
-        }
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 8px;
+    }
 
-        .stats-bar span {
-            color: #38bdf8;
-        }
+    .header-title-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        #game-board {
-            position: relative;
-            width: 800px;
-            max-width: 95vw;
-            height: 500px;
-            max-height: 70vh;
-            background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
-            border: 3px solid #334155;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
-        }
+    .header-icon {
+      font-size: 26px;
+      filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.6));
+    }
 
-        /* Mosquito Styling */
-        .mosquito {
-            position: absolute;
-            font-size: 35px;
-            cursor: pointer;
-            transition: transform 0.1s ease;
-            z-index: 10;
-        }
+    .game-title {
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #f43f5e, #fb7185, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-        /* Splat effect on kill */
-        .splat {
-            position: absolute;
-            font-size: 30px;
-            pointer-events: none;
-            animation: fadeOut 1s forwards;
-            z-index: 5;
-        }
+    .game-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
 
-        @keyframes fadeOut {
-            0% { opacity: 1; transform: scale(1.2); }
-            100% { opacity: 0; transform: scale(0.8); }
-        }
+    /* Sound button */
+    .btn-sound {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
 
-        /* Floating funny texts */
-        .floating-text {
-            position: absolute;
-            font-size: 14px;
-            font-weight: bold;
-            color: #facc15;
-            pointer-events: none;
-            animation: floatUp 0.8s ease-out forwards;
-            z-index: 20;
-        }
+    .btn-sound:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--accent-rose);
+    }
 
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-30px); }
-        }
+    /* Dashboard HUD */
+    .hud-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 6px 12px;
+    }
 
-        /* Overlay screens */
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.9);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-        }
+    .hud-stats-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
 
-        .overlay h2 {
-            font-size: 2.5rem;
-            color: #f43f5e;
-            margin-bottom: 10px;
-        }
+    .stat-pill {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--accent-rose);
+    }
 
-        .overlay p {
-            font-size: 1.1rem;
-            color: #94a3b8;
-            margin-bottom: 20px;
-            text-align: center;
-            max-width: 80%;
-        }
+    .stat-pill.high {
+      color: var(--accent-gold);
+    }
 
-        .btn {
-            padding: 12px 30px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #fff;
-            background: #ef4444;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
-            transition: 0.2s;
-        }
+    .stat-pill.combo {
+      color: var(--accent-cyan);
+    }
 
-        .btn:hover {
-            background: #dc2626;
-            transform: scale(1.05);
-        }
+    /* Blood Health Bar */
+    .blood-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--accent-rose);
+    }
 
-        /* Blood meter (HP) */
-        .hp-container {
-            width: 200px;
-            height: 15px;
-            background: #334155;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid #475569;
-        }
+    .blood-bar-container {
+      width: 140px;
+      height: 12px;
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
 
-        .hp-fill {
-            width: 100%;
-            height: 100%;
-            background: #ef4444;
-            transition: width 0.2s;
-        }
-    </style>
+    .blood-bar-fill {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, #ef4444, #f43f5e);
+      border-radius: 10px;
+      transition: width 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s;
+    }
+
+    /* Game Board Arena */
+    #game-board {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      min-height: 280px;
+      background: radial-gradient(circle at 50% 40%, #161e31 0%, #080c16 100%);
+      border: 2px solid #334155;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.85);
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    /* Room Light Glow */
+    #game-board::before {
+      content: '';
+      position: absolute;
+      top: -40px;
+      right: 15%;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(254, 240, 138, 0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* Mosquito Element — Big 56x56 Touch Area for Mobile */
+    .mosquito {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      cursor: pointer;
+      z-index: 10;
+      touch-action: none;
+      animation: flutter 0.18s infinite alternate ease-in-out;
+      transform-origin: center center;
+    }
+
+    @keyframes flutter {
+      0% { transform: scale(1) rotate(-3deg); }
+      100% { transform: scale(1.08) rotate(3deg); }
+    }
+
+    .mosquito.boss {
+      width: 70px;
+      height: 70px;
+      font-size: 52px;
+      filter: drop-shadow(0 0 8px rgba(192, 132, 252, 0.8));
+    }
+
+    .mosquito.golden {
+      filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.9));
+      animation: goldenFlutter 0.15s infinite alternate ease-in-out;
+    }
+
+    @keyframes goldenFlutter {
+      0% { transform: scale(1.05) rotate(-6deg); }
+      100% { transform: scale(1.18) rotate(6deg); }
+    }
+
+    /* Splat Effect */
+    .splat {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      pointer-events: none;
+      z-index: 5;
+      animation: splatAnim 0.7s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    @keyframes splatAnim {
+      0% { opacity: 1; transform: scale(0.6) rotate(0deg); }
+      40% { opacity: 1; transform: scale(1.3) rotate(15deg); }
+      100% { opacity: 0; transform: scale(1.5) rotate(25deg); }
+    }
+
+    /* Floating Hit Text */
+    .floating-text {
+      position: absolute;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: #fef08a;
+      text-shadow: 0 0 6px rgba(0, 0, 0, 0.9), 0 0 10px rgba(245, 158, 11, 0.8);
+      pointer-events: none;
+      z-index: 25;
+      white-space: nowrap;
+      animation: floatUp 0.75s ease-out forwards;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translate(-50%, 0) scale(0.8); }
+      30% { opacity: 1; transform: translate(-50%, -15px) scale(1.15); }
+      100% { opacity: 0; transform: translate(-50%, -35px) scale(1); }
+    }
+
+    /* Overlays */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 12, 22, 0.92);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 16px;
+      z-index: 50;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .overlay-icon {
+      font-size: 46px;
+      margin-bottom: 6px;
+      animation: bounce 0.6s infinite alternate ease-in-out;
+    }
+
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-8px); }
+    }
+
+    .overlay h2 {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--accent-rose);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .overlay p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      max-width: 440px;
+      line-height: 1.5;
+    }
+
+    /* Guide Badges */
+    .targets-legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 16px;
+      max-width: 480px;
+    }
+
+    .legend-chip {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .legend-chip strong {
+      color: var(--accent-cyan);
+    }
+
+    .btn-play {
+      background: linear-gradient(135deg, #f43f5e, #ef4444);
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 30px;
+      font-size: 0.98rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 0 16px rgba(244, 63, 94, 0.4);
+      transition: all 0.2s;
+    }
+
+    .btn-play:hover {
+      filter: brightness(1.15);
+      transform: scale(1.04);
+    }
+
+    /* Stats on Game Over */
+    .gameover-stats {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px 16px;
+      margin-bottom: 14px;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .gameover-stats strong {
+      color: var(--accent-rose);
+    }
+
+    /* Footer Guidance */
+    .footer-tips {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-align: center;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    @media (max-width: 480px) {
+      .game-wrapper {
+        padding: 8px;
+        height: 100vh;
+        height: 100dvh;
+        border-radius: 0;
+        border: none;
+      }
+      .game-title {
+        font-size: 1.1rem;
+      }
+      .blood-bar-container {
+        width: 100px;
+      }
+      .stat-pill {
+        padding: 3px 7px;
+        font-size: 0.7rem;
+      }
+      .overlay h2 {
+        font-size: 1.35rem;
+      }
+      .targets-legend {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+      }
+      .legend-chip {
+        font-size: 0.66rem;
+      }
+    }
+  </style>
 </head>
 <body>
 
+  <div class="game-wrapper">
+    <!-- Header -->
     <div class="header">
-        <h1>🦟 MOSQUITO CRUSHER 🦟</h1>
-        <div class="stats-bar">
-            <div>Kills: <span id="kill-count">0</span></div>
-            <div>Blood Left:</div>
-            <div class="hp-container">
-                <div id="hp-bar" class="hp-fill"></div>
-            </div>
+      <div class="header-title-box">
+        <div class="header-icon">🦟</div>
+        <div>
+          <h1 class="game-title">MOSQUITO CRUSHER</h1>
+          <p class="game-subtitle">Tap &amp; Swat • Rapid Reflex Arcade</p>
         </div>
+      </div>
+
+      <button class="btn-sound" id="btnToggleSound" title="Toggle Sound">
+        <span id="soundIcon">🔊</span> <span id="soundLabel">Sound</span>
+      </button>
     </div>
 
+    <!-- HUD Bar -->
+    <div class="hud-bar">
+      <div class="hud-stats-group">
+        <div class="stat-pill">
+          <span>🎯</span> Kills: <strong id="kill-count" style="color: #fff; margin-left: 2px;">0</strong>
+        </div>
+        <div class="stat-pill combo">
+          <span>🔥</span> <span id="combo-display">0x Combo</span>
+        </div>
+        <div class="stat-pill high">
+          <span>🏆</span> Best: <strong id="high-score" style="color: #fef08a; margin-left: 2px;">0</strong>
+        </div>
+      </div>
+
+      <!-- Blood Health Bar -->
+      <div class="blood-box">
+        <span>🩸 Blood</span>
+        <div class="blood-bar-container">
+          <div id="hp-bar" class="blood-bar-fill"></div>
+        </div>
+        <span id="hp-text" style="color: #fff; font-family: monospace; font-size: 0.72rem;">100%</span>
+      </div>
+    </div>
+
+    <!-- Game Arena Board -->
     <div id="game-board">
-        <!-- Start Screen -->
-        <div id="start-screen" class="overlay">
-            <h2>গুম তাড়াও - মশা মারো!</h2>
-            <p>Mosquitoes are invading your bed! Click/tap on them quickly before they suck all your blood!</p>
-            <button class="btn" onclick="startGame()">START DEFENSE</button>
+      <!-- Start Screen Overlay -->
+      <div id="start-screen" class="overlay">
+        <div class="overlay-icon">🦟</div>
+        <h2>SWAT THE SWARM!</h2>
+        <p>Hungry mosquitoes are swarming your bedroom! Tap or click them rapidly before they drain all your blood.</p>
+
+        <!-- Targets Legend -->
+        <div class="targets-legend">
+          <div class="legend-chip"><span>🦟</span> Standard <strong>+1 pt</strong></div>
+          <div class="legend-chip"><span>🪰</span> Speed Fly <strong>+2 pts</strong></div>
+          <div class="legend-chip"><span>👾</span> Mutant Hornet <strong>+5 pts</strong></div>
+          <div class="legend-chip"><span>✨</span> Golden <strong>+10 pts (+Blood)</strong></div>
         </div>
 
-        <!-- Game Over Screen -->
-        <div id="game-over-screen" class="overlay" style="display: none;">
-            <h2 id="over-title">YOU DIED OF DENGUE! 🦟</h2>
-            <p id="over-msg">The mosquitoes sucked all your blood. Ghum pura uthe gese?</p>
-            <button class="btn" onclick="startGame()">TRY AGAIN</button>
+        <button class="btn-play" onclick="startGame()">START SWATTING ▶</button>
+      </div>
+
+      <!-- Game Over Overlay -->
+      <div id="game-over-screen" class="overlay" style="display: none;">
+        <div class="overlay-icon">💀</div>
+        <h2 id="over-title">SWARM OVERRUN!</h2>
+        <div class="gameover-stats">
+          Total Swatted: <strong id="final-kills">0</strong><br>
+          High Score: <strong id="final-high">0</strong> • Survived: <strong id="final-time">0s</strong>
         </div>
+        <button class="btn-play" onclick="startGame()">SWAT AGAIN 🔄</button>
+      </div>
     </div>
 
-    <script>
-        const board = document.getElementById('game-board');
-        const killEl = document.getElementById('kill-count');
-        const hpBar = document.getElementById('hp-bar');
-        const startScreen = document.getElementById('start-screen');
-        const gameOverScreen = document.getElementById('game-over-screen');
+    <!-- Bottom Guidance -->
+    <div class="footer-tips">
+      <span>📱 Mobile: Fast-tap buzzing pests with your fingers</span>
+      <span>✨ Golden mosquitoes restore blood health</span>
+      <span>⚡ Maintain swat speed to build combos</span>
+    </div>
+  </div>
 
-        let kills = 0;
-        let blood = 100;
-        let gameActive = false;
-        let spawnTimer;
-        let moveTimer;
-        let mosquitoes = [];
+  <script>
+    // --- DOM REFERENCES ---
+    const board = document.getElementById('game-board');
+    const killEl = document.getElementById('kill-count');
+    const comboDisplay = document.getElementById('combo-display');
+    const highScoreEl = document.getElementById('high-score');
+    const hpBar = document.getElementById('hp-bar');
+    const hpText = document.getElementById('hp-text');
+    const startScreen = document.getElementById('start-screen');
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const finalKillsEl = document.getElementById('final-kills');
+    const finalHighEl = document.getElementById('final-high');
+    const finalTimeEl = document.getElementById('final-time');
+    const btnToggleSound = document.getElementById('btnToggleSound');
+    const soundIcon = document.getElementById('soundIcon');
 
-        const taunts = [
-            "PICHKE GESI!", "FATTE GESI!", "BOOM!", "KHATAM!", "NO MORE VUN VUN!", "DISPATCHED!"
-        ];
+    // --- GAME STATE ---
+    let kills = 0;
+    let blood = 100;
+    let combo = 0;
+    let maxCombo = 0;
+    let lastKillTime = 0;
+    let gameActive = false;
+    let startTime = 0;
+    let soundEnabled = true;
+    let highScore = parseInt(localStorage.getItem('gh_mosquito_high') || '0', 10);
+    highScoreEl.innerText = highScore;
 
-        const mosquitoTypes = [
-            { icon: '🦟', speed: 2, damage: 10, points: 1 },  // Normal
-            { icon: '🪰', speed: 4, damage: 5, points: 2 },   // Fast Fly
-            { icon: '👾', speed: 1, damage: 25, points: 5 }   // Boss Mosquito
-        ];
+    let spawnTimer = null;
+    let moveTimer = null;
+    let mosquitoes = [];
 
-        function startGame() {
-            // Reset
-            kills = 0;
-            blood = 100;
-            gameActive = true;
-            mosquitoes.forEach(m => m.element.remove());
-            mosquitoes = [];
-            
-            killEl.innerText = kills;
-            hpBar.style.width = '100%';
-            
-            startScreen.style.display = 'none';
-            gameOverScreen.style.display = 'none';
+    // --- HIT TEXTS & TARGET TYPES ---
+    const HIT_TEXTS = [
+      "SPLAT!", "SMACKED!", "CRUSHED!", "BOOM!", "NO MORE BUZZ!",
+      "BULLSEYE!", "DISPATCHED!", "EXTERMINATED!", "PERFECT!"
+    ];
 
-            // Loops
-            clearInterval(spawnTimer);
-            clearInterval(moveTimer);
+    const MOSQUITO_TYPES = [
+      { id: 'normal', icon: '🦟', speed: 2.2, damage: 8, points: 1, isBoss: false, isGolden: false },
+      { id: 'fast', icon: '🪰', speed: 4.2, damage: 5, points: 2, isBoss: false, isGolden: false },
+      { id: 'boss', icon: '👾', speed: 1.4, damage: 20, points: 5, isBoss: true, isGolden: false },
+      { id: 'golden', icon: '🦟', speed: 3.5, damage: 0, points: 10, isBoss: false, isGolden: true }
+    ];
 
-            spawnTimer = setInterval(spawnMosquito, 800);
-            moveTimer = setInterval(updateGame, 30);
+    // --- WEB AUDIO SYNTHESIZER ---
+    let audioCtx = null;
+    function getAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playTone(freq, duration = 0.08, type = 'sine', gainVal = 0.12) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudio();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(gainVal, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function soundSwat() {
+      playTone(520, 0.05, 'triangle', 0.2);
+      setTimeout(() => playTone(180, 0.09, 'sawtooth', 0.25), 20);
+    }
+
+    function soundBite() {
+      playTone(140, 0.14, 'sawtooth', 0.18);
+    }
+
+    function soundHeal() {
+      const notes = [587, 740, 880];
+      notes.forEach((n, i) => setTimeout(() => playTone(n, 0.1, 'sine', 0.15), i * 60));
+    }
+
+    function soundOver() {
+      const notes = [320, 280, 240, 180];
+      notes.forEach((n, i) => setTimeout(() => playTone(n, 0.18, 'sawtooth', 0.2), i * 90));
+    }
+
+    // --- GAME ENGINE ---
+    function startGame() {
+      getAudio();
+      kills = 0;
+      blood = 100;
+      combo = 0;
+      maxCombo = 0;
+      lastKillTime = Date.now();
+      startTime = Date.now();
+      gameActive = true;
+
+      mosquitoes.forEach(m => m.element.remove());
+      mosquitoes = [];
+
+      killEl.innerText = kills;
+      comboDisplay.innerText = '0x Combo';
+      updateBloodHUD();
+
+      startScreen.style.display = 'none';
+      gameOverScreen.style.display = 'none';
+
+      clearInterval(spawnTimer);
+      clearInterval(moveTimer);
+
+      spawnTimer = setInterval(spawnMosquito, 750);
+      moveTimer = setInterval(updateGameLoop, 28);
+    }
+
+    function spawnMosquito() {
+      if (!gameActive) return;
+
+      // Pick mosquito type
+      const rand = Math.random();
+      let type = MOSQUITO_TYPES[0]; // Normal
+
+      if (rand > 0.90) {
+        type = MOSQUITO_TYPES[3]; // Golden
+      } else if (rand > 0.75) {
+        type = MOSQUITO_TYPES[2]; // Boss
+      } else if (rand > 0.45) {
+        type = MOSQUITO_TYPES[1]; // Fast Fly
+      }
+
+      const el = document.createElement('div');
+      el.className = 'mosquito' + (type.isBoss ? ' boss' : '') + (type.isGolden ? ' golden' : '');
+      el.innerText = type.icon;
+
+      const boardW = board.clientWidth || 320;
+      const boardH = board.clientHeight || 300;
+      const mSize = type.isBoss ? 70 : 56;
+
+      const x = Math.max(10, Math.random() * (boardW - mSize - 10));
+      const y = Math.max(10, Math.random() * (boardH - mSize - 10));
+
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+
+      const angle = Math.random() * Math.PI * 2;
+      const speedMag = type.speed * 2.8;
+
+      const mObj = {
+        element: el,
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speedMag,
+        vy: Math.sin(angle) * speedMag,
+        size: mSize,
+        type: type,
+        age: 0
+      };
+
+      // Unified Pointer Down for fast touch response
+      const handleHit = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        killMosquito(mObj);
+      };
+
+      el.addEventListener('pointerdown', handleHit);
+      board.appendChild(el);
+      mosquitoes.push(mObj);
+
+      // Soft buzz sound for boss
+      if (type.isBoss) {
+        playTone(280, 0.15, 'sawtooth', 0.15);
+      }
+    }
+
+    function killMosquito(mObj) {
+      if (!gameActive) return;
+      soundSwat();
+
+      const now = Date.now();
+      if (now - lastKillTime < 1100) {
+        combo++;
+      } else {
+        combo = 1;
+      }
+      lastKillTime = now;
+      if (combo > maxCombo) maxCombo = combo;
+
+      comboDisplay.innerText = combo > 1 ? `🔥 ${combo}x STREAK` : `${combo}x Combo`;
+
+      // Splat Effect
+      const splat = document.createElement('div');
+      splat.className = 'splat';
+      splat.innerText = mObj.type.isGolden ? '🌟' : '💥';
+      splat.style.left = mObj.x + 'px';
+      splat.style.top = mObj.y + 'px';
+      board.appendChild(splat);
+      setTimeout(() => splat.remove(), 700);
+
+      // Floating Text
+      const text = document.createElement('div');
+      text.className = 'floating-text';
+      let tauntText = HIT_TEXTS[Math.floor(Math.random() * HIT_TEXTS.length)];
+      if (mObj.type.isGolden) tauntText = "+HEAL 20%!";
+      else if (combo >= 4) tauntText = `MEGA SWATTED x${combo}!`;
+
+      text.innerText = tauntText;
+      text.style.left = (mObj.x + mObj.size / 2) + 'px';
+      text.style.top = mObj.y + 'px';
+      board.appendChild(text);
+      setTimeout(() => text.remove(), 750);
+
+      // Golden Mosquito Blood Restore
+      if (mObj.type.isGolden) {
+        blood = Math.min(100, blood + 20);
+        soundHeal();
+        updateBloodHUD();
+      }
+
+      // Remove Mosquito
+      mObj.element.remove();
+      mosquitoes = mosquitoes.filter(m => m !== mObj);
+
+      // Score
+      kills += mObj.type.points;
+      killEl.innerText = kills;
+
+      // Update High Score live
+      if (kills > highScore) {
+        highScore = kills;
+        highScoreEl.innerText = highScore;
+        localStorage.setItem('gh_mosquito_high', highScore.toString());
+      }
+    }
+
+    function updateGameLoop() {
+      if (!gameActive) return;
+
+      const boardW = board.clientWidth || 320;
+      const boardH = board.clientHeight || 300;
+
+      mosquitoes.forEach((m) => {
+        m.age++;
+
+        // Natural erratic steering
+        if (Math.random() < 0.08) {
+          m.vx += (Math.random() - 0.5) * 2;
+          m.vy += (Math.random() - 0.5) * 2;
+          // Clamp velocity
+          const maxV = m.type.speed * 3.5;
+          m.vx = Math.max(-maxV, Math.min(maxV, m.vx));
+          m.vy = Math.max(-maxV, Math.min(maxV, m.vy));
         }
 
-        function spawnMosquito() {
-            if (!gameActive) return;
+        m.x += m.vx;
+        m.y += m.vy;
 
-            // Pick random type
-            let rand = Math.random();
-            let type = mosquitoTypes[0];
-            if (rand > 0.8) type = mosquitoTypes[2]; // Boss
-            else if (rand > 0.5) type = mosquitoTypes[1]; // Fast
+        // Bounce off walls smoothly
+        if (m.x <= 0) { m.x = 0; m.vx = Math.abs(m.vx); }
+        else if (m.x >= boardW - m.size) { m.x = boardW - m.size; m.vx = -Math.abs(m.vx); }
 
-            const el = document.createElement('div');
-            el.className = 'mosquito';
-            el.innerText = type.icon;
-            
-            if (type.points === 5) {
-                el.style.fontSize = '50px'; // Boss size
-            }
+        if (m.y <= 0) { m.y = 0; m.vy = Math.abs(m.vy); }
+        else if (m.y >= boardH - m.size) { m.y = boardH - m.size; m.vy = -Math.abs(m.vy); }
 
-            const x = Math.random() * (board.clientWidth - 60);
-            const y = Math.random() * (board.clientHeight - 60);
+        m.element.style.left = m.x + 'px';
+        m.element.style.top = m.y + 'px';
 
-            el.style.left = x + 'px';
-            el.style.top = y + 'px';
+        // Periodic bite chance
+        if (m.age > 40 && Math.random() < 0.007) {
+          blood -= m.type.damage;
+          soundBite();
+          updateBloodHUD();
 
-            const mObj = {
-                element: el,
-                x: x,
-                y: y,
-                vx: (Math.random() - 0.5) * type.speed * 4,
-                vy: (Math.random() - 0.5) * type.speed * 4,
-                type: type
-            };
+          // Flash board border
+          board.style.borderColor = '#ef4444';
+          setTimeout(() => { if (board) board.style.borderColor = '#334155'; }, 140);
 
-            el.addEventListener('mousedown', () => killMosquito(mObj));
-            el.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                killMosquito(mObj);
-            }, { passive: false });
-
-            board.appendChild(el);
-            mosquitoes.push(mObj);
+          if (blood <= 0) {
+            endGame();
+          }
         }
+      });
+    }
 
-        function killMosquito(mObj) {
-            if (!gameActive) return;
+    function updateBloodHUD() {
+      blood = Math.max(0, Math.min(100, blood));
+      hpBar.style.width = blood + '%';
+      hpText.innerText = Math.round(blood) + '%';
 
-            // FX - Splat
-            const splat = document.createElement('div');
-            splat.className = 'splat';
-            splat.innerText = '💥';
-            splat.style.left = mObj.x + 'px';
-            splat.style.top = mObj.y + 'px';
-            board.appendChild(splat);
-            setTimeout(() => splat.remove(), 1000);
+      if (blood > 50) {
+        hpBar.style.background = 'linear-gradient(90deg, #10b981, #34d399)';
+      } else if (blood > 25) {
+        hpBar.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';
+      } else {
+        hpBar.style.background = 'linear-gradient(90deg, #dc2626, #ef4444)';
+      }
+    }
 
-            // FX - Funny Floating Text
-            const text = document.createElement('div');
-            text.className = 'floating-text';
-            text.innerText = taunts[Math.floor(Math.random() * taunts.length)];
-            text.style.left = mObj.x + 'px';
-            text.style.top = mObj.y + 'px';
-            board.appendChild(text);
-            setTimeout(() => text.remove(), 800);
+    function endGame() {
+      gameActive = false;
+      clearInterval(spawnTimer);
+      clearInterval(moveTimer);
+      soundOver();
 
-            // Remove Mosquito
-            mObj.element.remove();
-            mosquitoes = mosquitoes.filter(m => m !== mObj);
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      finalKillsEl.innerText = kills;
+      finalHighEl.innerText = highScore;
+      finalTimeEl.innerText = elapsed + 's';
 
-            // Score
-            kills += mObj.type.points;
-            killEl.innerText = kills;
-        }
+      gameOverScreen.style.display = 'flex';
+    }
 
-        function updateGame() {
-            if (!gameActive) return;
+    // --- SOUND TOGGLE ---
+    btnToggleSound.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      soundIcon.innerText = soundEnabled ? '🔊' : '🔇';
+      soundLabel.innerText = soundEnabled ? 'Sound' : 'Mute';
+    });
 
-            mosquitoes.forEach((mObj) => {
-                // Move
-                mObj.x += mObj.vx;
-                mObj.y += mObj.vy;
-
-                // Bounce off walls
-                if (mObj.x <= 0 || mObj.x >= board.clientWidth - 50) mObj.vx *= -1;
-                if (mObj.y <= 0 || mObj.y >= board.clientHeight - 50) mObj.vy *= -1;
-
-                mObj.element.style.left = mObj.x + 'px';
-                mObj.element.style.top = mObj.y + 'px';
-
-                // Random Bite Chance (Take Blood)
-                if (Math.random() < 0.005) {
-                    blood -= mObj.type.damage;
-                    if (blood < 0) blood = 0;
-                    hpBar.style.width = blood + '%';
-
-                    // Screen Flash Red
-                    board.style.borderColor = '#ef4444';
-                    setTimeout(() => board.style.borderColor = '#334155', 150);
-
-                    if (blood <= 0) {
-                        endGame();
-                    }
-                }
-            });
-        }
-
-        function endGame() {
-            gameActive = false;
-            clearInterval(spawnTimer);
-            clearInterval(moveTimer);
-            
-            document.getElementById('over-msg').innerText = `You squashed ${kills} mosquitoes before passing out!`;
-            gameOverScreen.style.display = 'flex';
-        }
-    </script>
+    // Window Resize Handling
+    window.addEventListener('resize', () => {
+      if (!gameActive) return;
+      const boardW = board.clientWidth || 320;
+      const boardH = board.clientHeight || 300;
+      mosquitoes.forEach(m => {
+        m.x = Math.max(0, Math.min(boardW - m.size, m.x));
+        m.y = Math.max(0, Math.min(boardH - m.size, m.y));
+        m.element.style.left = m.x + 'px';
+        m.element.style.top = m.y + 'px';
+      });
+    });
+  </script>
 </body>
 </html>
+

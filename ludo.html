@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cyber Ludo Championship — 4-Player Live & AI Duel</title>
+  
+  <!-- PeerJS for WebRTC Online Multiplayer -->
+  <script src="peerjs.min.js"></script>
+  <script>
+    if (typeof Peer === 'undefined') {
+      document.write('<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"><\/script>');
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-surface: #0f1422;
+      --bg-card: #151c2e;
+      --red-color: #ef4444;
+      --red-glow: rgba(239, 68, 68, 0.45);
+      --green-color: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.45);
+      --yellow-color: #f59e0b;
+      --yellow-glow: rgba(245, 158, 11, 0.45);
+      --blue-color: #00e5ff;
+      --blue-glow: rgba(0, 229, 255, 0.45);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 12px;
+      overflow-x: hidden;
+    }
+
+    .game-wrapper {
+      width: 100%;
+      max-width: 540px;
+      background: var(--bg-surface);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 50px rgba(0, 229, 255, 0.06);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 12px;
+    }
+
+    .header-title-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .game-title {
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #ef4444, #f59e0b, #10b981, #00e5ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .game-subtitle {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    /* Mode Navigation Tabs */
+    .mode-bar {
+      display: flex;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px;
+      border-radius: 12px;
+      gap: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .mode-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 4px;
+      border-radius: 8px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(16, 185, 129, 0.25));
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+    }
+
+    /* Online Lobby Panel */
+    .online-panel {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(239, 68, 68, 0.08));
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .online-action-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-lobby {
+      background: var(--bg-card);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--text-main);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-lobby.primary {
+      background: linear-gradient(135deg, #0284c7, #00e5ff);
+      color: #000;
+      font-weight: 800;
+      border: none;
+    }
+
+    .btn-lobby:hover {
+      filter: brightness(1.2);
+      transform: translateY(-1px);
+    }
+
+    .join-input {
+      flex: 1;
+      min-width: 130px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      outline: none;
+    }
+
+    .room-info-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .room-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .room-code-badge {
+      font-family: monospace;
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: var(--blue-color);
+      letter-spacing: 1.5px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 229, 255, 0.4);
+    }
+
+    .player-slots-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin: 4px 0;
+    }
+
+    .player-slot {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 6px 4px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .player-slot.slot-red { border-color: rgba(239, 68, 68, 0.4); }
+    .player-slot.slot-green { border-color: rgba(16, 185, 129, 0.4); }
+    .player-slot.slot-yellow { border-color: rgba(245, 158, 11, 0.4); }
+    .player-slot.slot-blue { border-color: rgba(0, 229, 255, 0.4); }
+
+    .slot-icon { font-size: 18px; }
+    .slot-name { font-size: 0.68rem; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
+    .slot-status { font-size: 0.62rem; color: var(--text-muted); }
+
+    .invite-share-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .invite-share-row input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: #e2e8f0;
+      font-size: 0.72rem;
+      font-family: monospace;
+      outline: none;
+    }
+
+    /* Active Player HUD */
+    .hud-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .hud-player-card {
+      background: var(--bg-card);
+      border: 2px solid transparent;
+      border-radius: 10px;
+      padding: 6px 4px;
+      text-align: center;
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .hud-player-card.active-turn {
+      transform: translateY(-2px);
+      box-shadow: 0 0 16px currentColor;
+    }
+
+    .hud-player-card.color-red { color: var(--red-color); }
+    .hud-player-card.color-green { color: var(--green-color); }
+    .hud-player-card.color-yellow { color: var(--yellow-color); }
+    .hud-player-card.color-blue { color: var(--blue-color); }
+
+    .hud-player-card.active-turn.color-red { border-color: var(--red-color); background: rgba(239, 68, 68, 0.12); }
+    .hud-player-card.active-turn.color-green { border-color: var(--green-color); background: rgba(16, 185, 129, 0.12); }
+    .hud-player-card.active-turn.color-yellow { border-color: var(--yellow-color); background: rgba(245, 158, 11, 0.12); }
+    .hud-player-card.active-turn.color-blue { border-color: var(--blue-color); background: rgba(0, 229, 255, 0.12); }
+
+    .hud-player-name {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .hud-player-score {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    /* Turn Banner & Dice Action Arena */
+    .turn-action-panel {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 8px 14px;
+    }
+
+    .turn-text-box {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .turn-title {
+      font-size: 0.88rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .turn-hint {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* 3D Dice Box */
+    .dice-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dice-btn {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, #ffffff, #e2e8f0);
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      position: relative;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .dice-btn:hover:not(:disabled) {
+      transform: scale(1.06);
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+    }
+
+    .dice-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+    }
+
+    .dice-btn.rolling {
+      animation: diceShake 0.45s infinite;
+    }
+
+    @keyframes diceShake {
+      0% { transform: rotate(0deg) scale(1.05); }
+      25% { transform: rotate(-15deg) scale(1.1); }
+      50% { transform: rotate(15deg) scale(1.1); }
+      75% { transform: rotate(-10deg) scale(1.05); }
+      100% { transform: rotate(0deg) scale(1.05); }
+    }
+
+    .dice-face {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      padding: 6px;
+      place-items: center;
+    }
+
+    .pip {
+      width: 8px;
+      height: 8px;
+      background: #0f172a;
+      border-radius: 50%;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+    }
+
+    /* LUDO BOARD SVG CANVAS CONTAINER */
+    .ludo-board-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: 480px;
+      margin: 0 auto;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9), 0 0 30px rgba(0, 0, 0, 0.5);
+      border: 4px solid #1e293b;
+      background: #06090f;
+    }
+
+    #ludoSvg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Token styling in SVG */
+    .ludo-token {
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.18, 0.89, 0.32, 1.28), filter 0.2s;
+    }
+
+    .ludo-token.movable {
+      animation: tokenPulse 0.9s infinite alternate;
+      cursor: pointer;
+    }
+
+    @keyframes tokenPulse {
+      0% { filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 10px currentColor); transform: scale(1); }
+      100% { filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 16px currentColor); transform: scale(1.18); }
+    }
+
+    /* Reactions Bar */
+    .reactions-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 4px 0;
+    }
+
+    .btn-react {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 5px 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.15s;
+    }
+
+    .btn-react:hover {
+      transform: scale(1.25);
+      background: rgba(0, 229, 255, 0.2);
+      border-color: var(--blue-color);
+    }
+
+    .floating-emoji {
+      position: absolute;
+      font-size: 40px;
+      pointer-events: none;
+      z-index: 100;
+      animation: floatEmoji 1.8s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+      filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.8));
+    }
+
+    @keyframes floatEmoji {
+      0% { opacity: 0; transform: translate(-50%, 20px) scale(0.4); }
+      20% { opacity: 1; transform: translate(-50%, -10px) scale(1.2); }
+      75% { opacity: 0.9; transform: translate(-50%, -70px) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -120px) scale(0.7); }
+    }
+
+    /* Toast Notification */
+    .ludo-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--blue-color);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 229, 255, 0.3);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+      animation: toastIn 0.25s ease;
+      white-space: nowrap;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translate(-50%, 20px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    /* Winner Podium Modal */
+    .winner-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .winner-modal.open {
+      display: flex;
+    }
+
+    .winner-card {
+      background: var(--bg-surface);
+      border: 2px solid var(--yellow-color);
+      border-radius: 20px;
+      box-shadow: 0 0 40px rgba(245, 158, 11, 0.4);
+      padding: 24px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      animation: popModal 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+
+    @keyframes popModal {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .winner-crown { font-size: 48px; }
+    .winner-title { font-size: 1.4rem; font-weight: 900; }
+    .winner-desc { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Mobile Responsive */
+    @media (max-width: 480px) {
+      .game-wrapper {
+        padding: 12px;
+      }
+      .game-title {
+        font-size: 1.15rem;
+      }
+      .dice-btn {
+        width: 48px;
+        height: 48px;
+      }
+      .hud-player-name {
+        font-size: 0.65rem;
+      }
+      .slot-name {
+        max-width: 50px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-wrapper">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-title-box">
+        <span style="font-size: 26px;">🎲</span>
+        <div>
+          <h1 class="game-title">CYBER LUDO</h1>
+          <p class="game-subtitle">Championship Edition • 4-Player Duel & AI</p>
+        </div>
+      </div>
+      <a href="index.html" style="text-decoration: none; color: var(--blue-color); font-size: 0.78rem; font-weight: 700; border: 1px solid rgba(0, 229, 255, 0.3); padding: 5px 10px; border-radius: 8px;">
+        ✕ Exit
+      </a>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="mode-bar">
+      <button type="button" class="mode-btn active" data-mode="ai" onclick="selectGameMode('ai')">
+        <span>🤖</span> vs Computer
+      </button>
+      <button type="button" class="mode-btn" data-mode="pass" onclick="selectGameMode('pass')">
+        <span>👥</span> Pass & Play
+      </button>
+      <button type="button" class="mode-btn" data-mode="online" onclick="selectGameMode('online')">
+        <span>🌐</span> Online (Invite)
+      </button>
+    </div>
+
+    <!-- Online Lobby Panel (shown in online mode) -->
+    <div class="online-panel" id="onlinePanel" style="display: none;">
+      <!-- Choices: Create or Join -->
+      <div id="onlineChoicesView">
+        <div class="online-action-row">
+          <button type="button" class="btn-lobby primary" onclick="hostCreateLudoRoom()">
+            <span>⚡</span> Create Room & Invite
+          </button>
+          <input type="text" id="joinCodeInput" class="join-input" placeholder="Room Code (LUDO-XXXX)" maxlength="12">
+          <button type="button" class="btn-lobby" onclick="guestJoinLudoRoom()">
+            <span>🔑</span> Join
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Room Card -->
+      <div id="onlineRoomView" style="display: none;">
+        <div class="room-info-card">
+          <div class="room-header">
+            <div>
+              <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 800;">ROOM:</span>
+              <span class="room-code-badge" id="roomCodeDisplay">LUDO-0000</span>
+            </div>
+            <div id="onlineStatusBadge" style="font-size: 0.75rem; font-weight: 700; color: #fbbf24;">
+              🟡 Waiting for players...
+            </div>
+          </div>
+
+          <!-- 4 Player Slots -->
+          <div class="player-slots-grid">
+            <div class="player-slot slot-red" id="slotRed">
+              <span class="slot-icon">🔴</span>
+              <span class="slot-name" id="nameRed">Player 1</span>
+              <span class="slot-status">Host</span>
+            </div>
+            <div class="player-slot slot-green" id="slotGreen">
+              <span class="slot-icon">🟢</span>
+              <span class="slot-name" id="nameGreen">Open</span>
+              <span class="slot-status" id="statusGreen">Waiting</span>
+            </div>
+            <div class="player-slot slot-yellow" id="slotYellow">
+              <span class="slot-icon">🟡</span>
+              <span class="slot-name" id="nameYellow">Open</span>
+              <span class="slot-status" id="statusYellow">Waiting</span>
+            </div>
+            <div class="player-slot slot-blue" id="slotBlue">
+              <span class="slot-icon">🔵</span>
+              <span class="slot-name" id="nameBlue">Open</span>
+              <span class="slot-status" id="statusBlue">Waiting</span>
+            </div>
+          </div>
+
+          <!-- Share Link Row -->
+          <div class="invite-share-row" id="inviteShareRow">
+            <input type="text" id="inviteUrlInput" readonly value="">
+            <button type="button" class="btn-lobby" id="btnCopyInvite" onclick="copyLudoInvite()" style="padding: 6px 12px; font-size: 0.75rem;">
+              <span>📋 Copy</span>
+            </button>
+            <button type="button" class="btn-lobby" onclick="shareLudoInvite()" style="padding: 6px 12px; font-size: 0.75rem; color: #25d366; border-color: #25d366;">
+              <span>📲 Share</span>
+            </button>
+          </div>
+
+          <!-- Start Game button for host -->
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 4px;">
+            <button type="button" id="btnStartOnline" class="btn-lobby primary" onclick="startOnlineLudoMatch()" style="display: none;">
+              <span>▶</span> Start Match
+            </button>
+            <button type="button" class="btn-lobby" onclick="leaveLudoOnline()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4); font-size: 0.72rem; padding: 4px 8px;">
+              ✕ Leave Room
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Player HUD Scoreboard -->
+    <div class="hud-bar">
+      <div class="hud-player-card color-red active-turn" id="hudRed">
+        <div class="hud-player-name">🔴 Red</div>
+        <div class="hud-player-score" id="scoreRed">0/4 Home</div>
+      </div>
+      <div class="hud-player-card color-green" id="hudGreen">
+        <div class="hud-player-name">🟢 Green</div>
+        <div class="hud-player-score" id="scoreGreen">0/4 Home</div>
+      </div>
+      <div class="hud-player-card color-yellow" id="hudYellow">
+        <div class="hud-player-name">🟡 Yellow</div>
+        <div class="hud-player-score" id="scoreYellow">0/4 Home</div>
+      </div>
+      <div class="hud-player-card color-blue" id="hudBlue">
+        <div class="hud-player-name">🔵 Blue</div>
+        <div class="hud-player-score" id="scoreBlue">0/4 Home</div>
+      </div>
+    </div>
+
+    <!-- Turn Banner & 3D Rolling Dice -->
+    <div class="turn-action-panel">
+      <div class="turn-text-box">
+        <div class="turn-title" id="turnTitle" style="color: var(--red-color);">
+          <span>🔴</span> <span id="turnPlayerName">Red's Turn</span>
+        </div>
+        <div class="turn-hint" id="turnHint">Roll the dice to make your move!</div>
+      </div>
+
+      <div class="dice-container">
+        <button type="button" class="dice-btn" id="diceBtn" onclick="onDiceClick()" title="Click to Roll Dice">
+          <div class="dice-face" id="diceFace">
+            <!-- 3x3 pips generated by JS -->
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- LUDO BOARD SVG CONTAINER -->
+    <div class="ludo-board-wrapper">
+      <svg id="ludoSvg" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+        <!-- Dynamic board generated by JS -->
+      </svg>
+    </div>
+
+    <!-- Emoji Reactions -->
+    <div class="reactions-bar">
+      <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">React:</span>
+      <button type="button" class="btn-react" onclick="sendLudoReaction('🔥')">🔥</button>
+      <button type="button" class="btn-react" onclick="sendLudoReaction('😂')">😂</button>
+      <button type="button" class="btn-react" onclick="sendLudoReaction('👏')">👏</button>
+      <button type="button" class="btn-react" onclick="sendLudoReaction('💀')">💀</button>
+      <button type="button" class="btn-react" onclick="sendLudoReaction('👑')">👑</button>
+      <button type="button" class="btn-react" onclick="sendLudoReaction('🎲')">🎲</button>
+    </div>
+  </div>
+
+  <!-- Winner Modal -->
+  <div class="winner-modal" id="winnerModal">
+    <div class="winner-card">
+      <div class="winner-crown">👑</div>
+      <h2 class="winner-title" id="winnerTitle">Red Wins the Championship!</h2>
+      <p class="winner-desc">All 4 tokens reached home safely in an epic Cyber Ludo match!</p>
+      <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
+        <button type="button" class="btn-lobby primary" onclick="startNewLudoGame()">🔄 Play Again</button>
+        <button type="button" class="btn-lobby" onclick="closeWinnerModal()">✕ Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script logic -->
+  <script>
+    // --- 1. WEB AUDIO PROCEDURAL SOUND SYSTEM ---
+    let audioCtx = null;
+    function getAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function soundRoll() {
+      try {
+        const ctx = getAudio();
+        for (let i = 0; i < 4; i++) {
+          setTimeout(() => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.frequency.setValueAtTime(200 + Math.random() * 300, ctx.currentTime);
+            gain.gain.setValueAtTime(0.08, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.05);
+          }, i * 65);
+        }
+      } catch (e) {}
+    }
+
+    function soundStep() {
+      try {
+        const ctx = getAudio();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.setValueAtTime(540, ctx.currentTime);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.08);
+      } catch (e) {}
+    }
+
+    function soundCapture() {
+      try {
+        const ctx = getAudio();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(320, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.25);
+      } catch (e) {}
+    }
+
+    function soundHome() {
+      try {
+        const ctx = getAudio();
+        [523, 659, 784, 1046].forEach((freq, idx) => {
+          setTimeout(() => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.15);
+          }, idx * 90);
+        });
+      } catch (e) {}
+    }
+
+    // --- 2. GAME STATE & CONSTANTS ---
+    const COLORS = ['red', 'green', 'yellow', 'blue'];
+    const COLOR_HEX = {
+      red: '#ef4444',
+      green: '#10b981',
+      yellow: '#f59e0b',
+      blue: '#00e5ff'
+    };
+
+    const START_TRACK_INDEX = {
+      red: 0,
+      green: 13,
+      yellow: 26,
+      blue: 39
+    };
+
+    // Safe Star Cells on the 52-cell track
+    const SAFE_TRACK_CELLS = [0, 8, 13, 21, 26, 34, 39, 47];
+
+    let gameMode = 'ai'; // 'ai', 'pass', 'online'
+    let currentTurnColor = 'red';
+    let diceValue = 1;
+    let hasRolled = false;
+    let consecutiveSixes = 0;
+    let isMovingToken = false;
+    let movableTokens = [];
+    let isGameOver = false;
+
+    // Player configs (types: 'human', 'bot', 'online')
+    let players = {
+      red: { type: 'human', name: 'Player 1' },
+      green: { type: 'bot', name: 'Green Bot' },
+      yellow: { type: 'bot', name: 'Yellow Bot' },
+      blue: { type: 'bot', name: 'Blue Bot' }
+    };
+
+    // Tokens state for all 4 players (4 tokens each)
+    // Step: -1 = Yard, 0..50 = Track, 51..55 = Home Stretch, 56 = Home (Goal)
+    let tokens = {
+      red: [{ id: 0, step: -1 }, { id: 1, step: -1 }, { id: 2, step: -1 }, { id: 3, step: -1 }],
+      green: [{ id: 0, step: -1 }, { id: 1, step: -1 }, { id: 2, step: -1 }, { id: 3, step: -1 }],
+      yellow: [{ id: 0, step: -1 }, { id: 1, step: -1 }, { id: 2, step: -1 }, { id: 3, step: -1 }],
+      blue: [{ id: 0, step: -1 }, { id: 1, step: -1 }, { id: 2, step: -1 }, { id: 3, step: -1 }]
+    };
+
+    // --- 3. LUDO BOARD 15x15 COORDINATE MAPPING ---
+    // Track outer coordinates (52 cells)
+    const TRACK_COORDS = [
+      // 0..4 (Red arm going right)
+      { r: 6, c: 1 }, { r: 6, c: 2 }, { r: 6, c: 3 }, { r: 6, c: 4 }, { r: 6, c: 5 },
+      // 5..10 (Top arm going up)
+      { r: 5, c: 6 }, { r: 4, c: 6 }, { r: 3, c: 6 }, { r: 2, c: 6 }, { r: 1, c: 6 }, { r: 0, c: 6 },
+      // 11..12 (Top turn)
+      { r: 0, c: 7 }, { r: 0, c: 8 },
+      // 13..17 (Top arm going down - Green start at 13)
+      { r: 1, c: 8 }, { r: 2, c: 8 }, { r: 3, c: 8 }, { r: 4, c: 8 }, { r: 5, c: 8 },
+      // 18..23 (Right arm going right)
+      { r: 6, c: 9 }, { r: 6, c: 10 }, { r: 6, c: 11 }, { r: 6, c: 12 }, { r: 6, c: 13 }, { r: 6, c: 14 },
+      // 24..25 (Right turn)
+      { r: 7, c: 14 }, { r: 8, c: 14 },
+      // 26..30 (Right arm going left - Yellow start at 26)
+      { r: 8, c: 13 }, { r: 8, c: 12 }, { r: 8, c: 11 }, { r: 8, c: 10 }, { r: 8, c: 9 },
+      // 31..36 (Bottom arm going down)
+      { r: 9, c: 8 }, { r: 10, c: 8 }, { r: 11, c: 8 }, { r: 12, c: 8 }, { r: 13, c: 8 }, { r: 14, c: 8 },
+      // 37..38 (Bottom turn)
+      { r: 14, c: 7 }, { r: 14, c: 6 },
+      // 39..43 (Bottom arm going up - Blue start at 39)
+      { r: 13, c: 6 }, { r: 12, c: 6 }, { r: 11, c: 6 }, { r: 10, c: 6 }, { r: 9, c: 6 },
+      // 44..49 (Left arm going left)
+      { r: 8, c: 5 }, { r: 8, c: 4 }, { r: 8, c: 3 }, { r: 8, c: 2 }, { r: 8, c: 1 }, { r: 8, c: 0 },
+      // 50..51 (Left turn)
+      { r: 7, c: 0 }, { r: 6, c: 0 }
+    ];
+
+    // Home Stretches (5 cells each) + Goal Center
+    const HOME_STRETCH_COORDS = {
+      red: [
+        { r: 7, c: 1 }, { r: 7, c: 2 }, { r: 7, c: 3 }, { r: 7, c: 4 }, { r: 7, c: 5 }
+      ],
+      green: [
+        { r: 1, c: 7 }, { r: 2, c: 7 }, { r: 3, c: 7 }, { r: 4, c: 7 }, { r: 5, c: 7 }
+      ],
+      yellow: [
+        { r: 7, c: 13 }, { r: 7, c: 12 }, { r: 7, c: 11 }, { r: 7, c: 10 }, { r: 7, c: 9 }
+      ],
+      blue: [
+        { r: 13, c: 7 }, { r: 12, c: 7 }, { r: 11, c: 7 }, { r: 10, c: 7 }, { r: 9, c: 7 }
+      ]
+    };
+
+    const GOAL_CENTER_COORDS = {
+      red: { r: 7, c: 6 },
+      green: { r: 6, c: 7 },
+      yellow: { r: 7, c: 8 },
+      blue: { r: 8, c: 7 }
+    };
+
+    // Yard Base spots for 4 tokens
+    const YARD_COORDS = {
+      red: [
+        { r: 2, c: 2 }, { r: 2, c: 3.5 }, { r: 3.5, c: 2 }, { r: 3.5, c: 3.5 }
+      ],
+      green: [
+        { r: 2, c: 11 }, { r: 2, c: 12.5 }, { r: 3.5, c: 11 }, { r: 3.5, c: 12.5 }
+      ],
+      yellow: [
+        { r: 11, c: 11 }, { r: 11, c: 12.5 }, { r: 12.5, c: 11 }, { r: 12.5, c: 12.5 }
+      ],
+      blue: [
+        { r: 11, c: 2 }, { r: 11, c: 3.5 }, { r: 12.5, c: 2 }, { r: 12.5, c: 3.5 }
+      ]
+    };
+
+    function getPixelCoord(r, c) {
+      const CELL_SIZE = 40; // 600 / 15 = 40
+      return {
+        x: c * CELL_SIZE + CELL_SIZE / 2,
+        y: r * CELL_SIZE + CELL_SIZE / 2
+      };
+    }
+
+    function getTokenPosition(color, token) {
+      if (token.step === -1) {
+        const spot = YARD_COORDS[color][token.id];
+        return getPixelCoord(spot.r, spot.c);
+      }
+      if (token.step <= 50) {
+        const trackIdx = (START_TRACK_INDEX[color] + token.step) % 52;
+        const cell = TRACK_COORDS[trackIdx];
+        return getPixelCoord(cell.r, cell.c);
+      }
+      if (token.step <= 55) {
+        const homeIdx = token.step - 51;
+        const cell = HOME_STRETCH_COORDS[color][homeIdx];
+        return getPixelCoord(cell.r, cell.c);
+      }
+      // Reached Goal Center
+      const goal = GOAL_CENTER_COORDS[color];
+      return getPixelCoord(goal.r, goal.c);
+    }
+
+    // --- 4. BOARD RENDERING (SVG) ---
+    function renderBoardSVG() {
+      const svg = document.getElementById('ludoSvg');
+      let html = `
+        <defs>
+          <radialGradient id="tokenShine" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#000000" stop-opacity="0.4"/>
+          </radialGradient>
+          <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#ffffff" flood-opacity="0.8"/>
+          </filter>
+        </defs>
+      `;
+
+      // 1. Board Background Grid Base
+      html += `<rect width="600" height="600" fill="#090d16" stroke="#1e293b" stroke-width="4"/>`;
+
+      // 2. Corner Base Yards (6x6 cells = 240x240)
+      // Red Yard (Top-Left)
+      html += `
+        <rect x="0" y="0" width="240" height="240" fill="#450a0a" stroke="#ef4444" stroke-width="3"/>
+        <rect x="30" y="30" width="180" height="180" rx="20" fill="#1e1014" stroke="rgba(239, 68, 68, 0.4)" stroke-width="2"/>
+        <circle cx="90" cy="90" r="22" fill="#ef4444" opacity="0.3"/>
+        <circle cx="150" cy="90" r="22" fill="#ef4444" opacity="0.3"/>
+        <circle cx="90" cy="150" r="22" fill="#ef4444" opacity="0.3"/>
+        <circle cx="150" cy="150" r="22" fill="#ef4444" opacity="0.3"/>
+        <text x="120" y="125" text-anchor="middle" fill="#ef4444" font-family="sans-serif" font-weight="900" font-size="14" letter-spacing="2">RED</text>
+      `;
+
+      // Green Yard (Top-Right)
+      html += `
+        <rect x="360" y="0" width="240" height="240" fill="#022c22" stroke="#10b981" stroke-width="3"/>
+        <rect x="390" y="30" width="180" height="180" rx="20" fill="#061f18" stroke="rgba(16, 185, 129, 0.4)" stroke-width="2"/>
+        <circle cx="450" cy="90" r="22" fill="#10b981" opacity="0.3"/>
+        <circle cx="510" cy="90" r="22" fill="#10b981" opacity="0.3"/>
+        <circle cx="450" cy="150" r="22" fill="#10b981" opacity="0.3"/>
+        <circle cx="510" cy="150" r="22" fill="#10b981" opacity="0.3"/>
+        <text x="480" y="125" text-anchor="middle" fill="#10b981" font-family="sans-serif" font-weight="900" font-size="14" letter-spacing="2">GREEN</text>
+      `;
+
+      // Yellow Yard (Bottom-Right)
+      html += `
+        <rect x="360" y="360" width="240" height="240" fill="#451a03" stroke="#f59e0b" stroke-width="3"/>
+        <rect x="390" y="390" width="180" height="180" rx="20" fill="#201306" stroke="rgba(245, 158, 11, 0.4)" stroke-width="2"/>
+        <circle cx="450" cy="450" r="22" fill="#f59e0b" opacity="0.3"/>
+        <circle cx="510" cy="450" r="22" fill="#f59e0b" opacity="0.3"/>
+        <circle cx="450" cy="510" r="22" fill="#f59e0b" opacity="0.3"/>
+        <circle cx="510" cy="510" r="22" fill="#f59e0b" opacity="0.3"/>
+        <text x="480" y="485" text-anchor="middle" fill="#f59e0b" font-family="sans-serif" font-weight="900" font-size="14" letter-spacing="2">YELLOW</text>
+      `;
+
+      // Blue Yard (Bottom-Left)
+      html += `
+        <rect x="0" y="360" width="240" height="240" fill="#082f49" stroke="#00e5ff" stroke-width="3"/>
+        <rect x="30" y="390" width="180" height="180" rx="20" fill="#061b29" stroke="rgba(0, 229, 255, 0.4)" stroke-width="2"/>
+        <circle cx="90" cy="450" r="22" fill="#00e5ff" opacity="0.3"/>
+        <circle cx="150" cy="450" r="22" fill="#00e5ff" opacity="0.3"/>
+        <circle cx="90" cy="510" r="22" fill="#00e5ff" opacity="0.3"/>
+        <circle cx="150" cy="510" r="22" fill="#00e5ff" opacity="0.3"/>
+        <text x="120" y="485" text-anchor="middle" fill="#00e5ff" font-family="sans-serif" font-weight="900" font-size="14" letter-spacing="2">BLUE</text>
+      `;
+
+      // 3. Center Victory Triangles (3x3 cells = 240..360, 240..360)
+      html += `
+        <polygon points="240,240 360,240 300,300" fill="#065f46" stroke="#10b981" stroke-width="2"/>
+        <polygon points="360,240 360,360 300,300" fill="#78350f" stroke="#f59e0b" stroke-width="2"/>
+        <polygon points="360,360 240,360 300,300" fill="#0369a1" stroke="#00e5ff" stroke-width="2"/>
+        <polygon points="240,360 240,240 300,300" fill="#7f1d1d" stroke="#ef4444" stroke-width="2"/>
+        <circle cx="300" cy="300" r="14" fill="#0b111e" stroke="#ffffff" stroke-width="2"/>
+        <text x="300" y="305" text-anchor="middle" font-size="13">👑</text>
+      `;
+
+      // 4. Render Outer 52 Track Cells & Home Columns
+      const CS = 40;
+      for (let r = 0; r < 15; r++) {
+        for (let c = 0; c < 15; c++) {
+          // Skip yard corners and center
+          const inRedYard = (r < 6 && c < 6);
+          const inGreenYard = (r < 6 && c > 8);
+          const inYellowYard = (r > 8 && c > 8);
+          const inBlueYard = (r > 8 && c < 6);
+          const inCenter = (r >= 6 && r <= 8 && c >= 6 && c <= 8);
+
+          if (!inRedYard && !inGreenYard && !inYellowYard && !inBlueYard && !inCenter) {
+            let fill = '#0d1525';
+            let stroke = 'rgba(255, 255, 255, 0.08)';
+
+            // Check Home Columns
+            if (r === 7 && c >= 1 && c <= 5) fill = '#ef4444'; // Red Home column
+            if (c === 7 && r >= 1 && r <= 5) fill = '#10b981'; // Green Home column
+            if (r === 7 && c >= 9 && c <= 13) fill = '#f59e0b'; // Yellow Home column
+            if (c === 7 && r >= 9 && r <= 13) fill = '#00e5ff'; // Blue Home column
+
+            // Starting cells
+            if (r === 6 && c === 1) fill = '#ef4444'; // Red start
+            if (r === 1 && c === 8) fill = '#10b981'; // Green start
+            if (r === 8 && c === 13) fill = '#f59e0b'; // Yellow start
+            if (r === 13 && c === 6) fill = '#00e5ff'; // Blue start
+
+            html += `<rect x="${c * CS}" y="${r * CS}" width="${CS}" height="${CS}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" rx="3"/>`;
+
+            // Draw Stars on Safe Cells
+            const isSafeStar = (
+              (r === 6 && c === 1) || (r === 2 && c === 6) ||
+              (r === 1 && c === 8) || (r === 6 && c === 12) ||
+              (r === 8 && c === 13) || (r === 12 && c === 8) ||
+              (r === 13 && c === 6) || (r === 8 && c === 2)
+            );
+
+            if (isSafeStar) {
+              const cx = c * CS + CS / 2;
+              const cy = r * CS + CS / 2 + 5;
+              html += `<text x="${cx}" y="${cy}" text-anchor="middle" fill="#ffffff" font-size="16" opacity="0.85">★</text>`;
+            }
+          }
+        }
+      }
+
+      // 5. Render Tokens Layer
+      html += `<g id="tokensGroup"></g>`;
+
+      svg.innerHTML = html;
+      renderTokens();
+    }
+
+    // --- 5. TOKEN GRAPHICS & STACKING ---
+    function renderTokens() {
+      const g = document.getElementById('tokensGroup');
+      if (!g) return;
+
+      // Group tokens by their rendered coordinate to handle stacking
+      const cellMap = {};
+
+      COLORS.forEach(color => {
+        tokens[color].forEach(tok => {
+          const pos = getTokenPosition(color, tok);
+          const key = `${Math.round(pos.x)},${Math.round(pos.y)}`;
+          if (!cellMap[key]) cellMap[key] = [];
+          cellMap[key].push({ color, tok, pos });
+        });
+      });
+
+      let tokensHtml = '';
+
+      Object.values(cellMap).forEach(list => {
+        const count = list.length;
+        list.forEach((item, idx) => {
+          const { color, tok, pos } = item;
+          // Offset if stacked
+          let ox = 0, oy = 0;
+          let radius = 14;
+
+          if (count > 1 && tok.step !== -1 && tok.step !== 56) {
+            radius = 11;
+            const angle = (idx / count) * 2 * Math.PI;
+            ox = Math.cos(angle) * 8;
+            oy = Math.sin(angle) * 8;
+          }
+
+          const cx = pos.x + ox;
+          const cy = pos.y + oy;
+          const isMovable = movableTokens.some(m => m.color === color && m.id === tok.id);
+
+          tokensHtml += `
+            <g class="ludo-token ${isMovable ? 'movable' : ''}" 
+               style="color: ${COLOR_HEX[color]};"
+               onclick="onTokenClick('${color}', ${tok.id})">
+              <!-- Outer Metallic Ring -->
+              <circle cx="${cx}" cy="${cy}" r="${radius}" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+              <!-- Colored Core -->
+              <circle cx="${cx}" cy="${cy}" r="${radius - 3}" fill="${COLOR_HEX[color]}"/>
+              <!-- 3D Jewel Gloss Highlight -->
+              <circle cx="${cx - 3}" cy="${cy - 3}" r="${radius - 6}" fill="url(#tokenShine)"/>
+              ${tok.step === 56 ? `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="10">✓</text>` : ''}
+            </g>
+          `;
+        });
+      });
+
+      g.innerHTML = tokensHtml;
+    }
+
+    // --- 6. 3D DICE & TURN LOGIC ---
+    function renderDiceFace(val) {
+      const face = document.getElementById('diceFace');
+      face.innerHTML = '';
+
+      // 3x3 layout indices
+      const PIP_MAPS = {
+        1: [4],
+        2: [0, 8],
+        3: [0, 4, 8],
+        4: [0, 2, 6, 8],
+        5: [0, 2, 4, 6, 8],
+        6: [0, 2, 3, 5, 6, 8]
+      };
+
+      const activePips = PIP_MAPS[val] || [4];
+
+      for (let i = 0; i < 9; i++) {
+        const div = document.createElement('div');
+        if (activePips.includes(i)) {
+          const pip = document.createElement('div');
+          pip.className = 'pip';
+          if (val === 6 || val === 1) pip.style.background = '#ef4444'; // Red ace/six dot
+          div.appendChild(pip);
+        }
+        face.appendChild(div);
+      }
+    }
+
+    function onDiceClick() {
+      if (hasRolled || isMovingToken || isGameOver) return;
+
+      // In online mode, verify it is your turn!
+      if (gameMode === 'online') {
+        if (!isOnlineConnected) {
+          showLudoToast("⚠️ Waiting for players to join...");
+          return;
+        }
+        if (currentTurnColor !== myOnlineColor) {
+          showLudoToast(`⏳ It is ${currentTurnColor.toUpperCase()}'s turn!`);
+          return;
+        }
+      }
+
+      rollDice();
+    }
+
+    function rollDice(presetVal = null) {
+      hasRolled = true;
+      const diceBtn = document.getElementById('diceBtn');
+      diceBtn.classList.add('rolling');
+      soundRoll();
+
+      setTimeout(() => {
+        diceBtn.classList.remove('rolling');
+        diceValue = presetVal !== null ? presetVal : Math.floor(1 + Math.random() * 6);
+        renderDiceFace(diceValue);
+
+        // If online host, broadcast roll to all peers
+        if (gameMode === 'online' && activeConn && isHost) {
+          broadcastOnlineMessage({ type: 'sync_roll', color: currentTurnColor, val: diceValue });
+        } else if (gameMode === 'online' && activeConn && !isHost) {
+          activeConn.send({ type: 'guest_roll', val: diceValue });
+        }
+
+        handlePostRoll();
+      }, 450);
+    }
+
+    function handlePostRoll() {
+      // 3 sixes rule
+      if (diceValue === 6) {
+        consecutiveSixes++;
+        if (consecutiveSixes === 3) {
+          showLudoToast("⚠️ 3 consecutive sixes! Turn passed.");
+          consecutiveSixes = 0;
+          setTimeout(passTurnToNextPlayer, 1000);
+          return;
+        }
+      } else {
+        consecutiveSixes = 0;
+      }
+
+      // Find legal moves for current player
+      movableTokens = getMovableTokens(currentTurnColor, diceValue);
+
+      if (movableTokens.length === 0) {
+        document.getElementById('turnHint').innerText = `Rolled a ${diceValue}. No legal moves!`;
+        setTimeout(passTurnToNextPlayer, 1000);
+      } else if (movableTokens.length === 1 && (players[currentTurnColor].type === 'bot' || gameMode === 'ai')) {
+        document.getElementById('turnHint').innerText = `Moving token...`;
+        renderTokens();
+        setTimeout(() => {
+          moveToken(currentTurnColor, movableTokens[0].id);
+        }, 400);
+      } else {
+        // Highlight movable tokens for player
+        document.getElementById('turnHint').innerText = `Rolled a ${diceValue}! Select token to move.`;
+        renderTokens();
+
+        // If current turn is bot:
+        if (players[currentTurnColor].type === 'bot') {
+          setTimeout(makeBotDecision, 600);
+        }
+      }
+    }
+
+    function getMovableTokens(color, val) {
+      const list = [];
+      tokens[color].forEach(tok => {
+        // Token in yard needs a 6 to enter
+        if (tok.step === -1) {
+          if (val === 6) list.push(tok);
+        } else if (tok.step < 56) {
+          if (tok.step + val <= 56) {
+            list.push(tok);
+          }
+        }
+      });
+      return list;
+    }
+
+    function onTokenClick(color, tokenId) {
+      if (!hasRolled || isMovingToken || isGameOver) return;
+      if (color !== currentTurnColor) return;
+
+      // Online check
+      if (gameMode === 'online') {
+        if (currentTurnColor !== myOnlineColor) return;
+      }
+
+      const isValid = movableTokens.some(m => m.color === color && m.id === tokenId);
+      if (!isValid) return;
+
+      moveToken(color, tokenId);
+
+      // Online broadcast move
+      if (gameMode === 'online') {
+        if (isHost) {
+          broadcastOnlineMessage({ type: 'sync_move', color, tokenId });
+        } else if (activeConn) {
+          activeConn.send({ type: 'guest_move', color, tokenId });
+        }
+      }
+    }
+
+    function moveToken(color, tokenId) {
+      isMovingToken = true;
+      movableTokens = [];
+      const tok = tokens[color].find(t => t.id === tokenId);
+      if (!tok) return;
+
+      let stepsToMove = diceValue;
+      let targetStep = tok.step === -1 ? 0 : tok.step + stepsToMove;
+
+      // Animate step by step
+      function stepAnim() {
+        if (tok.step === -1) {
+          tok.step = 0;
+          soundStep();
+          renderTokens();
+          finishMove(color, tok);
+          return;
+        }
+
+        if (tok.step < targetStep) {
+          tok.step++;
+          soundStep();
+          renderTokens();
+          setTimeout(stepAnim, 120);
+        } else {
+          finishMove(color, tok);
+        }
+      }
+
+      stepAnim();
+    }
+
+    function finishMove(color, tok) {
+      isMovingToken = false;
+      let gotBonusRoll = (diceValue === 6);
+
+      // Check if reached Goal Home (step 56)
+      if (tok.step === 56) {
+        soundHome();
+        showLudoToast(`🎉 ${color.toUpperCase()} got a token Home! Bonus roll!`);
+        gotBonusRoll = true;
+        updateScoreCards();
+
+        // Check if player won
+        if (tokens[color].every(t => t.step === 56)) {
+          declareWinner(color);
+          return;
+        }
+      }
+
+      // Check capture on outer track
+      if (tok.step >= 0 && tok.step <= 50) {
+        const myTrackIdx = (START_TRACK_INDEX[color] + tok.step) % 52;
+        if (!SAFE_TRACK_CELLS.includes(myTrackIdx)) {
+          // Check opponent tokens on same cell
+          COLORS.forEach(oppColor => {
+            if (oppColor !== color) {
+              tokens[oppColor].forEach(oppTok => {
+                if (oppTok.step >= 0 && oppTok.step <= 50) {
+                  const oppTrackIdx = (START_TRACK_INDEX[oppColor] + oppTok.step) % 52;
+                  if (oppTrackIdx === myTrackIdx) {
+                    // Capture!
+                    oppTok.step = -1; // Send back to yard
+                    soundCapture();
+                    showLudoToast(`💥 ${color.toUpperCase()} captured ${oppColor.toUpperCase()}'s token! Bonus Roll!`);
+                    gotBonusRoll = true;
+                  }
+                }
+              });
+            }
+          });
+        }
+      }
+
+      renderTokens();
+
+      if (gotBonusRoll) {
+        hasRolled = false;
+        document.getElementById('turnHint').innerText = "Bonus Roll! Roll the dice again.";
+        checkAndTriggerBot();
+      } else {
+        passTurnToNextPlayer();
+      }
+    }
+
+    function passTurnToNextPlayer() {
+      hasRolled = false;
+      consecutiveSixes = 0;
+      movableTokens = [];
+
+      // Rotate to next active player
+      const currIdx = COLORS.indexOf(currentTurnColor);
+      let nextIdx = (currIdx + 1) % 4;
+
+      // If player already finished all 4 tokens, skip
+      let loops = 0;
+      while (tokens[COLORS[nextIdx]].every(t => t.step === 56) && loops < 4) {
+        nextIdx = (nextIdx + 1) % 4;
+        loops++;
+      }
+
+      currentTurnColor = COLORS[nextIdx];
+      updateTurnUI();
+      checkAndTriggerBot();
+    }
+
+    function updateTurnUI() {
+      // Update HUD active turn
+      COLORS.forEach(c => {
+        const hud = document.getElementById(`hud${c.charAt(0).toUpperCase() + c.slice(1)}`);
+        if (hud) hud.classList.toggle('active-turn', c === currentTurnColor);
+      });
+
+      // Update Turn Banner
+      const titleEl = document.getElementById('turnTitle');
+      const nameEl = document.getElementById('turnPlayerName');
+      const hintEl = document.getElementById('turnHint');
+
+      const emojiMap = { red: '🔴', green: '🟢', yellow: '🟡', blue: '🔵' };
+      titleEl.style.color = COLOR_HEX[currentTurnColor];
+      titleEl.innerHTML = `<span>${emojiMap[currentTurnColor]}</span> <span>${players[currentTurnColor].name}'s Turn</span>`;
+      
+      if (gameMode === 'online') {
+        hintEl.innerText = (currentTurnColor === myOnlineColor) ? "YOUR TURN! Roll the dice" : "Waiting for player to roll...";
+      } else {
+        hintEl.innerText = "Roll the dice to make your move!";
+      }
+
+      // Dice button enable/disable
+      const diceBtn = document.getElementById('diceBtn');
+      if (gameMode === 'online') {
+        diceBtn.disabled = (currentTurnColor !== myOnlineColor);
+      } else {
+        diceBtn.disabled = (players[currentTurnColor].type === 'bot');
+      }
+    }
+
+    function updateScoreCards() {
+      COLORS.forEach(c => {
+        const homeCount = tokens[c].filter(t => t.step === 56).length;
+        const el = document.getElementById(`score${c.charAt(0).toUpperCase() + c.slice(1)}`);
+        if (el) el.innerText = `${homeCount}/4 Home`;
+      });
+    }
+
+    function checkAndTriggerBot() {
+      if (isGameOver) return;
+      if (players[currentTurnColor].type === 'bot' && gameMode !== 'online') {
+        setTimeout(() => {
+          if (!hasRolled) rollDice();
+        }, 750);
+      }
+    }
+
+    // --- 7. TACTICAL AI BOT DECISION ---
+    function makeBotDecision() {
+      if (movableTokens.length === 0) return;
+      if (movableTokens.length === 1) {
+        moveToken(currentTurnColor, movableTokens[0].id);
+        return;
+      }
+
+      // Priority 1: Move that captures opponent
+      for (let tok of movableTokens) {
+        const targetStep = tok.step === -1 ? 0 : tok.step + diceValue;
+        if (targetStep <= 50) {
+          const targetTrack = (START_TRACK_INDEX[currentTurnColor] + targetStep) % 52;
+          if (!SAFE_TRACK_CELLS.includes(targetTrack)) {
+            for (let oppColor of COLORS) {
+              if (oppColor !== currentTurnColor) {
+                for (let oppTok of tokens[oppColor]) {
+                  if (oppTok.step >= 0 && oppTok.step <= 50) {
+                    const oppTrack = (START_TRACK_INDEX[oppColor] + oppTok.step) % 52;
+                    if (oppTrack === targetTrack) {
+                      moveToken(currentTurnColor, tok.id);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Priority 2: Move reaching Home
+      for (let tok of movableTokens) {
+        if (tok.step + diceValue === 56) {
+          moveToken(currentTurnColor, tok.id);
+          return;
+        }
+      }
+
+      // Priority 3: Bring out from yard on a 6
+      if (diceValue === 6) {
+        const yardTok = movableTokens.find(t => t.step === -1);
+        if (yardTok) {
+          moveToken(currentTurnColor, yardTok.id);
+          return;
+        }
+      }
+
+      // Priority 4: Move furthest along path
+      movableTokens.sort((a, b) => b.step - a.step);
+      moveToken(currentTurnColor, movableTokens[0].id);
+    }
+
+    function declareWinner(color) {
+      isGameOver = true;
+      soundHome();
+      const modal = document.getElementById('winnerModal');
+      const title = document.getElementById('winnerTitle');
+      title.innerText = `${players[color].name.toUpperCase()} WINS THE TOURNAMENT! 🏆`;
+      title.style.color = COLOR_HEX[color];
+      modal.classList.add('open');
+    }
+
+    function closeWinnerModal() {
+      document.getElementById('winnerModal').classList.remove('open');
+    }
+
+    function startNewLudoGame() {
+      closeWinnerModal();
+      isGameOver = false;
+      hasRolled = false;
+      currentTurnColor = 'red';
+      consecutiveSixes = 0;
+      movableTokens = [];
+
+      COLORS.forEach(c => {
+        tokens[c] = [{ id: 0, step: -1 }, { id: 1, step: -1 }, { id: 2, step: -1 }, { id: 3, step: -1 }];
+      });
+
+      updateScoreCards();
+      updateTurnUI();
+      renderTokens();
+      renderDiceFace(1);
+      showLudoToast("🎲 New match started! Roll to begin.");
+    }
+
+    // --- 8. GAME MODES & ONLINE MULTIPLAYER (PEERJS) ---
+    let myOnlineColor = 'red';
+    let isHost = false;
+    let isOnlineConnected = false;
+    let hostPeer = null;
+    let guestPeer = null;
+    let activeConn = null;
+    let guestConnections = {};
+    let currentLudoRoomCode = null;
+
+    function selectGameMode(mode) {
+      gameMode = mode;
+      document.querySelectorAll('.mode-bar .mode-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.mode === mode);
+      });
+
+      const onlinePanel = document.getElementById('onlinePanel');
+      if (mode === 'online') {
+        onlinePanel.style.display = 'flex';
+      } else {
+        onlinePanel.style.display = 'none';
+        leaveLudoOnline(true);
+      }
+
+      if (mode === 'ai') {
+        players = {
+          red: { type: 'human', name: 'You (Red)' },
+          green: { type: 'bot', name: 'Green Bot' },
+          yellow: { type: 'bot', name: 'Yellow Bot' },
+          blue: { type: 'bot', name: 'Blue Bot' }
+        };
+      } else if (mode === 'pass') {
+        players = {
+          red: { type: 'human', name: 'Red' },
+          green: { type: 'human', name: 'Green' },
+          yellow: { type: 'human', name: 'Yellow' },
+          blue: { type: 'human', name: 'Blue' }
+        };
+      }
+
+      startNewLudoGame();
+    }
+
+    function hostCreateLudoRoom() {
+      if (typeof Peer === 'undefined') {
+        showLudoToast("⚠️ PeerJS loading... Please retry in a moment.");
+        return;
+      }
+      leaveLudoOnline(true);
+
+      const code = 'LUDO-' + Math.floor(1000 + Math.random() * 9000);
+      currentLudoRoomCode = code;
+      const peerId = 'gh-ludo-' + code.toLowerCase();
+
+      isHost = true;
+      myOnlineColor = 'red';
+
+      document.getElementById('roomCodeDisplay').innerText = code;
+      const url = window.location.protocol + '//' + window.location.host + window.location.pathname + '?room=' + code;
+      document.getElementById('inviteUrlInput').value = url;
+
+      document.getElementById('onlineChoicesView').style.display = 'none';
+      document.getElementById('onlineRoomView').style.display = 'block';
+      document.getElementById('btnStartOnline').style.display = 'inline-flex';
+
+      players = {
+        red: { type: 'human', name: 'Host (Red)' },
+        green: { type: 'bot', name: 'Slot 2 (Bot)' },
+        yellow: { type: 'bot', name: 'Slot 3 (Bot)' },
+        blue: { type: 'bot', name: 'Slot 4 (Bot)' }
+      };
+
+      try {
+        hostPeer = new Peer(peerId, {
+          debug: 1,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:global.stun.twilio.com:3478' }
+            ]
+          }
+        });
+
+        hostPeer.on('open', () => {
+          document.getElementById('onlineStatusBadge').innerText = '🟡 Waiting for friends to join...';
+          showLudoToast(`⚡ Room ${code} created! Send link to friends.`);
+        });
+
+        hostPeer.on('connection', (conn) => {
+          handleIncomingGuest(conn);
+        });
+
+        hostPeer.on('error', (err) => {
+          console.error("Host error:", err);
+          if (err.type === 'unavailable-id') hostCreateLudoRoom();
+        });
+      } catch (e) {
+        showLudoToast("⚠️ Error starting room.");
+      }
+    }
+
+    function handleIncomingGuest(conn) {
+      // Assign color in order: green, yellow, blue
+      let assignedColor = null;
+      if (!guestConnections.green) assignedColor = 'green';
+      else if (!guestConnections.yellow) assignedColor = 'yellow';
+      else if (!guestConnections.blue) assignedColor = 'blue';
+
+      if (!assignedColor) {
+        conn.close();
+        return;
+      }
+
+      guestConnections[assignedColor] = conn;
+      players[assignedColor] = { type: 'online', name: `Guest (${assignedColor.toUpperCase()})` };
+
+      conn.on('open', () => {
+        isOnlineConnected = true;
+        conn.send({
+          type: 'welcome',
+          yourColor: assignedColor,
+          roomCode: currentLudoRoomCode,
+          players: players
+        });
+
+        // Update slots in lobby
+        updateLobbySlots();
+        showLudoToast(`🎉 Player joined as ${assignedColor.toUpperCase()}!`);
+        broadcastOnlineMessage({ type: 'sync_lobby', players });
+      });
+
+      conn.on('data', (data) => {
+        handleOnlineMessage(data);
+      });
+
+      conn.on('close', () => {
+        delete guestConnections[assignedColor];
+        players[assignedColor] = { type: 'bot', name: `${assignedColor.toUpperCase()} Bot` };
+        updateLobbySlots();
+        showLudoToast(`⚠️ ${assignedColor.toUpperCase()} left room.`);
+        broadcastOnlineMessage({ type: 'sync_lobby', players });
+      });
+    }
+
+    function guestJoinLudoRoom(codeParam = null) {
+      if (typeof Peer === 'undefined') {
+        showLudoToast("⚠️ PeerJS loading... Please retry in a moment.");
+        return;
+      }
+
+      let code = codeParam || document.getElementById('joinCodeInput').value.trim();
+      if (!code) {
+        showLudoToast("⚠️ Please enter room code!");
+        return;
+      }
+      code = code.toUpperCase();
+      if (!code.startsWith('LUDO-')) code = 'LUDO-' + code;
+
+      currentLudoRoomCode = code;
+      isHost = false;
+      leaveLudoOnline(true);
+
+      document.getElementById('roomCodeDisplay').innerText = code;
+      document.getElementById('inviteUrlInput').value = window.location.protocol + '//' + window.location.host + window.location.pathname + '?room=' + code;
+      document.getElementById('onlineChoicesView').style.display = 'none';
+      document.getElementById('onlineRoomView').style.display = 'block';
+      document.getElementById('btnStartOnline').style.display = 'none';
+      document.getElementById('onlineStatusBadge').innerText = `Connecting to ${code}...`;
+
+      try {
+        guestPeer = new Peer({
+          debug: 1,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:global.stun.twilio.com:3478' }
+            ]
+          }
+        });
+
+        guestPeer.on('open', () => {
+          const targetPeerId = 'gh-ludo-' + code.toLowerCase();
+          activeConn = guestPeer.connect(targetPeerId, { reliable: true });
+
+          activeConn.on('open', () => {
+            isOnlineConnected = true;
+            document.getElementById('onlineStatusBadge').innerText = '🟢 Connected Live';
+            showLudoToast(`🎉 Connected to room ${code}!`);
+          });
+
+          activeConn.on('data', (data) => {
+            handleOnlineMessage(data);
+          });
+
+          activeConn.on('close', () => {
+            showLudoToast("⚠️ Host closed the room.");
+            leaveLudoOnline(true);
+          });
+        });
+      } catch (e) {
+        showLudoToast("⚠️ Error connecting to room.");
+      }
+    }
+
+    function broadcastOnlineMessage(data) {
+      Object.values(guestConnections).forEach(conn => {
+        if (conn && conn.open) conn.send(data);
+      });
+    }
+
+    function handleOnlineMessage(data) {
+      if (!data || !data.type) return;
+
+      if (data.type === 'welcome') {
+        myOnlineColor = data.yourColor;
+        currentLudoRoomCode = data.roomCode;
+        players = data.players;
+        players[myOnlineColor] = { type: 'human', name: `You (${myOnlineColor.toUpperCase()})` };
+        document.getElementById('onlineStatusBadge').innerText = `🟢 You are ${myOnlineColor.toUpperCase()}`;
+        updateLobbySlots();
+        showLudoToast(`🎮 You joined as ${myOnlineColor.toUpperCase()}!`);
+      } else if (data.type === 'sync_lobby') {
+        players = data.players;
+        if (players[myOnlineColor]) players[myOnlineColor].name = `You (${myOnlineColor.toUpperCase()})`;
+        updateLobbySlots();
+      } else if (data.type === 'start_match') {
+        document.getElementById('inviteShareRow').style.display = 'none';
+        document.getElementById('onlineStatusBadge').innerText = `🟢 Match in Progress`;
+        startNewLudoGame();
+        showLudoToast("🚀 Tournament match started!");
+      } else if (data.type === 'sync_roll') {
+        if (data.color !== myOnlineColor) {
+          currentTurnColor = data.color;
+          rollDice(data.val);
+        }
+      } else if (data.type === 'guest_roll') {
+        if (isHost) {
+          rollDice(data.val);
+        }
+      } else if (data.type === 'sync_move') {
+        if (data.color !== myOnlineColor) {
+          moveToken(data.color, data.tokenId);
+        }
+      } else if (data.type === 'guest_move') {
+        if (isHost) {
+          moveToken(data.color, data.tokenId);
+          broadcastOnlineMessage({ type: 'sync_move', color: data.color, tokenId: data.tokenId });
+        }
+      } else if (data.type === 'reaction') {
+        showLudoFloatingEmoji(data.emoji);
+      }
+    }
+
+    function updateLobbySlots() {
+      COLORS.forEach(c => {
+        const slotEl = document.getElementById(`slot${c.charAt(0).toUpperCase() + c.slice(1)}`);
+        const nameEl = document.getElementById(`name${c.charAt(0).toUpperCase() + c.slice(1)}`);
+        const statusEl = document.getElementById(`status${c.charAt(0).toUpperCase() + c.slice(1)}`);
+        if (nameEl && players[c]) {
+          nameEl.innerText = players[c].name;
+          if (statusEl) statusEl.innerText = players[c].type === 'human' ? 'Player' : (players[c].type === 'online' ? 'Guest' : 'Bot');
+        }
+      });
+    }
+
+    function startOnlineLudoMatch() {
+      if (!isHost) return;
+      document.getElementById('inviteShareRow').style.display = 'none';
+      document.getElementById('btnStartOnline').style.display = 'none';
+      document.getElementById('onlineStatusBadge').innerText = `🟢 Match Live`;
+      broadcastOnlineMessage({ type: 'start_match' });
+      startNewLudoGame();
+      showLudoToast("🚀 Match Started!");
+    }
+
+    function leaveLudoOnline(silent = false) {
+      if (activeConn) { try { activeConn.close(); } catch(e){} activeConn = null; }
+      if (hostPeer) { try { hostPeer.destroy(); } catch(e){} hostPeer = null; }
+      if (guestPeer) { try { guestPeer.destroy(); } catch(e){} guestPeer = null; }
+      guestConnections = {};
+      isOnlineConnected = false;
+      isHost = false;
+
+      document.getElementById('onlineChoicesView').style.display = 'block';
+      document.getElementById('onlineRoomView').style.display = 'none';
+      document.getElementById('inviteShareRow').style.display = 'flex';
+
+      if (window.history.replaceState) {
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+      }
+
+      if (!silent) showLudoToast("Left online lobby.");
+    }
+
+    function copyLudoInvite() {
+      const url = document.getElementById('inviteUrlInput').value;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(showCopyFeedback);
+      } else {
+        const input = document.getElementById('inviteUrlInput');
+        input.select();
+        document.execCommand('copy');
+        showCopyFeedback();
+      }
+    }
+
+    function showCopyFeedback() {
+      const btn = document.getElementById('btnCopyInvite');
+      btn.innerHTML = '<span>✅ Copied!</span>';
+      showLudoToast("📋 Invite link copied to clipboard!");
+      setTimeout(() => {
+        btn.innerHTML = '<span>📋 Copy</span>';
+      }, 2000);
+    }
+
+    function shareLudoInvite() {
+      const url = document.getElementById('inviteUrlInput').value;
+      if (navigator.share) {
+        navigator.share({
+          title: 'Play Cyber Ludo with me!',
+          text: `Join my 4-Player Ludo Tournament room ${currentLudoRoomCode}! Tap link to play:`,
+          url: url
+        }).catch(() => {});
+      } else {
+        const waText = encodeURIComponent(`Play Cyber Ludo with me! Join room ${currentLudoRoomCode}: ${url}`);
+        window.open(`https://api.whatsapp.com/send?text=${waText}`, '_blank');
+      }
+    }
+
+    function sendLudoReaction(emoji) {
+      showLudoFloatingEmoji(emoji);
+      soundStep();
+      if (gameMode === 'online') {
+        if (isHost) broadcastOnlineMessage({ type: 'reaction', emoji });
+        else if (activeConn && activeConn.open) activeConn.send({ type: 'reaction', emoji });
+      }
+    }
+
+    function showLudoFloatingEmoji(emoji) {
+      const wrapper = document.querySelector('.ludo-board-wrapper');
+      if (!wrapper) return;
+      const el = document.createElement('div');
+      el.className = 'floating-emoji';
+      el.innerText = emoji;
+      el.style.left = (30 + Math.random() * 40) + '%';
+      el.style.top = (40 + Math.random() * 20) + '%';
+      wrapper.appendChild(el);
+      setTimeout(() => el.remove(), 1800);
+    }
+
+    function showLudoToast(msg) {
+      const existing = document.querySelector('.ludo-toast');
+      if (existing) existing.remove();
+      const toast = document.createElement('div');
+      toast.className = 'ludo-toast';
+      toast.innerText = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 2400);
+    }
+
+    // --- 9. INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      renderBoardSVG();
+      renderDiceFace(1);
+      updateTurnUI();
+
+      // Check URL for ?room=...
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomParam = urlParams.get('room');
+      if (roomParam) {
+        selectGameMode('online');
+        setTimeout(() => {
+          guestJoinLudoRoom(roomParam);
+        }, 350);
+      }
+    });
+  </script>
+</body>
+</html>

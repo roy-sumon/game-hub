@@ -311,6 +311,23 @@ const GAMES_CATALOG = [
     width: 520,
     height: 720,
     themeColor: '#f59e0b'
+  },
+  {
+    id: 'cyber-ludo',
+    title: 'Cyber Ludo Championship',
+    file: 'ludo.html',
+    category: 'puzzle',
+    categoryLabel: 'Online 4P / AI',
+    badge: '🌐 4-Player Live',
+    description: 'Full-featured professional Cyber Ludo tournament. Play online with up to 4 friends via invite link, pass-and-play locally, or challenge tactical AI bots with 3D animated dice, capture bonuses & safe zones.',
+    keys: ['ROLL DICE', 'ONLINE 4P (INVITE)', 'PASS & PLAY', 'VS BOTS'],
+    instructions: 'Roll a 6 to bring tokens out of yard. Capture opponents to earn bonus rolls and race all 4 tokens home to win the championship!',
+    rating: '⭐ 4.9',
+    difficulty: 'Strategy',
+    mobileOptimized: true,
+    width: 580,
+    height: 720,
+    themeColor: '#ef4444'
   }
 ];
 
@@ -925,6 +942,78 @@ function getGameArtworkSVG(gameId) {
             <polygon points="32,0 26,-36 44,-36 36,0" fill="rgba(254, 240, 138, 0.4)"/>
           </g>
           <text x="200" y="210" text-anchor="middle" fill="#fef08a" font-family="sans-serif" font-weight="900" font-size="12" letter-spacing="2">60 FPS TRAFFIC DODGE</text>
+        </svg>
+      `;
+
+    case 'cyber-ludo':
+      return `
+        <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="ludo-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0b101d"/>
+              <stop offset="100%" stop-color="#04060a"/>
+            </linearGradient>
+            <filter id="dice-glow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#f59e0b" flood-opacity="0.8"/>
+            </filter>
+            <filter id="token-glow-red" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#ef4444" flood-opacity="0.8"/>
+            </filter>
+          </defs>
+          <rect width="400" height="220" fill="url(#ludo-bg)"/>
+          
+          <!-- Stylized Mini Ludo Board Center -->
+          <g transform="translate(60, 20)">
+            <!-- Red Quadrant -->
+            <rect x="0" y="0" width="75" height="75" rx="8" fill="#450a0a" stroke="#ef4444" stroke-width="2"/>
+            <circle cx="37" cy="37" r="14" fill="#ef4444" opacity="0.3"/>
+            <text x="37" y="42" text-anchor="middle" fill="#ef4444" font-weight="900" font-size="12">RED</text>
+            <!-- Green Quadrant -->
+            <rect x="95" y="0" width="75" height="75" rx="8" fill="#022c22" stroke="#10b981" stroke-width="2"/>
+            <circle cx="132" cy="37" r="14" fill="#10b981" opacity="0.3"/>
+            <text x="132" y="42" text-anchor="middle" fill="#10b981" font-weight="900" font-size="12">GRN</text>
+            <!-- Yellow Quadrant -->
+            <rect x="95" y="95" width="75" height="75" rx="8" fill="#451a03" stroke="#f59e0b" stroke-width="2"/>
+            <circle cx="132" cy="132" r="14" fill="#f59e0b" opacity="0.3"/>
+            <text x="132" y="137" text-anchor="middle" fill="#f59e0b" font-weight="900" font-size="12">YEL</text>
+            <!-- Blue Quadrant -->
+            <rect x="0" y="95" width="75" height="75" rx="8" fill="#082f49" stroke="#00e5ff" stroke-width="2"/>
+            <circle cx="37" cy="132" r="14" fill="#00e5ff" opacity="0.3"/>
+            <text x="37" y="137" text-anchor="middle" fill="#00e5ff" font-weight="900" font-size="12">BLU</text>
+            <!-- Center Victory Star -->
+            <polygon points="75,75 95,75 85,85" fill="#10b981"/>
+            <polygon points="95,75 95,95 85,85" fill="#f59e0b"/>
+            <polygon points="95,95 75,95 85,85" fill="#00e5ff"/>
+            <polygon points="75,95 75,75 85,85" fill="#ef4444"/>
+            <circle cx="85" cy="85" r="7" fill="#ffffff" opacity="0.9"/>
+          </g>
+
+          <!-- 3D Rolling Dice Right Side -->
+          <g transform="translate(265, 45) rotate(-12)" filter="url(#dice-glow)">
+            <rect x="0" y="0" width="75" height="75" rx="14" fill="linear-gradient(135deg, #ffffff, #e2e8f0)" stroke="#f8fafc" stroke-width="3"/>
+            <!-- 6 Red Pips -->
+            <circle cx="20" cy="18" r="5.5" fill="#ef4444"/>
+            <circle cx="20" cy="37" r="5.5" fill="#ef4444"/>
+            <circle cx="20" cy="56" r="5.5" fill="#ef4444"/>
+            <circle cx="55" cy="18" r="5.5" fill="#ef4444"/>
+            <circle cx="55" cy="37" r="5.5" fill="#ef4444"/>
+            <circle cx="55" cy="56" r="5.5" fill="#ef4444"/>
+          </g>
+
+          <!-- Floating 3D Tokens -->
+          <g transform="translate(250, 135)" filter="url(#token-glow-red)">
+            <circle cx="0" cy="0" r="16" fill="#1e293b" stroke="#fff" stroke-width="2"/>
+            <circle cx="0" cy="0" r="12" fill="#ef4444"/>
+            <circle cx="-3" cy="-3" r="5" fill="#fff" opacity="0.7"/>
+          </g>
+          <g transform="translate(355, 125)">
+            <circle cx="0" cy="0" r="15" fill="#1e293b" stroke="#fff" stroke-width="2"/>
+            <circle cx="0" cy="0" r="11" fill="#00e5ff"/>
+            <circle cx="-3" cy="-3" r="4" fill="#fff" opacity="0.7"/>
+          </g>
+
+          <!-- Title text -->
+          <text x="200" y="202" text-anchor="middle" fill="#facc15" font-family="sans-serif" font-weight="900" font-size="12" letter-spacing="2">4-PLAYER ONLINE TOURNAMENT</text>
         </svg>
       `;
 

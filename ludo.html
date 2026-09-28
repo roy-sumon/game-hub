@@ -309,35 +309,51 @@
 
     .player-config-row {
       display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-sizing: border-box;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+
+    .player-config-row:hover {
+      border-color: rgba(0, 229, 255, 0.3);
+    }
+
+    .player-config-top {
+      display: flex;
       align-items: center;
       gap: 8px;
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      padding: 8px 10px;
+      width: 100%;
     }
 
     .player-slot-badge {
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       font-weight: 800;
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.12);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      color: #fff;
     }
 
     .player-name-field {
       flex: 1;
+      min-width: 0;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 6px;
-      padding: 6px 8px;
+      padding: 7px 10px;
       color: #fff;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-weight: 700;
       outline: none;
     }
@@ -351,29 +367,53 @@
       background: rgba(0, 0, 0, 0.5);
       border: 1px solid rgba(255, 255, 255, 0.15);
       color: var(--text-main);
-      padding: 5px 8px;
+      padding: 6px 10px;
       border-radius: 6px;
       font-size: 0.72rem;
       font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
+      flex-shrink: 0;
       transition: all 0.2s;
+    }
+
+    .player-config-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      box-sizing: border-box;
+    }
+
+    .player-color-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
     .player-color-picker-box {
       display: flex;
-      gap: 4px;
+      gap: 10px;
       align-items: center;
     }
 
     .color-dot-btn {
-      width: 24px;
-      height: 24px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       border: 2px solid transparent;
       cursor: pointer;
       transition: transform 0.15s, border-color 0.15s;
       position: relative;
+      touch-action: manipulation;
     }
 
     .color-dot-btn.dot-red { background: var(--red-color); }
@@ -395,7 +435,7 @@
       align-items: center;
       justify-content: center;
       color: #fff;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 900;
     }
 
@@ -936,24 +976,82 @@
 
     @media (max-width: 480px) {
       .game-wrapper {
-        padding: 10px;
+        padding: 8px;
       }
       .game-title {
         font-size: 1.05rem;
       }
+      .header {
+        padding: 6px 8px;
+        gap: 6px;
+      }
+      .header-actions {
+        gap: 4px;
+      }
+      .header-btn {
+        padding: 6px 8px;
+        font-size: 0.72rem;
+      }
+      .mode-bar {
+        padding: 3px;
+        gap: 3px;
+      }
+      .mode-btn {
+        padding: 6px 2px;
+        font-size: 0.7rem;
+      }
+      .count-btn {
+        padding: 6px 2px;
+        font-size: 0.7rem;
+        min-height: 34px;
+      }
       .dice-box {
-        width: 58px;
-        height: 58px;
+        width: 56px;
+        height: 56px;
       }
       .dice-shaker {
-        width: 48px;
-        height: 48px;
+        width: 46px;
+        height: 46px;
       }
       .hud-player-name {
         font-size: 0.65rem;
       }
+      .hud-player-score {
+        font-size: 0.68rem;
+      }
       .games-grid-list {
         grid-template-columns: 1fr;
+      }
+      .player-slot {
+        padding: 4px 2px;
+      }
+      .slot-name {
+        max-width: 50px;
+        font-size: 0.62rem;
+      }
+      .slot-status {
+        font-size: 0.58rem;
+      }
+      .arena-top-bar {
+        padding: 5px 8px;
+      }
+      .arena-match-badge {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+        max-width: 140px;
+      }
+      .turn-action-panel {
+        padding: 6px 10px;
+      }
+      .turn-title {
+        font-size: 0.82rem;
+      }
+      .turn-hint {
+        font-size: 0.68rem;
+      }
+      .btn-react {
+        padding: 4px 7px;
+        font-size: 14px;
       }
     }
     .arena-match-badge {
@@ -1807,7 +1905,7 @@
       rollDice();
     }
 
-    function rollDice(presetVal = null) {
+    function rollDice(presetVal = null, isRemoteSync = false) {
       hasRolled = true;
       const diceBox = document.getElementById('diceBox');
       diceBox.classList.add('rolling');
@@ -1830,10 +1928,13 @@
         diceValue = presetVal !== null ? presetVal : Math.floor(1 + Math.random() * 6);
         renderDiceFace(diceValue);
 
-        if (gameMode === 'online' && activeConn && isHost) {
-          broadcastOnlineMessage({ type: 'sync_roll', color: currentTurnColor, val: diceValue });
-        } else if (gameMode === 'online' && activeConn && !isHost) {
-          activeConn.send({ type: 'guest_roll', val: diceValue });
+        // Network synchronization (never re-broadcast a remote synced roll to prevent loops)
+        if (!isRemoteSync && gameMode === 'online') {
+          if (isHost) {
+            broadcastOnlineMessage({ type: 'sync_roll', color: currentTurnColor, val: diceValue });
+          } else if (activeConn && activeConn.open) {
+            activeConn.send({ type: 'guest_roll', color: currentTurnColor, val: diceValue });
+          }
         }
 
         handlePostRoll();
@@ -1847,7 +1948,9 @@
         if (consecutiveSixes === 3) {
           showLudoToast("⚠️ 3 consecutive sixes! Turn passed.");
           consecutiveSixes = 0;
-          setTimeout(passTurnToNextPlayer, 1000);
+          if (gameMode !== 'online' || isHost) {
+            setTimeout(passTurnToNextPlayer, 1000);
+          }
           return;
         }
       } else {
@@ -1858,18 +1961,21 @@
 
       if (movableTokens.length === 0) {
         document.getElementById('turnHint').innerText = `Rolled a ${diceValue}. No moves possible! Turn passing...`;
-        setTimeout(passTurnToNextPlayer, 1000);
+        if (gameMode !== 'online' || isHost) {
+          setTimeout(passTurnToNextPlayer, 1000);
+        }
       } else if (movableTokens.length === 1) {
         // Auto-move single eligible token automatically (User request: auto-move when only 1 token can move)
         const singleTok = movableTokens[0];
         const isBot = (players[currentTurnColor].type === 'bot');
+        const shouldExecuteBot = isBot && (gameMode !== 'online' || isHost);
         const isMeOnline = (gameMode === 'online' && currentTurnColor === myOnlineColor);
         const isMeOffline = (gameMode !== 'online' && !isBot);
 
         document.getElementById('turnHint').innerHTML = `Only 1 valid move! <strong>Auto-moving token...</strong>`;
         renderTokens();
 
-        if (isBot || isMeOffline || isMeOnline || (gameMode === 'online' && isHost)) {
+        if (shouldExecuteBot || isMeOffline || isMeOnline) {
           setTimeout(() => {
             if (!isGameOver && movableTokens.length === 1 && currentTurnColor === singleTok.color) {
               executeMove(singleTok.color, singleTok.id);
@@ -1888,7 +1994,7 @@
 
         renderTokens();
 
-        if (players[currentTurnColor].type === 'bot') {
+        if (players[currentTurnColor].type === 'bot' && (gameMode !== 'online' || isHost)) {
           setTimeout(makeBotDecision, 550);
         }
       }
@@ -2075,9 +2181,19 @@
         movableTokens = [];
         updateTurnUI();
         document.getElementById('turnHint').innerHTML = `🎉 <strong>Bonus Roll!</strong> Roll the dice again.`;
+        if (gameMode === 'online' && isHost) {
+          broadcastOnlineMessage({ type: 'sync_turn', currentTurnColor: currentTurnColor, gotBonusRoll: true });
+        }
         checkAndTriggerBot();
       } else {
-        passTurnToNextPlayer();
+        if (gameMode === 'online') {
+          if (isHost) {
+            passTurnToNextPlayer();
+          }
+          // In online mode, guest waits for host's authoritative sync_turn message
+        } else {
+          passTurnToNextPlayer();
+        }
       }
     }
 
@@ -2098,6 +2214,12 @@
 
       currentTurnColor = activeColors[nextIdx];
       updateTurnUI();
+      renderTokens();
+
+      if (gameMode === 'online' && isHost) {
+        broadcastOnlineMessage({ type: 'sync_turn', currentTurnColor: currentTurnColor, gotBonusRoll: false });
+      }
+
       checkAndTriggerBot();
     }
 
@@ -2112,19 +2234,20 @@
       const titleEl = document.getElementById('turnTitle');
       const hintEl = document.getElementById('turnHint');
 
-      titleEl.style.color = COLOR_HEX[currentTurnColor];
-      titleEl.innerHTML = `<span>${COLOR_EMOJIS[currentTurnColor]}</span> <span>${players[currentTurnColor].name}'s Turn</span>`;
+      const playerName = (players[currentTurnColor] && players[currentTurnColor].name) ? players[currentTurnColor].name : currentTurnColor.toUpperCase();
+      titleEl.innerHTML = `<span>${COLOR_EMOJIS[currentTurnColor] || '🎲'}</span> <span>${playerName}'s Turn</span>`;
 
       if (gameMode === 'online') {
-        hintEl.innerText = (currentTurnColor === myOnlineColor) ? "YOUR TURN! Tap the dice to roll" : `Waiting for ${players[currentTurnColor].name} to roll...`;
+        hintEl.innerText = (currentTurnColor === myOnlineColor) ? "YOUR TURN! Tap the dice to roll" : `Waiting for ${playerName} to roll...`;
       } else {
-        hintEl.innerText = (players[currentTurnColor].type === 'bot') ? "Bot is rolling..." : "👉 Tap the dice to roll!";
+        const isBot = players[currentTurnColor] && players[currentTurnColor].type === 'bot';
+        hintEl.innerText = isBot ? "Bot is rolling..." : "👉 Tap the dice to roll!";
       }
 
       // Dice glow matching current player's color
       const body = document.getElementById('diceBody');
       if (body) {
-        body.style.boxShadow = `0 8px 20px rgba(0, 0, 0, 0.45), 0 0 16px ${COLOR_HEX[currentTurnColor]}`;
+        body.style.boxShadow = `0 8px 20px rgba(0, 0, 0, 0.45), 0 0 16px ${COLOR_HEX[currentTurnColor] || '#00e5ff'}`;
       }
 
       const box = document.getElementById('diceBox');
@@ -2132,8 +2255,9 @@
         box.style.pointerEvents = (currentTurnColor === myOnlineColor) ? 'auto' : 'none';
         box.style.opacity = (currentTurnColor === myOnlineColor) ? '1' : '0.6';
       } else {
-        box.style.pointerEvents = (players[currentTurnColor].type === 'bot') ? 'none' : 'auto';
-        box.style.opacity = (players[currentTurnColor].type === 'bot') ? '0.7' : '1';
+        const isBot = players[currentTurnColor] && players[currentTurnColor].type === 'bot';
+        box.style.pointerEvents = isBot ? 'none' : 'auto';
+        box.style.opacity = isBot ? '0.7' : '1';
       }
     }
 
@@ -2269,10 +2393,13 @@
         const row = document.createElement('div');
         row.className = 'player-config-row';
 
+        const topRow = document.createElement('div');
+        topRow.className = 'player-config-top';
+
         const badge = document.createElement('div');
         badge.className = 'player-slot-badge';
         badge.innerText = `${i + 1}`;
-        row.appendChild(badge);
+        topRow.appendChild(badge);
 
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
@@ -2281,7 +2408,7 @@
         nameInput.maxLength = 14;
         nameInput.placeholder = `Player ${i + 1}`;
         nameInput.oninput = (e) => { slot.name = e.target.value.trim() || `Player ${i + 1}`; };
-        row.appendChild(nameInput);
+        topRow.appendChild(nameInput);
 
         const typeBtn = document.createElement('button');
         typeBtn.type = 'button';
@@ -2291,7 +2418,17 @@
           slot.type = (slot.type === 'human') ? 'bot' : 'human';
           typeBtn.innerText = slot.type === 'human' ? '👤 Human' : '🤖 Bot';
         };
-        row.appendChild(typeBtn);
+        topRow.appendChild(typeBtn);
+
+        row.appendChild(topRow);
+
+        const bottomRow = document.createElement('div');
+        bottomRow.className = 'player-config-bottom';
+
+        const colorLabel = document.createElement('div');
+        colorLabel.className = 'player-color-label';
+        colorLabel.innerHTML = `<span>🎨 Color:</span> <strong style="color: ${COLOR_HEX[slot.color]};">${slot.color.toUpperCase()}</strong>`;
+        bottomRow.appendChild(colorLabel);
 
         const colorBox = document.createElement('div');
         colorBox.className = 'player-color-picker-box';
@@ -2305,7 +2442,9 @@
           colorBox.appendChild(dot);
         });
 
-        row.appendChild(colorBox);
+        bottomRow.appendChild(colorBox);
+        row.appendChild(bottomRow);
+
         container.appendChild(row);
       }
     }
@@ -2453,6 +2592,51 @@
     let currentLudoRoomCode = null;
     let incomingRoomParam = null;
 
+    let heartbeatTimer = null;
+    let guestRetryTimer = null;
+    let guestRetryCount = 0;
+    const MAX_GUEST_RETRIES = 5;
+
+    function parseRoomCode(input) {
+      if (!input) return null;
+      input = input.toString().trim();
+      const matchParam = input.match(/[?&]room=([^&#]+)/i);
+      if (matchParam) {
+        input = decodeURIComponent(matchParam[1]);
+      }
+      const numMatch = input.match(/\d{4,6}/);
+      if (numMatch) {
+        return 'LUDO-' + numMatch[0];
+      }
+      const clean = input.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+      return clean.startsWith('LUDO-') ? clean : ('LUDO-' + clean);
+    }
+
+    function getLudoPeerId(code) {
+      const cleanNum = (code || '').replace(/[^0-9]/g, '');
+      return 'cyberludo-room-' + cleanNum;
+    }
+
+    function startOnlineHeartbeat() {
+      stopOnlineHeartbeat();
+      heartbeatTimer = setInterval(() => {
+        if (gameMode === 'online') {
+          if (isHost) {
+            broadcastOnlineMessage({ type: 'ping' });
+          } else if (activeConn && activeConn.open) {
+            activeConn.send({ type: 'ping' });
+          }
+        }
+      }, 4000);
+    }
+
+    function stopOnlineHeartbeat() {
+      if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+      }
+    }
+
     function setOnlinePlayerCount(count) {
       onlinePlayerCount = count;
       [2, 3, 4].forEach(c => {
@@ -2525,7 +2709,7 @@
 
       const code = 'LUDO-' + Math.floor(1000 + Math.random() * 9000);
       currentLudoRoomCode = code;
-      const peerId = 'gh-ludo-' + code.toLowerCase();
+      const peerId = getLudoPeerId(code);
 
       isHost = true;
       myOnlineColor = 'red';
@@ -2619,6 +2803,7 @@
 
       conn.on('open', () => {
         isOnlineConnected = true;
+        startOnlineHeartbeat();
         conn.send({
           type: 'welcome',
           yourColor: assignedColor,
@@ -2662,19 +2847,50 @@
       });
     }
 
+    function tryGuestConnect(targetPeerId, code) {
+      if (!guestPeer || guestPeer.destroyed) return;
+
+      activeConn = guestPeer.connect(targetPeerId, { reliable: true });
+
+      activeConn.on('open', () => {
+        isOnlineConnected = true;
+        guestRetryCount = 0;
+        if (guestRetryTimer) {
+          clearTimeout(guestRetryTimer);
+          guestRetryTimer = null;
+        }
+        document.getElementById('onlineStatusBadge').innerText = '🟢 Connected Live';
+        showLudoToast(`🎉 Connected to room ${code}!`);
+        startOnlineHeartbeat();
+      });
+
+      activeConn.on('data', (data) => {
+        handleOnlineMessage(data);
+      });
+
+      activeConn.on('close', () => {
+        stopOnlineHeartbeat();
+        showLudoToast("⚠️ Host closed the room.");
+        leaveLudoOnline(true);
+      });
+
+      activeConn.on('error', (err) => {
+        console.warn("Connection error:", err);
+      });
+    }
+
     function guestJoinLudoRoom(codeParam = null) {
       if (typeof Peer === 'undefined') {
         showLudoToast("⚠️ PeerJS loading... Please retry in a moment.");
         return;
       }
 
-      let code = codeParam || document.getElementById('joinCodeInput').value.trim();
+      const rawInput = codeParam || document.getElementById('joinCodeInput').value.trim();
+      const code = parseRoomCode(rawInput);
       if (!code) {
-        showLudoToast("⚠️ Please enter room code!");
+        showLudoToast("⚠️ Please enter valid room code!");
         return;
       }
-      code = code.toUpperCase();
-      if (!code.startsWith('LUDO-')) code = 'LUDO-' + code;
 
       currentLudoRoomCode = code;
       isHost = false;
@@ -2695,23 +2911,28 @@
         });
 
         guestPeer.on('open', () => {
-          const targetPeerId = 'gh-ludo-' + code.toLowerCase();
-          activeConn = guestPeer.connect(targetPeerId, { reliable: true });
+          const targetPeerId = getLudoPeerId(code);
+          tryGuestConnect(targetPeerId, code);
+        });
 
-          activeConn.on('open', () => {
-            isOnlineConnected = true;
-            document.getElementById('onlineStatusBadge').innerText = '🟢 Connected Live';
-            showLudoToast(`🎉 Connected to room ${code}!`);
-          });
-
-          activeConn.on('data', (data) => {
-            handleOnlineMessage(data);
-          });
-
-          activeConn.on('close', () => {
-            showLudoToast("⚠️ Host closed the room.");
-            leaveLudoOnline(true);
-          });
+        guestPeer.on('error', (err) => {
+          console.warn("Guest peer error:", err);
+          if (err.type === 'peer-unavailable') {
+            if (guestRetryCount < MAX_GUEST_RETRIES) {
+              guestRetryCount++;
+              document.getElementById('onlineStatusBadge').innerText = `🟡 Host initializing... Retrying (${guestRetryCount}/${MAX_GUEST_RETRIES})`;
+              if (guestRetryTimer) clearTimeout(guestRetryTimer);
+              guestRetryTimer = setTimeout(() => {
+                const targetPeerId = getLudoPeerId(currentLudoRoomCode);
+                tryGuestConnect(targetPeerId, currentLudoRoomCode);
+              }, 1800);
+            } else {
+              document.getElementById('onlineStatusBadge').innerText = '❌ Host room not found. Check code or re-host.';
+              showLudoToast("❌ Room not found or Host disconnected.");
+            }
+          } else {
+            showLudoToast("⚠️ Connection error: " + (err.message || err.type));
+          }
         });
       } catch (e) {
         showLudoToast("⚠️ Error connecting to room.");
@@ -2726,6 +2947,18 @@
 
     function handleOnlineMessage(data) {
       if (!data || !data.type) return;
+
+      if (data.type === 'ping') {
+        if (isHost) {
+          broadcastOnlineMessage({ type: 'pong' });
+        } else if (activeConn && activeConn.open) {
+          activeConn.send({ type: 'pong' });
+        }
+        return;
+      }
+      if (data.type === 'pong') {
+        return;
+      }
 
       if (data.type === 'welcome') {
         myOnlineColor = data.yourColor;
@@ -2762,11 +2995,14 @@
       } else if (data.type === 'sync_roll') {
         if (data.color !== myOnlineColor) {
           currentTurnColor = data.color;
-          rollDice(data.val);
+          rollDice(data.val, true);
         }
       } else if (data.type === 'guest_roll') {
         if (isHost) {
-          rollDice(data.val);
+          currentTurnColor = data.color;
+          rollDice(data.val, true);
+          // Broadcast to other guests (for 3 or 4 player games)
+          broadcastOnlineMessage({ type: 'sync_roll', color: data.color, val: data.val });
         }
       } else if (data.type === 'sync_move') {
         if (data.color !== myOnlineColor) {
@@ -2776,6 +3012,18 @@
         if (isHost) {
           moveToken(data.color, data.tokenId);
           broadcastOnlineMessage({ type: 'sync_move', color: data.color, tokenId: data.tokenId });
+        }
+      } else if (data.type === 'sync_turn') {
+        if (!isHost) {
+          currentTurnColor = data.currentTurnColor;
+          hasRolled = false;
+          isMovingToken = false;
+          movableTokens = [];
+          updateTurnUI();
+          renderTokens();
+          if (data.gotBonusRoll) {
+            document.getElementById('turnHint').innerHTML = `🎉 <strong>Bonus Roll!</strong> Roll the dice again.`;
+          }
         }
       } else if (data.type === 'reaction') {
         showLudoFloatingEmoji(data.emoji);
@@ -2823,6 +3071,13 @@
     }
 
     function leaveLudoOnline(silent = false) {
+      stopOnlineHeartbeat();
+      if (guestRetryTimer) {
+        clearTimeout(guestRetryTimer);
+        guestRetryTimer = null;
+      }
+      guestRetryCount = 0;
+
       if (activeConn) { try { activeConn.close(); } catch(e){} activeConn = null; }
       if (hostPeer) { try { hostPeer.destroy(); } catch(e){} hostPeer = null; }
       if (guestPeer) { try { guestPeer.destroy(); } catch(e){} guestPeer = null; }
@@ -2985,20 +3240,22 @@
       const urlParams = new URLSearchParams(window.location.search);
       const roomParam = urlParams.get('room');
       if (roomParam) {
-        incomingRoomParam = roomParam.toUpperCase();
-        if (!incomingRoomParam.startsWith('LUDO-')) incomingRoomParam = 'LUDO-' + incomingRoomParam;
+        incomingRoomParam = parseRoomCode(roomParam);
+        if (incomingRoomParam) {
+          selectGameMode('online');
 
-        selectGameMode('online');
+          const card = document.getElementById('inviteWelcomeCard');
+          if (card) {
+            card.style.display = 'flex';
+            const codeEl = document.getElementById('welcomeRoomCode');
+            if (codeEl) codeEl.innerText = incomingRoomParam;
+          }
 
-        const card = document.getElementById('inviteWelcomeCard');
-        if (card) {
-          card.style.display = 'flex';
-          const codeEl = document.getElementById('welcomeRoomCode');
-          if (codeEl) codeEl.innerText = incomingRoomParam;
+          const choices = document.getElementById('onlineChoicesView');
+          if (choices) choices.style.display = 'none';
+        } else {
+          selectGameMode('ai');
         }
-
-        const choices = document.getElementById('onlineChoicesView');
-        if (choices) choices.style.display = 'none';
       } else {
         selectGameMode('ai');
       }

@@ -11,7 +11,7 @@
 
 ## 🎮 About GameHub
 
-**GameHub** is a modern, high-performance web arcade portal designed with a sleek **Steam / Epic Games** aesthetic. It brings together 18 diverse, handcrafted HTML5 games across Racing, Martial Arts, Tactical Combat, Sci-Fi Shoot'em-ups, Arcade Classics, Brain Puzzles, and Typing speed challenges.
+**GameHub** is a modern, high-performance web arcade portal designed with a sleek **Steam / Epic Games** aesthetic. It brings together 19 diverse, handcrafted HTML5 games across Racing, Martial Arts, Tactical Combat, Sci-Fi Shoot'em-ups, Arcade Classics, Brain Puzzles, and Typing speed challenges.
 
 Built with **pure HTML5, CSS3, and modern Vanilla JavaScript**, GameHub runs smoothly with zero dependencies, zero build steps, and instant load times.
 
@@ -57,6 +57,7 @@ Built with **pure HTML5, CSS3, and modern Vanilla JavaScript**, GameHub runs smo
 | 16 | **Memory Flip Master** | 🎴 Memory / Brain | `Touch / Click / Peek` | 3D card flipping match challenge with combo streaks, 4 themes (Gaming, Animals, Sci-Fi, Food), and star ratings. |
 | 17 | **Neon Minesweeper** | 💣 Cyber Grid | `L-Click Dig / R-Click Flag` | Cyberpunk minefield defusal with guaranteed safe first click, mobile flag mode toggle, and rapid chording. |
 | 18 | **Retro Highway Racer** | 🏎️ Arcade Racing | `Arrows / WASD / Touch Btns` | 60 FPS top-down arcade traffic racer with nitro boost, sports cars, semi trucks, police sirens, and coins. |
+| 19 | **Cyber Ludo Championship** | 🎲 Strategy Board | `Touch / Click` | 4-player cyber tournament with 3D animated dice, online invite link WebRTC multiplayer, local pass-and-play & smart AI bots. |
 
 ---
 

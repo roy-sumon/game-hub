@@ -273,6 +273,20 @@
         display: flex;
       }
     }
+
+    @media (max-width: 480px) {
+      .game-wrapper {
+        padding: 12px;
+      }
+      .options-row {
+        gap: 6px;
+        padding: 6px 8px;
+      }
+      .seg-btn {
+        padding: 4px 6px;
+        font-size: 0.71rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -304,6 +318,7 @@
       <div style="display: flex; align-items: center; gap: 6px;">
         <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">Speed:</span>
         <div class="segmented-control" id="speedControl">
+          <button class="seg-btn" data-speed="180">Slow 🐢</button>
           <button class="seg-btn" data-speed="120">Normal</button>
           <button class="seg-btn active" data-speed="85">Fast</button>
           <button class="seg-btn" data-speed="60">Hyper 🔥</button>
@@ -810,6 +825,7 @@
         document.querySelectorAll('#speedControl .seg-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         gameSpeed = parseInt(btn.dataset.speed);
+        try { localStorage.setItem('neon_viper_speed', gameSpeed.toString()); } catch (e) {}
         if (isRunning) {
           clearInterval(gameLoopId);
           gameLoopId = setInterval(gameStep, gameSpeed);
@@ -822,9 +838,35 @@
         document.querySelectorAll('#modeControl .seg-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         arenaMode = btn.dataset.mode;
+        try { localStorage.setItem('neon_viper_mode', arenaMode); } catch (e) {}
         if (!isRunning) generateObstacles();
       });
     });
+
+    // Restore saved speed & mode preference
+    try {
+      const savedSpeed = localStorage.getItem('neon_viper_speed');
+      if (savedSpeed) {
+        const parsedSpeed = parseInt(savedSpeed);
+        const matchBtn = Array.from(document.querySelectorAll('#speedControl .seg-btn')).find(b => parseInt(b.dataset.speed) === parsedSpeed);
+        if (matchBtn) {
+          gameSpeed = parsedSpeed;
+          document.querySelectorAll('#speedControl .seg-btn').forEach(b => b.classList.remove('active'));
+          matchBtn.classList.add('active');
+        }
+      }
+
+      const savedMode = localStorage.getItem('neon_viper_mode');
+      if (savedMode) {
+        const matchModeBtn = Array.from(document.querySelectorAll('#modeControl .seg-btn')).find(b => b.dataset.mode === savedMode);
+        if (matchModeBtn) {
+          arenaMode = savedMode;
+          document.querySelectorAll('#modeControl .seg-btn').forEach(b => b.classList.remove('active'));
+          matchModeBtn.classList.add('active');
+          generateObstacles();
+        }
+      }
+    } catch (e) {}
 
     // Render idle frame on load
     render();

@@ -749,11 +749,26 @@
     }
 
     window.addEventListener('keydown', (e) => {
-      switch (e.key) {
-        case 'ArrowUp': case 'KeyW': setDirection(0, -1); e.preventDefault(); break;
-        case 'ArrowDown': case 'KeyS': setDirection(0, 1); e.preventDefault(); break;
-        case 'ArrowLeft': case 'KeyA': setDirection(0, -1); e.preventDefault(); break;
-        case 'ArrowRight': case 'KeyD': setDirection(1, 0); e.preventDefault(); break;
+      const key = e.key;
+      const code = e.code;
+
+      if (key === 'ArrowUp' || key === 'w' || key === 'W' || code === 'KeyW') {
+        setDirection(0, -1);
+        e.preventDefault();
+      } else if (key === 'ArrowDown' || key === 's' || key === 'S' || code === 'KeyS') {
+        setDirection(0, 1);
+        e.preventDefault();
+      } else if (key === 'ArrowLeft' || key === 'a' || key === 'A' || code === 'KeyA') {
+        setDirection(-1, 0);
+        e.preventDefault();
+      } else if (key === 'ArrowRight' || key === 'd' || key === 'D' || code === 'KeyD') {
+        setDirection(1, 0);
+        e.preventDefault();
+      } else if (key === ' ' || key === 'Enter' || code === 'Space' || code === 'Enter') {
+        if (!isRunning) {
+          startGame();
+          e.preventDefault();
+        }
       }
     });
 

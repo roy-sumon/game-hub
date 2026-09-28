@@ -528,8 +528,145 @@
     const flagText = document.getElementById('flagText');
     const statusModal = document.getElementById('statusModal');
 
+    // --- LOCALSTORAGE PERSISTENCE ---
+    const MINESWEEPER_STORAGE_KEY = 'neon_minesweeper_session';
+
+    function saveMinesweeperState() {
+      if (isGameOver || isGameWon) {
+        clearMinesweeperState();
+        return;
+      }
+      if (!firstClickDone) {
+        try {
+          localStorage.setItem(MINESWEEPER_STORAGE_KEY, JSON.stringify({
+            currentDiff,
+            firstClickDone: false
+          }));
+        } catch(e) {}
+        return;
+      }
+
+      try {
+        const compactBoard = board.map(row => row.map(cell => ({
+          r: cell.r,
+          c: cell.c,
+          isMine: cell.isMine,
+          isRevealed: cell.isRevealed,
+          isFlagged: cell.isFlagged,
+          neighborCount: cell.neighborCount
+        })));
+
+        const state = {
+          currentDiff,
+          rows,
+          cols,
+          totalMines,
+          remainingMines,
+          timerSeconds,
+          firstClickDone: true,
+          board: compactBoard
+        };
+        localStorage.setItem(MINESWEEPER_STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.error('Failed to save minesweeper state:', e);
+      }
+    }
+
+    function clearMinesweeperState() {
+      try {
+        localStorage.removeItem(MINESWEEPER_STORAGE_KEY);
+      } catch (e) {}
+    }
+
+    function restoreMinesweeperState() {
+      try {
+        const raw = localStorage.getItem(MINESWEEPER_STORAGE_KEY);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!data) return false;
+
+        if (data.currentDiff && CONFIGS[data.currentDiff]) {
+          currentDiff = data.currentDiff;
+          document.querySelectorAll('[data-diff]').forEach(b => {
+            b.classList.toggle('active', b.dataset.diff === currentDiff);
+          });
+        }
+
+        if (!data.firstClickDone || !data.board || !Array.isArray(data.board)) {
+          return false;
+        }
+
+        rows = data.rows || CONFIGS[currentDiff].rows;
+        cols = data.cols || CONFIGS[currentDiff].cols;
+        totalMines = data.totalMines || CONFIGS[currentDiff].mines;
+        remainingMines = typeof data.remainingMines === 'number' ? data.remainingMines : totalMines;
+        timerSeconds = data.timerSeconds || 0;
+        firstClickDone = true;
+        isGameOver = false;
+        isGameWon = false;
+
+        mineGridEl.innerHTML = '';
+        mineGridEl.style.gridTemplateColumns = `repeat(${cols}, 32px)`;
+        board = [];
+
+        for (let r = 0; r < rows; r++) {
+          const row = [];
+          for (let c = 0; c < cols; c++) {
+            const savedCell = (data.board[r] && data.board[r][c]) || {};
+            const cell = {
+              r,
+              c,
+              isMine: !!savedCell.isMine,
+              isRevealed: !!savedCell.isRevealed,
+              isFlagged: !!savedCell.isFlagged,
+              neighborCount: savedCell.neighborCount || 0,
+              element: null
+            };
+
+            const el = document.createElement('div');
+            el.className = 'cell';
+            el.dataset.r = r;
+            el.dataset.c = c;
+
+            if (cell.isRevealed) {
+              el.classList.add('revealed');
+              if (cell.neighborCount > 0) {
+                el.innerText = cell.neighborCount;
+                el.classList.add(`num-${cell.neighborCount}`);
+              }
+            } else if (cell.isFlagged) {
+              el.classList.add('flagged');
+              el.innerText = '🚩';
+            }
+
+            el.addEventListener('click', (e) => handleCellClick(cell, e));
+            el.addEventListener('contextmenu', (e) => {
+              e.preventDefault();
+              toggleFlag(cell);
+            });
+
+            cell.element = el;
+            mineGridEl.appendChild(el);
+            row.push(cell);
+          }
+          board.push(row);
+        }
+
+        faceBtn.innerText = '😎';
+        statusModal.classList.remove('open');
+        updateLCD();
+        timerDisplay.innerText = timerSeconds.toString().padStart(3, '0');
+        startTimer();
+        return true;
+      } catch (e) {
+        console.error('Failed to restore minesweeper state:', e);
+        return false;
+      }
+    }
+
     // --- INITIALIZATION ---
     function initGame() {
+      clearMinesweeperState();
       const cfg = CONFIGS[currentDiff];
       rows = cfg.rows;
       cols = cfg.cols;
@@ -650,10 +787,12 @@
       if (cell.isRevealed) {
         // Chord Click: If revealed number equals adjacent flags, reveal neighbors!
         chordCell(cell);
+        saveMinesweeperState();
         return;
       }
 
       revealCell(cell);
+      saveMinesweeperState();
     }
 
     function revealCell(cell) {
@@ -736,6 +875,7 @@
 
       updateLCD();
       checkWinCondition();
+      saveMinesweeperState();
     }
 
     // --- WIN / LOSS HANDLING ---
@@ -762,6 +902,7 @@
       isGameOver = true;
       isGameWon = true;
       clearInterval(timerInterval);
+      clearMinesweeperState();
       faceBtn.innerText = '🏆';
       soundVictory();
 
@@ -793,6 +934,7 @@
     function handleDefeat() {
       isGameOver = true;
       clearInterval(timerInterval);
+      clearMinesweeperState();
       faceBtn.innerText = '💥';
       soundBoom();
 
@@ -875,7 +1017,13 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       setupEvents();
-      initGame();
+      if (!restoreMinesweeperState()) {
+        initGame();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      saveMinesweeperState();
     });
   </script>
 </body>

@@ -392,6 +392,41 @@
 
     bestValEl.innerText = bestScore;
 
+    function saveGameState() {
+      const state = {
+        grid,
+        score,
+        prevBoardState,
+        won,
+        keepPlayingActive,
+        isOver: checkGameOver()
+      };
+      try {
+        localStorage.setItem('neon_2048_session', JSON.stringify(state));
+      } catch (e) {}
+    }
+
+    function loadGameState() {
+      try {
+        const raw = localStorage.getItem('neon_2048_session');
+        if (!raw) return false;
+        const state = JSON.parse(raw);
+        if (!state || !state.grid || state.isOver) return false;
+
+        grid = state.grid;
+        score = state.score || 0;
+        prevBoardState = state.prevBoardState || null;
+        won = state.won || false;
+        keepPlayingActive = state.keepPlayingActive || false;
+
+        scoreValEl.innerText = score;
+        render();
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
     function newGame() {
       grid = Array(SIZE).fill(null).map(() => Array(SIZE).fill(0));
       score = 0;
@@ -405,6 +440,7 @@
       spawnTile();
       spawnTile();
       render();
+      saveGameState();
     }
 
     function spawnTile() {
@@ -434,6 +470,7 @@
       prevBoardState = null;
       gameModal.classList.remove('open');
       render();
+      saveGameState();
     };
 
     function render(mergedPos = []) {
@@ -540,6 +577,7 @@
 
         spawnTile();
         render(mergedPos);
+        saveGameState();
 
         if (checkGameOver()) {
           triggerGameOver();
@@ -567,11 +605,13 @@
       modalDesc.innerText = 'Congratulations! You unlocked the 2048 core.';
       btnKeepGoing.style.display = 'inline-flex';
       gameModal.classList.add('open');
+      saveGameState();
     }
 
     window.keepGoing = function() {
       keepPlayingActive = true;
       gameModal.classList.remove('open');
+      saveGameState();
     };
 
     function triggerGameOver() {
@@ -580,6 +620,7 @@
       modalDesc.innerHTML = `No valid moves remaining!<br>Final Score: <strong style="color:#00e5ff">${score}</strong>`;
       btnKeepGoing.style.display = 'none';
       gameModal.classList.add('open');
+      saveGameState();
     }
 
     // --- KEYBOARD & TOUCH CONTROLS ---
@@ -617,7 +658,13 @@
       touchStartX = 0; touchStartY = 0;
     }, { passive: true });
 
-    newGame();
+    if (!loadGameState()) {
+      newGame();
+    }
+
+    window.addEventListener('beforeunload', () => {
+      saveGameState();
+    });
   </script>
 </body>
 </html>

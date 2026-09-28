@@ -1421,7 +1421,6 @@
     function init() {
       updateSoundBtns();
       setupControls();
-      restartRound();
 
       // Check if URL has ?room=...
       const urlParams = new URLSearchParams(window.location.search);
@@ -1442,9 +1441,14 @@
           if (choices) choices.style.display = 'none';
         } else {
           selectOpponentMode('ai');
+          restartRound();
         }
       } else {
-        selectOpponentMode('ai');
+        const restored = restoreTttState();
+        if (!restored) {
+          selectOpponentMode('ai');
+          restartRound();
+        }
       }
     }
 
@@ -1458,6 +1462,7 @@
 
       updateTurnBanner();
       renderBoard();
+      saveTttState();
     }
 
     function onRestartClicked() {
@@ -1473,6 +1478,7 @@
       scoreOEl.innerText = '0';
       scoreDrawsEl.innerText = '0';
       restartRound();
+      saveTttState();
     }
 
     function onResetScoreClicked() {
@@ -1576,6 +1582,7 @@
 
       currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
       updateTurnBanner();
+      saveTttState();
     }
 
     function updateTurnBanner() {
@@ -1689,6 +1696,7 @@
       turnBanner.innerHTML = `
         <span style="font-size: 1.2rem; color: ${winColor};">🏆 ${winName}</span>
       `;
+      saveTttState();
     }
 
     function handleDraw() {
@@ -1700,6 +1708,7 @@
       turnBanner.innerHTML = `
         <span style="font-size: 1.1rem; color: var(--text-muted);">⚖️ STALEMATE DRAW!</span>
       `;
+      saveTttState();
     }
 
     // --- LASER STRIKE LINE EFFECT ---
@@ -1928,6 +1937,100 @@
       }
     }
 
+    // --- SESSION STATE PERSISTENCE (AUTO-SAVE & RESTORE ON REFRESH) ---
+    function saveTttState() {
+      if (opponent === 'online') return; // Online matches are live WebRTC peer sessions
+      const arena = document.getElementById('tttArenaView');
+      const inArena = arena && arena.style.display !== 'none';
+      const state = {
+        inArena,
+        opponent,
+        aiDifficulty,
+        gridSize,
+        winStreakReq,
+        board,
+        currentPlayer,
+        isGameOver,
+        scores,
+        winningCombo,
+        playerXName,
+        playerOName
+      };
+      try {
+        localStorage.setItem('cyber_ttt_saved_state', JSON.stringify(state));
+      } catch (e) {}
+    }
+
+    function restoreTttState() {
+      try {
+        const raw = localStorage.getItem('cyber_ttt_saved_state');
+        if (!raw) return false;
+        const state = JSON.parse(raw);
+        if (!state) return false;
+
+        opponent = state.opponent || 'ai';
+        aiDifficulty = state.aiDifficulty || 'hard';
+        gridSize = state.gridSize || 3;
+        winStreakReq = state.winStreakReq || (gridSize === 3 ? 3 : 4);
+        board = (state.board && state.board.length === gridSize * gridSize) ? state.board : Array(gridSize * gridSize).fill(null);
+        currentPlayer = state.currentPlayer || 'X';
+        isGameOver = state.isGameOver || false;
+        scores = state.scores || { X: 0, O: 0, Draws: 0 };
+        winningCombo = state.winningCombo || null;
+        playerXName = state.playerXName || 'You (Sumon)';
+        playerOName = state.playerOName || (opponent === 'ai' ? 'Smart AI' : 'Player 2');
+
+        const xInput = document.getElementById('playerXNameInput');
+        const oInput = document.getElementById('playerONameInput');
+        if (xInput) xInput.value = playerXName;
+        if (oInput) oInput.value = playerOName;
+
+        // Sync buttons
+        document.querySelectorAll('#opponentControl .seg-btn').forEach(b => {
+          const match = (b.dataset.mode === opponent);
+          b.classList.toggle('active', match);
+          b.classList.toggle('cyan', match);
+        });
+        document.querySelectorAll('#diffControl .seg-btn').forEach(b => {
+          const match = (b.dataset.diff === aiDifficulty);
+          b.classList.toggle('active', match);
+          b.classList.toggle('cyan', match);
+        });
+        document.querySelectorAll('#gridSizeControl .seg-btn').forEach(b => {
+          const match = (parseInt(b.dataset.grid) === gridSize);
+          b.classList.toggle('active', match);
+          b.classList.toggle('cyan', match);
+        });
+
+        const gridSizeLabel = document.getElementById('gridSizeLabel');
+        if (gridSizeLabel) gridSizeLabel.innerText = gridSize === 3 ? '3×3 (3 to Win)' : '4×4 (4 to Win)';
+
+        // Scores
+        scoreXEl.innerText = scores.X;
+        scoreOEl.innerText = scores.O;
+        scoreDrawsEl.innerText = scores.Draws;
+
+        updateScoreboardLabels();
+
+        if (state.inArena) {
+          showArenaView();
+          renderBoard();
+          updateTurnBanner();
+          if (winningCombo) {
+            setTimeout(() => drawLaserStrike(winningCombo), 80);
+          }
+          showToast("⚡ Match session restored!");
+          return true;
+        } else {
+          selectOpponentMode(opponent);
+          return true;
+        }
+      } catch (e) {
+        console.warn("Failed to restore TTT state:", e);
+        return false;
+      }
+    }
+
     // --- TWO-STAGE LAYOUT TRANSITIONS ---
     function showArenaView() {
       const lobby = document.getElementById('tttLobbyView');
@@ -1942,6 +2045,7 @@
       if (winningCombo) {
         setTimeout(() => drawLaserStrike(winningCombo), 60);
       }
+      saveTttState();
     }
 
     function returnToLobby() {
@@ -1949,6 +2053,7 @@
       const arena = document.getElementById('tttArenaView');
       if (arena) arena.style.display = 'none';
       if (lobby) lobby.style.display = 'flex';
+      saveTttState();
     }
 
     function updateArenaMatchBadge() {
@@ -2065,6 +2170,7 @@
       }
 
       updateScoreboardLabels();
+      saveTttState();
     }
 
     function hostCreateRoom() {
@@ -2533,6 +2639,7 @@
           aiDifficulty = btn.dataset.diff;
           updateArenaMatchBadge();
           restartRound();
+          saveTttState();
         });
       });
 
@@ -2547,6 +2654,7 @@
           if (label) label.innerText = gridSize === 3 ? '3×3 (3 to Win)' : '4×4 (4 to Win)';
           updateArenaMatchBadge();
           restartRound();
+          saveTttState();
         });
       });
 
@@ -2565,6 +2673,24 @@
         });
       });
 
+      // Player Names Live Auto-Save
+      const xInput = document.getElementById('playerXNameInput');
+      const oInput = document.getElementById('playerONameInput');
+      if (xInput) {
+        xInput.addEventListener('input', () => {
+          playerXName = xInput.value.trim() || 'Player X';
+          updateScoreboardLabels();
+          saveTttState();
+        });
+      }
+      if (oInput) {
+        oInput.addEventListener('input', () => {
+          playerOName = oInput.value.trim() || 'Player O';
+          updateScoreboardLabels();
+          saveTttState();
+        });
+      }
+
       // Window Resize Listener
       window.addEventListener('resize', () => {
         const arena = document.getElementById('tttArenaView');
@@ -2573,6 +2699,10 @@
         }
       });
     }
+
+    window.addEventListener('beforeunload', () => {
+      saveTttState();
+    });
 
     window.addEventListener('DOMContentLoaded', init);
   </script>

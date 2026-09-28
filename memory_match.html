@@ -608,8 +608,110 @@
     const comboValEl = document.getElementById('comboVal');
     const winModal = document.getElementById('winModal');
 
+    // --- LOCALSTORAGE PERSISTENCE ---
+    const MEMORY_STORAGE_KEY = 'cyber_memory_match_session';
+
+    function saveMemoryMatchState() {
+      if (!isPlaying) {
+        try {
+          localStorage.setItem(MEMORY_STORAGE_KEY, JSON.stringify({
+            currentTheme,
+            currentDiff,
+            isPlaying: false
+          }));
+        } catch(e) {}
+        return;
+      }
+
+      try {
+        const matchedCardIds = [];
+        arenaEl.querySelectorAll('.card-item.matched').forEach(el => {
+          matchedCardIds.push(parseInt(el.dataset.index));
+        });
+
+        const state = {
+          currentTheme,
+          currentDiff,
+          moves,
+          comboStreak,
+          maxCombo,
+          matchedPairsCount,
+          timerSeconds,
+          isPlaying: true,
+          cardDeck,
+          matchedCardIndices: matchedCardIds
+        };
+        localStorage.setItem(MEMORY_STORAGE_KEY, JSON.stringify(state));
+      } catch(e) {}
+    }
+
+    function clearMemoryMatchSession() {
+      try {
+        localStorage.removeItem(MEMORY_STORAGE_KEY);
+      } catch(e) {}
+    }
+
+    function restoreMemoryMatchState() {
+      try {
+        const raw = localStorage.getItem(MEMORY_STORAGE_KEY);
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!data) return false;
+
+        if (data.currentTheme && THEMES[data.currentTheme]) {
+          currentTheme = data.currentTheme;
+          document.querySelectorAll('[data-theme]').forEach(b => {
+            b.classList.toggle('active', b.dataset.theme === currentTheme);
+          });
+        }
+
+        if (data.currentDiff && DIFFICULTIES[data.currentDiff]) {
+          currentDiff = data.currentDiff;
+          document.querySelectorAll('[data-diff]').forEach(b => {
+            b.classList.toggle('active', b.dataset.diff === currentDiff);
+          });
+        }
+
+        if (!data.isPlaying || !Array.isArray(data.cardDeck) || data.cardDeck.length === 0) {
+          return false;
+        }
+
+        cardDeck = data.cardDeck;
+        moves = data.moves || 0;
+        comboStreak = data.comboStreak || 0;
+        maxCombo = data.maxCombo || 0;
+        matchedPairsCount = data.matchedPairsCount || 0;
+        timerSeconds = data.timerSeconds || 0;
+        flippedCards = [];
+        isBusy = false;
+        isPlaying = true;
+
+        renderArena();
+
+        if (Array.isArray(data.matchedCardIndices)) {
+          const allCards = arenaEl.querySelectorAll('.card-item');
+          data.matchedCardIndices.forEach(idx => {
+            if (allCards[idx]) {
+              allCards[idx].classList.add('matched');
+            }
+          });
+        }
+
+        movesValEl.innerText = moves;
+        timeValEl.innerText = formatTime(timerSeconds);
+        updateComboHUD();
+        winModal.classList.remove('open');
+        startTimer();
+        return true;
+      } catch(e) {
+        console.error('Failed to restore memory match state:', e);
+        return false;
+      }
+    }
+
     // --- GAME INITIALIZATION ---
     function resetGame() {
+      clearMemoryMatchSession();
       clearInterval(timerInterval);
       timerSeconds = 0;
       moves = 0;
@@ -715,6 +817,7 @@
           flippedCards = [];
           matchedPairsCount++;
           isBusy = false;
+          saveMemoryMatchState();
 
           const totalPairs = DIFFICULTIES[currentDiff].pairs;
           if (matchedPairsCount >= totalPairs) {
@@ -732,6 +835,7 @@
           second.element.classList.remove('flipped');
           flippedCards = [];
           isBusy = false;
+          saveMemoryMatchState();
         }, 850);
       }
     }
@@ -745,6 +849,7 @@
     }
 
     function handleVictory() {
+      clearMemoryMatchSession();
       clearInterval(timerInterval);
       isPlaying = false;
       soundWin();
@@ -827,7 +932,13 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       setupEvents();
-      resetGame();
+      if (!restoreMemoryMatchState()) {
+        resetGame();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      saveMemoryMatchState();
     });
   </script>
 </body>

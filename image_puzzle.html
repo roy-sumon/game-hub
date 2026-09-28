@@ -864,11 +864,166 @@
     const btnUploadPhoto = document.getElementById('btnUploadPhoto');
     const toastNotice = document.getElementById('toastNotice');
 
+    // --- LOCALSTORAGE PUZZLE SESSION PERSISTENCE ---
+    const PUZZLE_STORAGE_KEY = 'gh_puzzle_active_session';
+
+    function savePuzzleSession() {
+      if (!isPlaying) {
+        clearPuzzleSession();
+        return;
+      }
+      const stg = STAGES[currentStageIndex];
+      if (stg && stg.isCustom) return;
+
+      try {
+        const session = {
+          currentStageIndex,
+          gridSize,
+          moves,
+          timerSeconds,
+          emptySlot,
+          showNumbers,
+          tiles: tiles.map(t => ({
+            id: t.id,
+            targetPos: t.targetPos,
+            currentPos: t.currentPos
+          }))
+        };
+        localStorage.setItem(PUZZLE_STORAGE_KEY, JSON.stringify(session));
+      } catch (e) {}
+    }
+
+    function clearPuzzleSession() {
+      try {
+        localStorage.removeItem(PUZZLE_STORAGE_KEY);
+      } catch (e) {}
+    }
+
+    function restorePuzzleSession() {
+      try {
+        const raw = localStorage.getItem(PUZZLE_STORAGE_KEY);
+        if (!raw) return false;
+        const session = JSON.parse(raw);
+        if (!session || typeof session.currentStageIndex !== 'number') return false;
+
+        if (session.currentStageIndex > unlockedLevel || session.currentStageIndex >= STAGES.length) {
+          return false;
+        }
+
+        currentStageIndex = session.currentStageIndex;
+        gridSize = session.gridSize || 3;
+        moves = session.moves || 0;
+        timerSeconds = session.timerSeconds || 0;
+        emptySlot = typeof session.emptySlot === 'number' ? session.emptySlot : (gridSize * gridSize - 1);
+        showNumbers = session.showNumbers !== undefined ? session.showNumbers : true;
+
+        updateDifficultyButtons();
+        renderStageCarousel();
+        updateCampaignHUD();
+
+        loadStageWithSession(session);
+        return true;
+      } catch (e) {
+        console.error('Failed to restore puzzle session:', e);
+        return false;
+      }
+    }
+
+    function loadStageWithSession(session) {
+      const idx = session.currentStageIndex;
+      const stg = STAGES[idx];
+      const ctx = cachedSourceCanvas.getContext('2d');
+      ctx.clearRect(0, 0, cachedSourceCanvas.width, cachedSourceCanvas.height);
+
+      const proceed = (img) => {
+        const minDim = Math.min(img.width, img.height);
+        const sx = (img.width - minDim) / 2;
+        const sy = (img.height - minDim) / 2;
+        ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, cachedSourceCanvas.width, cachedSourceCanvas.height);
+
+        // Render Preview Canvas
+        const pCtx = previewCanvas.getContext('2d');
+        pCtx.drawImage(cachedSourceCanvas, 0, 0, previewCanvas.width, previewCanvas.height);
+        previewTitle.innerText = `${stg.name} (${stg.location || 'Custom'}) — Full Photo`;
+
+        clearInterval(timerInterval);
+        movesValEl.innerText = moves;
+        timeValEl.innerText = formatTime(timerSeconds);
+        winModal.classList.remove('open');
+
+        createTilesFromSession(session.tiles, session.emptySlot);
+        isPlaying = true;
+        startTimer();
+      };
+
+      const existingImg = loadedImages[stg.id];
+      if (existingImg && existingImg.complete) {
+        proceed(existingImg);
+      } else {
+        const temp = new Image();
+        temp.crossOrigin = "anonymous";
+        temp.onload = () => {
+          loadedImages[stg.id] = temp;
+          proceed(temp);
+        };
+        temp.src = stg.src;
+      }
+    }
+
+    function createTilesFromSession(savedTiles, savedEmptySlot) {
+      gridEl.innerHTML = '';
+      tiles = [];
+      const totalTiles = gridSize * gridSize;
+      emptySlot = savedEmptySlot;
+
+      const tileSizePct = 100 / gridSize;
+      const srcUrl = cachedSourceCanvas.toDataURL();
+
+      for (let i = 0; i < totalTiles; i++) {
+        const saved = savedTiles.find(t => t.id === i);
+        if (!saved) continue;
+
+        const targetRow = Math.floor(saved.targetPos / gridSize);
+        const targetCol = saved.targetPos % gridSize;
+
+        const tileEl = document.createElement('div');
+        tileEl.className = 'tile';
+        tileEl.style.width = `${tileSizePct}%`;
+        tileEl.style.height = `${tileSizePct}%`;
+
+        tileEl.style.backgroundImage = `url(${srcUrl})`;
+        tileEl.style.backgroundSize = `${gridSize * 100}% ${gridSize * 100}%`;
+        tileEl.style.backgroundPosition = `${(targetCol / (gridSize - 1)) * 100}% ${(targetRow / (gridSize - 1)) * 100}%`;
+
+        tileEl.innerHTML = `<span class="tile-number">${saved.id + 1}</span>`;
+
+        const tileObj = {
+          id: saved.id,
+          targetPos: saved.targetPos,
+          currentPos: saved.currentPos,
+          element: tileEl
+        };
+
+        tileEl.addEventListener('click', () => tryMoveTile(tileObj));
+        tiles.push(tileObj);
+        gridEl.appendChild(tileEl);
+      }
+
+      gridEl.classList.toggle('hide-numbers', !showNumbers);
+      const btnToggle = document.getElementById('btnToggleNumbers');
+      if (btnToggle) {
+        btnToggle.style.color = showNumbers ? 'var(--accent-cyan)' : 'var(--text-muted)';
+      }
+      updateTilesPosition(false);
+    }
+
     // --- INITIALIZATION ---
     function init() {
       preloadImages();
       renderStageCarousel();
-      loadStage(0);
+      if (!restorePuzzleSession()) {
+        loadStage(0);
+      }
       updateCampaignHUD();
       setupEventListeners();
     }
@@ -1017,6 +1172,7 @@
     }
 
     function resetGame() {
+      clearPuzzleSession();
       clearInterval(timerInterval);
       timerSeconds = 0;
       moves = 0;
@@ -1102,6 +1258,7 @@
       updateTilesPosition(false);
       isPlaying = true;
       startTimer();
+      savePuzzleSession();
     }
 
     function getAdjacentPositions(pos) {
@@ -1134,6 +1291,9 @@
         updateTilesPosition(true);
 
         checkWinCondition();
+        if (isPlaying) {
+          savePuzzleSession();
+        }
       }
     }
 
@@ -1142,6 +1302,7 @@
       if (isSolved) {
         clearInterval(timerInterval);
         isPlaying = false;
+        clearPuzzleSession();
         playWinJingle();
 
         // Calculate Stars
@@ -1280,6 +1441,7 @@
         showNumbers = !showNumbers;
         gridEl.classList.toggle('hide-numbers', !showNumbers);
         btnToggle.style.color = showNumbers ? 'var(--accent-cyan)' : 'var(--text-muted)';
+        savePuzzleSession();
       });
 
       // Preview Button
@@ -1330,6 +1492,7 @@
       // Reset Campaign Progress Button
       document.getElementById('btnResetCampaign').addEventListener('click', () => {
         if (confirm('Are you sure you want to reset all unlocked levels and stars back to Level 1?')) {
+          clearPuzzleSession();
           localStorage.removeItem('gh_puzzle_unlocked');
           localStorage.removeItem('gh_puzzle_stars');
           unlockedLevel = 0;
@@ -1343,6 +1506,9 @@
     }
 
     window.addEventListener('DOMContentLoaded', init);
+    window.addEventListener('beforeunload', () => {
+      savePuzzleSession();
+    });
   </script>
 </body>
 </html>

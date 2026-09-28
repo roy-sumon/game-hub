@@ -1998,6 +1998,7 @@
           setTimeout(makeBotDecision, 550);
         }
       }
+      saveLudoState();
     }
 
     function getMovableTokens(color, val) {
@@ -2184,6 +2185,7 @@
         if (gameMode === 'online' && isHost) {
           broadcastOnlineMessage({ type: 'sync_turn', currentTurnColor: currentTurnColor, gotBonusRoll: true });
         }
+        saveLudoState();
         checkAndTriggerBot();
       } else {
         if (gameMode === 'online') {
@@ -2220,6 +2222,7 @@
         broadcastOnlineMessage({ type: 'sync_turn', currentTurnColor: currentTurnColor, gotBonusRoll: false });
       }
 
+      saveLudoState();
       checkAndTriggerBot();
     }
 
@@ -2334,6 +2337,7 @@
     function declareWinner(color) {
       isGameOver = true;
       soundHome();
+      clearLudoState();
       const modal = document.getElementById('winnerModal');
       const title = document.getElementById('winnerTitle');
       title.innerText = `${players[color].name.toUpperCase()} WINS THE CHAMPIONSHIP! 🏆`;
@@ -2382,6 +2386,7 @@
       }
 
       renderSetupSlotsUI();
+      saveLudoState();
     }
 
     function renderSetupSlotsUI() {
@@ -2407,7 +2412,10 @@
         nameInput.value = slot.name;
         nameInput.maxLength = 14;
         nameInput.placeholder = `Player ${i + 1}`;
-        nameInput.oninput = (e) => { slot.name = e.target.value.trim() || `Player ${i + 1}`; };
+        nameInput.oninput = (e) => { 
+          slot.name = e.target.value.trim() || `Player ${i + 1}`; 
+          saveLudoState();
+        };
         topRow.appendChild(nameInput);
 
         const typeBtn = document.createElement('button');
@@ -2417,6 +2425,7 @@
         typeBtn.onclick = () => {
           slot.type = (slot.type === 'human') ? 'bot' : 'human';
           typeBtn.innerText = slot.type === 'human' ? '👤 Human' : '🤖 Bot';
+          saveLudoState();
         };
         topRow.appendChild(typeBtn);
 
@@ -2468,6 +2477,7 @@
       }
 
       renderSetupSlotsUI();
+      saveLudoState();
     }
 
     function applySetupAndRestart() {
@@ -2491,6 +2501,83 @@
       startNewLudoGame();
     }
 
+    // --- LUDO SESSION STATE PERSISTENCE (AUTO-SAVE & RESTORE ON REFRESH) ---
+    function saveLudoState() {
+      if (gameMode === 'online') return; // Online matches are live WebRTC peer sessions
+      const arena = document.getElementById('ludoArenaView');
+      const inArena = arena && arena.style.display !== 'none';
+      const state = {
+        inArena,
+        gameMode,
+        activeColors,
+        players,
+        setupConfig,
+        tokens,
+        currentTurnColor,
+        consecutiveSixes,
+        hasRolled,
+        diceValue,
+        isGameOver,
+        movableTokens
+      };
+      try {
+        localStorage.setItem('cyber_ludo_saved_state', JSON.stringify(state));
+      } catch (e) {}
+    }
+
+    function clearLudoState() {
+      try {
+        localStorage.removeItem('cyber_ludo_saved_state');
+      } catch (e) {}
+    }
+
+    function restoreLudoState() {
+      try {
+        const raw = localStorage.getItem('cyber_ludo_saved_state');
+        if (!raw) return false;
+        const state = JSON.parse(raw);
+        if (!state) return false;
+
+        if (state.setupConfig) setupConfig = state.setupConfig;
+        if (state.gameMode) gameMode = state.gameMode;
+
+        // If not in arena or game is over, restore lobby customization settings
+        if (!state.inArena || state.isGameOver) {
+          setSetupPlayerCount(setupConfig.count || 4);
+          renderSetupSlotsUI();
+          selectGameMode(gameMode || 'ai');
+          return false;
+        }
+
+        // Restore active match session
+        activeColors = state.activeColors || ['red', 'yellow'];
+        players = state.players || {};
+        tokens = state.tokens || {};
+        currentTurnColor = state.currentTurnColor || activeColors[0];
+        consecutiveSixes = state.consecutiveSixes || 0;
+        hasRolled = state.hasRolled || false;
+        diceValue = state.diceValue || 1;
+        isGameOver = false;
+        movableTokens = state.movableTokens || [];
+
+        buildHudUI();
+        renderBoardSVG();
+        renderDiceFace(diceValue);
+        updateScoreCards();
+        updateTurnUI();
+        renderTokens();
+        showArenaView();
+        showLudoToast("⚡ Ludo match session restored!");
+
+        // If it was bot's turn, trigger bot
+        checkAndTriggerBot();
+        return true;
+      } catch (e) {
+        console.warn("Failed to restore Ludo state:", e);
+        return false;
+      }
+    }
+
     function showArenaView() {
       const lobby = document.getElementById('ludoLobbyView');
       const arena = document.getElementById('ludoArenaView');
@@ -2508,6 +2595,7 @@
           badge.innerText = setupConfig.count === 2 ? '👥 2P Duel: Red vs Yellow' : `👥 Pass & Play (${setupConfig.count}P)`;
         }
       }
+      saveLudoState();
     }
 
     function returnToLobby() {
@@ -2515,6 +2603,7 @@
       const arena = document.getElementById('ludoArenaView');
       if (arena) arena.style.display = 'none';
       if (lobby) lobby.style.display = 'flex';
+      saveLudoState();
     }
 
     function startOfflineMatchFromLobby() {
@@ -2565,6 +2654,7 @@
       renderTokens();
 
       showLudoToast(`🎲 Match Started! ${players[currentTurnColor] ? players[currentTurnColor].name : 'First player'} rolls.`);
+      saveLudoState();
       checkAndTriggerBot();
     }
 
@@ -2698,6 +2788,7 @@
         }
         renderSetupSlotsUI();
       }
+      saveLudoState();
     }
 
     function hostCreateLudoRoom() {
@@ -3234,12 +3325,12 @@
     // --- 11. INITIALIZATION ---
     window.addEventListener('DOMContentLoaded', () => {
       updateSoundBtn();
-      setSetupPlayerCount(4);
-      setOnlinePlayerCount(2);
 
       const urlParams = new URLSearchParams(window.location.search);
       const roomParam = urlParams.get('room');
       if (roomParam) {
+        setSetupPlayerCount(4);
+        setOnlinePlayerCount(2);
         incomingRoomParam = parseRoomCode(roomParam);
         if (incomingRoomParam) {
           selectGameMode('online');
@@ -3257,8 +3348,17 @@
           selectGameMode('ai');
         }
       } else {
-        selectGameMode('ai');
+        const restored = restoreLudoState();
+        if (!restored) {
+          setSetupPlayerCount(4);
+          setOnlinePlayerCount(2);
+          selectGameMode('ai');
+        }
       }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      saveLudoState();
     });
   </script>
 </body>

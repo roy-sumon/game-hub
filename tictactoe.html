@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
   <title>Cyber Tic-Tac-Toe Deluxe — Realistic Neon Duel</title>
+  
+  <!-- PeerJS for Real-time Peer-to-Peer Online Multiplayer -->
+  <script src="peerjs.min.js"></script>
+  <script>
+    if (typeof Peer === 'undefined') {
+      document.write('<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"><\/script>');
+    }
+  </script>
+
   <style>
     :root {
       --bg-dark: #07090e;
@@ -314,6 +323,367 @@
       transform: scale(1.02);
     }
 
+    /* Online Multiplayer Lobby & Match CSS */
+    .online-panel {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.08), rgba(255, 0, 127, 0.08));
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .online-action-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-online-action {
+      background: var(--bg-card);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--text-main);
+      padding: 12px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      text-align: left;
+      width: 100%;
+    }
+
+    .btn-online-action:hover {
+      background: rgba(0, 229, 255, 0.15);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.25);
+      transform: translateY(-2px);
+    }
+
+    .btn-online-action.primary {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 180, 216, 0.3));
+      border-color: var(--neon-cyan);
+    }
+
+    .action-icon {
+      font-size: 24px;
+    }
+
+    .action-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .action-title {
+      font-size: 0.92rem;
+      color: #fff;
+    }
+
+    .action-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .join-box {
+      display: flex;
+      gap: 8px;
+    }
+
+    .join-box input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      outline: none;
+    }
+
+    .join-box input:focus {
+      border-color: var(--neon-pink);
+      box-shadow: 0 0 10px rgba(255, 0, 127, 0.3);
+    }
+
+    .join-box .btn-online-action {
+      padding: 8px 18px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      width: auto;
+      justify-content: center;
+    }
+
+    /* Room Lobby Card */
+    .room-lobby-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .lobby-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .room-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .room-badge-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 800;
+    }
+
+    .room-code-display {
+      font-family: monospace;
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--neon-cyan);
+      letter-spacing: 2px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 3px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+    }
+
+    .connection-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .connection-status-pill.waiting {
+      color: #fbbf24;
+      border-color: rgba(251, 191, 36, 0.3);
+    }
+
+    .connection-status-pill.connected {
+      color: #34d399;
+      border-color: rgba(52, 211, 153, 0.4);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #fbbf24;
+      box-shadow: 0 0 8px #fbbf24;
+      animation: pulseAnim 1.2s infinite;
+      display: inline-block;
+    }
+
+    .pulse-dot.active {
+      background: #34d399;
+      box-shadow: 0 0 8px #34d399;
+    }
+
+    @keyframes pulseAnim {
+      0%, 100% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .invite-link-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .invite-link-row input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.75rem;
+      color: #e2e8f0;
+      font-family: monospace;
+      outline: none;
+    }
+
+    .btn-copy-link, .btn-share-link {
+      background: var(--bg-card);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--neon-cyan);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .btn-share-link {
+      background: linear-gradient(135deg, rgba(37, 211, 102, 0.2), rgba(18, 140, 126, 0.3));
+      border-color: #25d366;
+      color: #25d366;
+    }
+
+    .btn-copy-link:hover, .btn-share-link:hover {
+      filter: brightness(1.2);
+      transform: translateY(-1px);
+    }
+
+    .lobby-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .lobby-hint {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .btn-leave-room {
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-leave-room:hover {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: #ef4444;
+    }
+
+    .btn-leave-room.compact {
+      padding: 5px 12px;
+      font-size: 0.76rem;
+    }
+
+    /* Active Match Bar */
+    .active-match-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px 12px;
+      border-radius: 10px;
+    }
+
+    .match-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .role-badge {
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    /* Reactions */
+    .reaction-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding-top: 4px;
+    }
+
+    .reaction-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-right: 4px;
+    }
+
+    .btn-reaction {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 4px 8px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.15s;
+    }
+
+    .btn-reaction:hover {
+      transform: scale(1.3);
+      background: rgba(0, 229, 255, 0.2);
+      border-color: var(--neon-cyan);
+    }
+
+    /* Floating Reaction Particle */
+    .floating-reaction {
+      position: absolute;
+      font-size: 38px;
+      pointer-events: none;
+      z-index: 100;
+      animation: floatUpBurst 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.8));
+    }
+
+    @keyframes floatUpBurst {
+      0% { opacity: 0; transform: translate(-50%, 0) scale(0.3); }
+      20% { opacity: 1; transform: translate(-50%, -20px) scale(1.2); }
+      70% { opacity: 0.9; transform: translate(-50%, -80px) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -130px) scale(0.8); }
+    }
+
+    /* In-game Toast Notification */
+    .online-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--neon-cyan);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 229, 255, 0.3);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+      animation: toastIn 0.25s ease;
+      white-space: nowrap;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translate(-50%, 20px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
     @media (max-width: 480px) {
       .game-wrapper {
         padding: 14px;
@@ -323,6 +693,17 @@
       }
       .score-num {
         font-size: 1.2rem;
+      }
+      .room-code-display {
+        font-size: 1.05rem;
+        letter-spacing: 1px;
+      }
+      .invite-link-row {
+        flex-direction: column;
+      }
+      .btn-copy-link, .btn-share-link {
+        width: 100%;
+        justify-content: center;
       }
     }
   </style>
@@ -348,7 +729,8 @@
         <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Opponent:</span>
         <div class="segmented-control" id="opponentControl">
           <button class="seg-btn active cyan" data-mode="ai">🤖 vs Smart AI</button>
-          <button class="seg-btn" data-mode="pvp">👥 2 Players (Local)</button>
+          <button class="seg-btn" data-mode="pvp">👥 Local 2P</button>
+          <button class="seg-btn" data-mode="online">🌐 Online Duel</button>
         </div>
       </div>
 
@@ -368,6 +750,89 @@
         <div class="segmented-control" id="gridSizeControl">
           <button class="seg-btn active cyan" data-grid="3">3×3 (Classic)</button>
           <button class="seg-btn" data-grid="4">4×4 (Tactical 4)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Online Multiplayer Lobby & Match Panel -->
+    <div class="online-panel" id="onlinePanel" style="display: none;">
+      <!-- 1. Lobby: Choice to Create or Join -->
+      <div id="onlineChoiceView">
+        <div class="online-action-grid">
+          <button type="button" class="btn-online-action primary" id="btnCreateRoom" onclick="hostCreateRoom()">
+            <span class="action-icon">⚡</span>
+            <div class="action-text">
+              <strong class="action-title">Create Room & Invite Friend</strong>
+              <span class="action-sub">Generate invite link to send via WhatsApp, Messenger, etc.</span>
+            </div>
+          </button>
+
+          <div class="join-box">
+            <input type="text" id="joinCodeInput" placeholder="Room Code (e.g. CYBER-8421)" maxlength="15" autocomplete="off" spellcheck="false">
+            <button type="button" class="btn-online-action" id="btnJoinRoom" onclick="guestJoinRoom()">
+              <span>🔑 Join</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Host Waiting View -->
+      <div id="onlineHostView" style="display: none;">
+        <div class="room-lobby-card">
+          <div class="lobby-header">
+            <div class="room-badge">
+              <span class="room-badge-label">ROOM:</span>
+              <span class="room-code-display" id="roomCodeDisplay">CYBER-0000</span>
+            </div>
+            <div class="connection-status-pill waiting" id="hostConnStatus">
+              <span class="pulse-dot"></span>
+              <span id="hostConnText">Waiting for friend to join...</span>
+            </div>
+          </div>
+
+          <div class="invite-link-row">
+            <input type="text" id="inviteLinkInput" readonly value="">
+            <button type="button" class="btn-copy-link" id="btnCopyInvite" onclick="copyInviteLink()">
+              <span>📋 Copy Link</span>
+            </button>
+            <button type="button" class="btn-share-link" id="btnShareInvite" onclick="shareInviteLink()">
+              <span>📲 Share</span>
+            </button>
+          </div>
+
+          <div class="lobby-footer">
+            <span class="lobby-hint">💡 Send this link to your friend! Game starts when they open it.</span>
+            <button type="button" class="btn-leave-room" onclick="leaveOnlineGame()">✕ Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Active Connected Match Status & Reactions -->
+      <div id="onlineMatchView" style="display: none;">
+        <div class="active-match-card">
+          <div class="match-meta">
+            <div class="connection-status-pill connected" id="activeConnStatus">
+              <span class="pulse-dot active"></span>
+              <span id="activeConnText">Live Match</span>
+            </div>
+            <div class="role-badge" id="myRoleBadge">
+              <span>You: <strong id="myRoleText" style="color: var(--neon-cyan);">Player X</strong></span>
+            </div>
+          </div>
+          <button type="button" class="btn-leave-room compact" onclick="leaveOnlineGame()" title="Leave match">
+            <span>🚪 Exit</span>
+          </button>
+        </div>
+
+        <!-- Quick Emoji Reaction Bar -->
+        <div class="reaction-bar" id="reactionBar">
+          <span class="reaction-label">React:</span>
+          <button type="button" class="btn-reaction" onclick="sendReaction('🔥')" title="Fire">🔥</button>
+          <button type="button" class="btn-reaction" onclick="sendReaction('⚡')" title="Lightning">⚡</button>
+          <button type="button" class="btn-reaction" onclick="sendReaction('😂')" title="Laugh">😂</button>
+          <button type="button" class="btn-reaction" onclick="sendReaction('👏')" title="Applause">👏</button>
+          <button type="button" class="btn-reaction" onclick="sendReaction('💀')" title="Dead">💀</button>
+          <button type="button" class="btn-reaction" onclick="sendReaction('🎯')" title="Bullseye">🎯</button>
         </div>
       </div>
     </div>
@@ -404,10 +869,10 @@
 
     <!-- Bottom Actions -->
     <div class="bottom-actions">
-      <button class="btn-action primary" id="btnRestart" onclick="restartRound()">
+      <button class="btn-action primary" id="btnRestart" onclick="onRestartClicked()">
         <span>🔄</span> <span>Next Round</span>
       </button>
-      <button class="btn-action" id="btnResetScore" onclick="resetAllScores()">
+      <button class="btn-action" id="btnResetScore" onclick="onResetScoreClicked()">
         <span>🗑️</span> <span>Reset Scores</span>
       </button>
     </div>
@@ -445,7 +910,7 @@
     }
 
     // --- GAME STATE ---
-    let opponent = 'ai'; // 'ai' or 'pvp'
+    let opponent = 'ai'; // 'ai', 'pvp', or 'online'
     let aiDifficulty = 'hard'; // 'easy', 'medium', 'hard' (Minimax)
     let gridSize = 3; // 3 or 4
     let winStreakReq = 3; // 3 in a row for 3x3, 4 for 4x4
@@ -455,12 +920,19 @@
     let scores = { X: 0, O: 0, Draws: 0 };
     let winningCombo = null;
 
+    // --- ONLINE MULTIPLAYER STATE ---
+    let myOnlineRole = null; // 'X' (Host) or 'O' (Guest)
+    let isOnlineConnected = false;
+    let activeConn = null;
+    let hostPeer = null;
+    let guestPeer = null;
+    let currentRoomCode = null;
+
     // --- DOM REFS ---
     const boardGrid = document.getElementById('boardGrid');
     const laserCanvas = document.getElementById('laserCanvas');
     const laserCtx = laserCanvas.getContext('2d');
     const turnBanner = document.getElementById('turnBanner');
-    const turnText = document.getElementById('turnText');
     const cardX = document.getElementById('cardX');
     const cardO = document.getElementById('cardO');
     const scoreXEl = document.getElementById('scoreX');
@@ -469,9 +941,36 @@
     const oLabel = document.getElementById('oLabel');
     const aiDiffRow = document.getElementById('aiDiffRow');
 
+    const onlinePanel = document.getElementById('onlinePanel');
+    const onlineChoiceView = document.getElementById('onlineChoiceView');
+    const onlineHostView = document.getElementById('onlineHostView');
+    const onlineMatchView = document.getElementById('onlineMatchView');
+    const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+    const hostConnStatus = document.getElementById('hostConnStatus');
+    const hostConnText = document.getElementById('hostConnText');
+    const inviteLinkInput = document.getElementById('inviteLinkInput');
+    const btnCopyInvite = document.getElementById('btnCopyInvite');
+    const joinCodeInput = document.getElementById('joinCodeInput');
+    const myRoleText = document.getElementById('myRoleText');
+
     function init() {
       setupControls();
       restartRound();
+
+      // Check if URL has ?room=...
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomParam = urlParams.get('room');
+      if (roomParam) {
+        document.querySelectorAll('#opponentControl .seg-btn').forEach(b => {
+          const isOnline = b.dataset.mode === 'online';
+          b.classList.toggle('active', isOnline);
+          b.classList.toggle('cyan', isOnline);
+        });
+        selectOpponentMode('online');
+        setTimeout(() => {
+          guestJoinRoom(roomParam);
+        }, 350);
+      }
     }
 
     function restartRound() {
@@ -486,12 +985,26 @@
       renderBoard();
     }
 
+    function onRestartClicked() {
+      restartRound();
+      if (opponent === 'online' && activeConn && activeConn.open) {
+        activeConn.send({ type: 'restart' });
+      }
+    }
+
     function resetAllScores() {
       scores = { X: 0, O: 0, Draws: 0 };
       scoreXEl.innerText = '0';
       scoreOEl.innerText = '0';
       scoreDrawsEl.innerText = '0';
       restartRound();
+    }
+
+    function onResetScoreClicked() {
+      resetAllScores();
+      if (opponent === 'online' && activeConn && activeConn.open) {
+        activeConn.send({ type: 'reset_scores' });
+      }
     }
 
     function renderBoard() {
@@ -544,6 +1057,23 @@
       if (isGameOver || board[idx] !== null) return;
       if (opponent === 'ai' && currentPlayer === 'O') return;
 
+      if (opponent === 'online') {
+        if (!activeConn || !isOnlineConnected) {
+          showToast("⚠️ Waiting for friend to join...");
+          return;
+        }
+        if (currentPlayer !== myOnlineRole) {
+          showToast(`⏳ It's Player ${currentPlayer}'s turn! Please wait.`);
+          soundDraw();
+          return;
+        }
+        makeMove(idx, myOnlineRole);
+        if (activeConn && activeConn.open) {
+          activeConn.send({ type: 'move', idx, symbol: myOnlineRole });
+        }
+        return;
+      }
+
       makeMove(idx, currentPlayer);
 
       if (!isGameOver && opponent === 'ai' && currentPlayer === 'O') {
@@ -578,6 +1108,23 @@
       cardO.classList.toggle('active-turn', currentPlayer === 'O' && !isGameOver);
 
       if (isGameOver) return;
+
+      if (opponent === 'online') {
+        const isMyTurn = (currentPlayer === myOnlineRole);
+        if (isMyTurn) {
+          turnBanner.innerHTML = `
+            <span class="turn-symbol" style="color: ${myOnlineRole === 'X' ? 'var(--neon-cyan)' : 'var(--neon-pink)'};">${myOnlineRole === 'X' ? '✕' : '◯'}</span>
+            <span style="color: #38bdf8; font-weight: 800;">⚡ YOUR TURN! Place your mark</span>
+          `;
+        } else {
+          const oppSymbol = myOnlineRole === 'X' ? '◯' : '✕';
+          turnBanner.innerHTML = `
+            <span class="turn-symbol" style="color: ${oppSymbol === 'X' ? 'var(--neon-cyan)' : 'var(--neon-pink)'};">${oppSymbol}</span>
+            <span style="color: var(--text-muted);">Opponent is thinking...</span>
+          `;
+        }
+        return;
+      }
 
       if (currentPlayer === 'X') {
         turnBanner.innerHTML = `
@@ -862,6 +1409,362 @@
       }
     }
 
+    // --- ONLINE MULTIPLAYER CONTROLLER ---
+    function selectOpponentMode(mode) {
+      opponent = mode;
+      if (mode === 'online') {
+        aiDiffRow.style.display = 'none';
+        onlinePanel.style.display = 'flex';
+        cardX.querySelector('.score-label').innerHTML = '<span>✕</span> Player X';
+        cardO.querySelector('.score-label').innerHTML = '<span>◯</span> Player O';
+      } else if (mode === 'ai') {
+        leaveOnlineGame(true);
+        aiDiffRow.style.display = 'flex';
+        onlinePanel.style.display = 'none';
+        oLabel.innerText = '🤖 AI Bot';
+        cardX.querySelector('.score-label').innerHTML = '<span>✕</span> Player X';
+        cardO.querySelector('.score-label').innerHTML = '<span id="oLabel">🤖 AI Bot</span>';
+        restartRound();
+      } else {
+        leaveOnlineGame(true);
+        aiDiffRow.style.display = 'none';
+        onlinePanel.style.display = 'none';
+        oLabel.innerText = '◯ Player O';
+        cardX.querySelector('.score-label').innerHTML = '<span>✕</span> Player X';
+        cardO.querySelector('.score-label').innerHTML = '<span id="oLabel">◯ Player O</span>';
+        restartRound();
+      }
+    }
+
+    function hostCreateRoom() {
+      if (typeof Peer === 'undefined') {
+        showToast("⚠️ PeerJS loading... Please retry in a moment.");
+        return;
+      }
+      leaveOnlineGame(true);
+
+      const code = 'CYBER-' + Math.floor(1000 + Math.random() * 9000);
+      currentRoomCode = code;
+      const peerId = 'gh-ttt-' + code.toLowerCase();
+
+      roomCodeDisplay.innerText = code;
+      const inviteUrl = window.location.protocol + '//' + window.location.host + window.location.pathname + '?room=' + code;
+      inviteLinkInput.value = inviteUrl;
+
+      onlineChoiceView.style.display = 'none';
+      onlineHostView.style.display = 'block';
+      onlineMatchView.style.display = 'none';
+
+      hostConnStatus.className = 'connection-status-pill waiting';
+      hostConnText.innerText = 'Initializing room...';
+
+      try {
+        hostPeer = new Peer(peerId, {
+          debug: 1,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:global.stun.twilio.com:3478' }
+            ]
+          }
+        });
+
+        hostPeer.on('open', (id) => {
+          hostConnText.innerText = 'Waiting for friend to join...';
+          showToast(`⚡ Room ${code} is ready! Share the link.`);
+        });
+
+        hostPeer.on('connection', (conn) => {
+          activeConn = conn;
+          myOnlineRole = 'X';
+          bindConnectionEvents(conn);
+        });
+
+        hostPeer.on('error', (err) => {
+          console.error("Host error:", err);
+          if (err.type === 'unavailable-id') {
+            hostCreateRoom();
+          } else {
+            showToast("Network note: " + (err.type || err.message));
+          }
+        });
+      } catch (err) {
+        console.error(err);
+        showToast("⚠️ Error starting online room.");
+      }
+    }
+
+    function guestJoinRoom(providedCode) {
+      if (typeof Peer === 'undefined') {
+        showToast("⚠️ PeerJS loading... Please retry in a moment.");
+        return;
+      }
+
+      let code = providedCode || joinCodeInput.value.trim();
+      if (!code) {
+        showToast("⚠️ Please enter a room code!");
+        return;
+      }
+      code = code.toUpperCase();
+      if (!code.startsWith('CYBER-')) {
+        code = 'CYBER-' + code;
+      }
+      currentRoomCode = code;
+      leaveOnlineGame(true);
+
+      onlineChoiceView.style.display = 'none';
+      onlineHostView.style.display = 'block';
+      onlineMatchView.style.display = 'none';
+
+      roomCodeDisplay.innerText = code;
+      inviteLinkInput.value = window.location.protocol + '//' + window.location.host + window.location.pathname + '?room=' + code;
+
+      hostConnStatus.className = 'connection-status-pill waiting';
+      hostConnText.innerText = `Connecting to room ${code}...`;
+
+      try {
+        guestPeer = new Peer({
+          debug: 1,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:global.stun.twilio.com:3478' }
+            ]
+          }
+        });
+
+        guestPeer.on('open', () => {
+          const targetPeerId = 'gh-ttt-' + code.toLowerCase();
+          const conn = guestPeer.connect(targetPeerId, { reliable: true });
+          activeConn = conn;
+          myOnlineRole = 'O';
+          bindConnectionEvents(conn);
+        });
+
+        guestPeer.on('error', (err) => {
+          console.error("Guest error:", err);
+          showToast("⚠️ Connection issue: " + (err.type || err.message));
+          hostConnText.innerText = 'Connection failed. Check code.';
+        });
+      } catch (err) {
+        console.error(err);
+        showToast("⚠️ Error connecting to room.");
+      }
+    }
+
+    function bindConnectionEvents(conn) {
+      conn.on('open', () => {
+        isOnlineConnected = true;
+        onlineHostView.style.display = 'none';
+        onlineChoiceView.style.display = 'none';
+        onlineMatchView.style.display = 'block';
+
+        if (myOnlineRole === 'X') {
+          myRoleText.innerText = "Player X (✕ - Host)";
+          myRoleText.style.color = "var(--neon-cyan)";
+          cardX.querySelector('.score-label').innerHTML = '<span>✕</span> You (Host)';
+          cardO.querySelector('.score-label').innerHTML = '<span>◯</span> Friend (Guest)';
+          conn.send({
+            type: 'init_sync',
+            gridSize: gridSize,
+            scores: scores
+          });
+          showToast("🎉 Friend joined! You are Player X. Game Start!");
+        } else {
+          myRoleText.innerText = "Player O (◯ - Guest)";
+          myRoleText.style.color = "var(--neon-pink)";
+          cardX.querySelector('.score-label').innerHTML = '<span>✕</span> Friend (Host)';
+          cardO.querySelector('.score-label').innerHTML = '<span>◯</span> You (Guest)';
+          showToast(`🎉 Connected to ${currentRoomCode}! You are Player O.`);
+        }
+
+        restartRound();
+        soundWin();
+      });
+
+      conn.on('data', (data) => {
+        handleNetworkMessage(data);
+      });
+
+      conn.on('close', () => {
+        handlePeerDisconnect();
+      });
+
+      conn.on('error', (err) => {
+        console.error("Connection error:", err);
+        handlePeerDisconnect();
+      });
+    }
+
+    function handleNetworkMessage(data) {
+      if (!data || !data.type) return;
+
+      if (data.type === 'move') {
+        if (board[data.idx] === null && !isGameOver) {
+          makeMove(data.idx, data.symbol);
+        }
+      } else if (data.type === 'restart') {
+        restartRound();
+        showToast("🔄 Opponent started next round!");
+      } else if (data.type === 'reset_scores') {
+        scores = { X: 0, O: 0, Draws: 0 };
+        scoreXEl.innerText = '0';
+        scoreOEl.innerText = '0';
+        scoreDrawsEl.innerText = '0';
+        restartRound();
+        showToast("🗑️ Scores reset by opponent!");
+      } else if (data.type === 'reaction') {
+        showFloatingReaction(data.emoji);
+        playChirp(800, 'sine', 0.1);
+      } else if (data.type === 'init_sync') {
+        if (data.gridSize && data.gridSize !== gridSize) {
+          gridSize = data.gridSize;
+          winStreakReq = gridSize === 3 ? 3 : 4;
+          document.querySelectorAll('#gridSizeControl .seg-btn').forEach(b => {
+            const matches = parseInt(b.dataset.grid) === gridSize;
+            b.classList.toggle('active', matches);
+            b.classList.toggle('cyan', matches);
+          });
+        }
+        if (data.scores) {
+          scores = data.scores;
+          scoreXEl.innerText = scores.X;
+          scoreOEl.innerText = scores.O;
+          scoreDrawsEl.innerText = scores.Draws;
+        }
+        restartRound();
+      }
+    }
+
+    function handlePeerDisconnect() {
+      isOnlineConnected = false;
+      showToast("⚠️ Opponent disconnected.");
+      soundDraw();
+      const statusText = document.getElementById('activeConnText');
+      if (statusText) statusText.innerText = 'Opponent Left';
+      const statusPill = document.getElementById('activeConnStatus');
+      if (statusPill) statusPill.className = 'connection-status-pill waiting';
+    }
+
+    function copyInviteLink() {
+      const url = inviteLinkInput.value;
+      if (!url) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          showCopySuccess();
+        }).catch(() => {
+          fallbackCopy();
+        });
+      } else {
+        fallbackCopy();
+      }
+    }
+
+    function fallbackCopy() {
+      inviteLinkInput.select();
+      inviteLinkInput.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        showCopySuccess();
+      } catch (e) {
+        showToast("Link: " + inviteLinkInput.value);
+      }
+    }
+
+    function showCopySuccess() {
+      btnCopyInvite.innerHTML = '<span>✅ Copied!</span>';
+      showToast("📋 Invitation link copied to clipboard!");
+      setTimeout(() => {
+        btnCopyInvite.innerHTML = '<span>📋 Copy Link</span>';
+      }, 2200);
+    }
+
+    function shareInviteLink() {
+      const url = inviteLinkInput.value;
+      const shareData = {
+        title: 'Cyber Tic-Tac-Toe Duel',
+        text: `Play Cyber Tic-Tac-Toe with me online! Join room ${currentRoomCode}:`,
+        url: url
+      };
+
+      if (navigator.share) {
+        navigator.share(shareData).catch(() => {});
+      } else {
+        const waText = encodeURIComponent(`Play Cyber Tic-Tac-Toe with me online! Join room ${currentRoomCode}: ${url}`);
+        window.open(`https://api.whatsapp.com/send?text=${waText}`, '_blank');
+      }
+    }
+
+    function sendReaction(emoji) {
+      showFloatingReaction(emoji);
+      playChirp(700, 'sine', 0.08);
+      if (opponent === 'online' && activeConn && activeConn.open) {
+        activeConn.send({ type: 'reaction', emoji });
+      }
+    }
+
+    function showFloatingReaction(emoji) {
+      const container = document.querySelector('.board-container');
+      if (!container) return;
+      const el = document.createElement('div');
+      el.className = 'floating-reaction';
+      el.innerText = emoji;
+      el.style.left = (30 + Math.random() * 40) + '%';
+      el.style.top = (40 + Math.random() * 20) + '%';
+      container.appendChild(el);
+      setTimeout(() => el.remove(), 1600);
+    }
+
+    function leaveOnlineGame(silent = false) {
+      if (activeConn) {
+        try { activeConn.close(); } catch(e){}
+        activeConn = null;
+      }
+      if (hostPeer) {
+        try { hostPeer.destroy(); } catch(e){}
+        hostPeer = null;
+      }
+      if (guestPeer) {
+        try { guestPeer.destroy(); } catch(e){}
+        guestPeer = null;
+      }
+      isOnlineConnected = false;
+      currentRoomCode = null;
+      myOnlineRole = null;
+
+      onlineChoiceView.style.display = 'block';
+      onlineHostView.style.display = 'none';
+      onlineMatchView.style.display = 'none';
+
+      cardX.querySelector('.score-label').innerHTML = '<span>✕</span> Player X';
+      cardO.querySelector('.score-label').innerHTML = '<span id="oLabel">◯ Player O</span>';
+
+      if (window.history.replaceState) {
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+      }
+
+      if (!silent) {
+        showToast("Left online game.");
+        restartRound();
+      }
+    }
+
+    function showToast(msg) {
+      const existing = document.querySelector('.online-toast');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.className = 'online-toast';
+      toast.innerText = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 2600);
+    }
+
     // --- CONTROLS SETUP ---
     function setupControls() {
       // Opponent mode
@@ -869,10 +1772,7 @@
         btn.addEventListener('click', () => {
           document.querySelectorAll('#opponentControl .seg-btn').forEach(b => b.classList.remove('active', 'cyan'));
           btn.classList.add('active', 'cyan');
-          opponent = btn.dataset.mode;
-          aiDiffRow.style.display = opponent === 'ai' ? 'flex' : 'none';
-          oLabel.innerText = opponent === 'ai' ? '🤖 AI Bot' : '◯ Player O';
-          restartRound();
+          selectOpponentMode(btn.dataset.mode);
         });
       });
 
@@ -893,6 +1793,9 @@
           btn.classList.add('active', 'cyan');
           gridSize = parseInt(btn.dataset.grid);
           winStreakReq = gridSize === 3 ? 3 : 4;
+          if (opponent === 'online' && activeConn && activeConn.open && myOnlineRole === 'X') {
+            activeConn.send({ type: 'init_sync', gridSize, scores });
+          }
           restartRound();
         });
       });

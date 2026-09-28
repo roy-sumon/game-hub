@@ -1345,4 +1345,13 @@ function bindListeners() {
       searchInputEl.focus();
     }
   });
+
+  // Listen for close or switch commands from embedded game iframes
+  window.addEventListener('message', (event) => {
+    if (event.data === 'closeTheater' || (event.data && event.data.action === 'closeTheater')) {
+      dismissTheater();
+    } else if (event.data && event.data.action === 'launchTheater' && event.data.gameId) {
+      launchTheater(event.data.gameId);
+    }
+  });
 }

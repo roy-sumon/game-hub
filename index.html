@@ -10,6 +10,21 @@
   
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+
+  <!-- Frame-Busting: Prevent GameHub Portal from nesting inside an iframe or theater modal -->
+  <script>
+    if (window.top !== window.self) {
+      try {
+        if (window.parent && typeof window.parent.dismissTheater === 'function') {
+          window.parent.dismissTheater();
+        } else {
+          window.top.location.href = window.location.href;
+        }
+      } catch (e) {
+        window.top.location.href = window.location.href;
+      }
+    }
+  </script>
   
   <!-- Stylesheet -->
   <link rel="stylesheet" href="portal-style.css?v=3.0">

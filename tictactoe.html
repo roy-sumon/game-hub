@@ -1042,7 +1042,7 @@
           <button type="button" class="header-btn" onclick="openGamesModal()" title="View All 19 Games">
             <span>🎮 Games</span>
           </button>
-          <a href="index.html" class="header-btn exit-btn" title="Exit to Hub">✕</a>
+          <button type="button" class="header-btn exit-btn" onclick="exitToHub(event)" title="Exit to Hub">✕</button>
         </div>
       </div>
 
@@ -1212,7 +1212,7 @@
           <button type="button" class="header-btn" onclick="openGamesModal()" title="View All 19 Games">
             <span>🎮 Games</span>
           </button>
-          <a href="index.html" class="header-btn exit-btn" title="Exit to Hub">✕</a>
+          <button type="button" class="header-btn exit-btn" onclick="exitToHub(event)" title="Exit to Hub">✕</button>
         </div>
       </div>
 
@@ -2575,25 +2575,25 @@
 
     // --- ALL GAMES HUB MODAL (19 GAMES) ---
     const ALL_GAMES_LIST = [
-      { title: 'Hill Climb Racer Extreme', file: 'hillClimbRacer.html', genre: '🏎️ Racing' },
-      { title: 'Shadow Fighters', file: 'shadow-fighter.html', genre: '⚔️ Martial Arts' },
-      { title: 'Urban Warfare', file: 'shoting.html', genre: '🎯 Tactical Shooter' },
-      { title: 'Nova Strike: Space Shooter', file: 'space.html', genre: '🚀 Sci-Fi Shooter' },
-      { title: 'Chai & Coffee Rush', file: 'tea.html', genre: '☕ Casual Reflex' },
-      { title: 'Neon Brick Breaker', file: 'brick.html', genre: '🕹️ Retro Arcade' },
-      { title: 'Dino Runner: Escape!', file: 'dino_escape.html', genre: '🦖 Endless Runner' },
-      { title: 'Flappy Ghost', file: 'ghost.html', genre: '👻 Flappy Arcade' },
-      { title: 'Midnight Debugger', file: 'midnight_debugger.html', genre: '💻 Clicker' },
-      { title: 'Mosquito Crusher', file: 'mosquito.html', genre: '🦟 Reflex' },
-      { title: 'TypeMaster Pro', file: 'typing.html', genre: '⌨️ Typing Test' },
-      { title: 'Image Puzzle Master', file: 'image_puzzle.html', genre: '🧩 Photo Campaign' },
-      { title: 'Cyber Tic-Tac-Toe Deluxe', file: 'tictactoe.html', genre: '⚔️ Online Duel / AI' },
-      { title: 'Neon Viper: Cyber Snake', file: 'snake.html', genre: '🐍 Cyber Arcade' },
-      { title: '2048 Neon Fusion', file: '2048.html', genre: '🔢 Logic Puzzle' },
-      { title: 'Memory Flip Master', file: 'memory_card.html', genre: '🎴 Memory / Brain' },
-      { title: 'Neon Minesweeper', file: 'minesweeper.html', genre: '💣 Cyber Grid' },
-      { title: 'Retro Highway Racer', file: 'highway_racer.html', genre: '🏎️ Arcade Racing' },
-      { title: 'Cyber Ludo Championship', file: 'ludo.html', genre: '🎲 Board Duel' }
+      { id: 'hill-climb-racer', title: 'Hill Climb Racer Extreme', file: 'hillClimbRacer.html', genre: '🏎️ Racing' },
+      { id: 'shadow-fighters', title: 'Shadow Fighters', file: 'shadow-fighter.html', genre: '⚔️ Martial Arts' },
+      { id: 'urban-warfare', title: 'Urban Warfare', file: 'shoting.html', genre: '🎯 Tactical Shooter' },
+      { id: 'nova-strike', title: 'Nova Strike: Space Shooter', file: 'space.html', genre: '🚀 Sci-Fi Shooter' },
+      { id: 'chai-rush', title: 'Chai & Coffee Rush', file: 'chai_rush.html', genre: '☕ Casual Reflex' },
+      { id: 'brick-breaker', title: 'Neon Brick Breaker', file: 'Brick_Breaker.html', genre: '🕹️ Retro Arcade' },
+      { id: 'dino-escape', title: 'Dino Runner: Escape!', file: 'dino_escape.html', genre: '🦖 Endless Runner' },
+      { id: 'flappy-ghost', title: 'Flappy Ghost', file: 'Flappy_Ghost.html', genre: '👻 Flappy Arcade' },
+      { id: 'midnight-debugger', title: 'Midnight Debugger', file: 'debugger.html', genre: '💻 Clicker' },
+      { id: 'mosquito-crusher', title: 'Mosquito Crusher', file: 'mosquito.html', genre: '🦟 Reflex' },
+      { id: 'typemaster-pro', title: 'TypeMaster Pro', file: 'typing.html', genre: '⌨️ Typing Test' },
+      { id: 'image-puzzle', title: 'Image Puzzle Master', file: 'image_puzzle.html', genre: '🧩 Photo Campaign' },
+      { id: 'tic-tac-toe', title: 'Cyber Tic-Tac-Toe Deluxe', file: 'tictactoe.html', genre: '⚔️ Online Duel / AI' },
+      { id: 'cyber-snake', title: 'Neon Viper: Cyber Snake', file: 'snake.html', genre: '🐍 Cyber Arcade' },
+      { id: 'neon-2048', title: '2048 Neon Fusion', file: 'neon_2048.html', genre: '🔢 Logic Puzzle' },
+      { id: 'memory-match', title: 'Memory Flip Master', file: 'memory_match.html', genre: '🎴 Memory / Brain' },
+      { id: 'minesweeper', title: 'Neon Minesweeper', file: 'minesweeper.html', genre: '💣 Cyber Grid' },
+      { id: 'highway-racer', title: 'Retro Highway Racer', file: 'highway_racer.html', genre: '🏎️ Arcade Racing' },
+      { id: 'cyber-ludo', title: 'Cyber Ludo Championship', file: 'ludo.html', genre: '🎲 Board Duel' }
     ];
 
     function openGamesModal() {
@@ -2604,6 +2604,21 @@
         const item = document.createElement('a');
         item.href = g.file;
         item.className = 'game-item-link';
+        item.onclick = (e) => {
+          try {
+            if (window.parent && window.parent !== window) {
+              e.preventDefault();
+              closeGamesModal();
+              if (typeof window.parent.launchTheater === 'function') {
+                window.parent.launchTheater(g.id);
+                return;
+              } else {
+                window.parent.postMessage({ action: 'launchTheater', gameId: g.id }, '*');
+                return;
+              }
+            }
+          } catch (err) {}
+        };
         item.innerHTML = `
           <div class="game-item-title">
             <span style="color: var(--neon-cyan); font-size: 0.72rem;">#${idx + 1}</span>
@@ -2621,6 +2636,26 @@
       const modal = document.getElementById('gamesModal');
       if (modal) modal.classList.remove('open');
     }
+
+    function exitToHub(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage('closeTheater', '*');
+          if (typeof window.parent.dismissTheater === 'function') {
+            window.parent.dismissTheater();
+            return;
+          }
+        }
+      } catch (err) {}
+
+      if (window.top && window.top !== window) {
+        window.top.location.href = 'index.html';
+      } else {
+        window.location.href = 'index.html';
+      }
+    }
+    window.exitToHub = exitToHub;
 
     // --- CONTROLS SETUP ---
     function setupControls() {

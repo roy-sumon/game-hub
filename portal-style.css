@@ -1112,8 +1112,9 @@ body {
   }
 
   .card-poster {
-    height: auto;
-    aspect-ratio: 4 / 3;
+    width: 100% !important;
+    height: 240px !important;
+    min-height: 240px !important;
   }
 
   /* Theater topbar */
@@ -1271,10 +1272,9 @@ body {
   }
 
   .card-poster {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 3;
-    max-height: 295px;
+    width: 100% !important;
+    height: 270px !important;
+    min-height: 270px !important;
   }
 
   .card-content {
@@ -1305,7 +1305,7 @@ body {
     font-size: 0.9rem;
   }
 
-  .genre-badge {
+  .theater-topbar .genre-badge {
     display: none;
   }
 
@@ -1339,9 +1339,9 @@ body {
   }
 
   .card-poster {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 3;
+    width: 100% !important;
+    height: 230px !important;
+    min-height: 230px !important;
   }
 
   .card-content {

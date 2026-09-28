@@ -158,6 +158,52 @@
       box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
     }
 
+    /* Two-stage View Switching: First Layout (Lobby) vs Gameplay Arena */
+    #ludoLobbyView {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: fadeInView 0.22s ease;
+    }
+
+    #ludoArenaView {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      animation: fadeInView 0.22s ease;
+    }
+
+    @keyframes fadeInView {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .arena-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 10px;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+
+    .invite-welcome-card {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.16), rgba(239, 68, 68, 0.16));
+      border: 1px solid rgba(0, 229, 255, 0.45);
+      border-radius: 14px;
+      padding: 16px 14px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      margin-bottom: 8px;
+    }
+
     /* Match Setup Bar */
     .setup-toggle-bar {
       display: flex;
@@ -910,234 +956,265 @@
         grid-template-columns: 1fr;
       }
     }
+    .arena-match-badge {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
 
   <div class="game-wrapper">
-    <!-- Header -->
-    <div class="header">
-      <div class="header-title-box">
-        <span style="font-size: 26px;">🎲</span>
+    <!-- PHASE 1: FIRST LAYOUT / LOBBY & SETUP VIEW -->
+    <div id="ludoLobbyView">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-title-box">
+          <span style="font-size: 26px;">🎲</span>
+          <div>
+            <h1 class="game-title">CYBER LUDO</h1>
+            <p class="game-subtitle">Championship Edition • 2-4 Players & AI</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <!-- Sound On/Off Button -->
+          <button type="button" class="header-btn" id="soundToggleBtnLobby" onclick="toggleSound()" title="Toggle Sound">
+            <span>🔊</span>
+          </button>
+          <!-- All Games Hub Modal -->
+          <button type="button" class="header-btn" onclick="openGamesModal()" title="View All 19 Games">
+            <span>🎮 Games (19)</span>
+          </button>
+          <!-- Exit to Portal -->
+          <a href="index.html" class="header-btn exit-btn" title="Exit to Hub">
+            ✕ Exit
+          </a>
+        </div>
+      </div>
+
+      <!-- Welcome Invitation Card (Shown when friend opens invite link ?room=LUDO-XXXX) -->
+      <div class="invite-welcome-card" id="inviteWelcomeCard" style="display: none;">
+        <div style="font-size: 38px; margin-bottom: 4px;">🎲</div>
+        <h2 style="color: #fff; font-size: 1.2rem; margin: 0 0 4px 0;">Cyber Ludo Live Challenge!</h2>
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0 0 12px 0;">You've been invited to play Cyber Ludo live with a friend!</p>
+        <div style="background: rgba(0, 229, 255, 0.1); border: 1px dashed var(--blue-color); padding: 8px 14px; border-radius: 10px; margin-bottom: 12px; display: inline-block;">
+          <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">ROOM: </span>
+          <span style="font-size: 1.15rem; font-weight: 900; color: var(--yellow-color);" id="welcomeRoomCode">LUDO-0000</span>
+        </div>
+        <button type="button" class="btn-lobby primary" onclick="acceptIncomingInvite()" style="width: 100%; justify-content: center; font-size: 0.95rem; padding: 11px;">
+          <span>🎮 Join to Play Now</span>
+        </button>
+      </div>
+
+      <!-- Mode Selector Tabs -->
+      <div class="mode-bar">
+        <button type="button" class="mode-btn active" data-mode="ai" onclick="selectGameMode('ai')">
+          <span>🤖</span> vs Computer
+        </button>
+        <button type="button" class="mode-btn" data-mode="pass" onclick="selectGameMode('pass')">
+          <span>👥</span> Pass & Play
+        </button>
+        <button type="button" class="mode-btn" data-mode="online" onclick="selectGameMode('online')">
+          <span>🌐</span> Online (Invite)
+        </button>
+      </div>
+
+      <!-- Offline Customization Section (shown for vs Computer & Pass & Play) -->
+      <div class="setup-panel" id="offlineSetupSection">
+        <!-- Number of Players (2, 3, or 4) -->
         <div>
-          <h1 class="game-title">CYBER LUDO</h1>
-          <p class="game-subtitle">Championship Edition • 2-4 Players & AI</p>
+          <div class="setup-section-label">
+            <span>Select Number of Players</span>
+            <span style="color: var(--blue-color);" id="activePlayersCountText">4 Players</span>
+          </div>
+          <div class="count-selector-row" style="margin-top: 6px;">
+            <button type="button" class="count-btn" data-count="2" onclick="setSetupPlayerCount(2)">2 Players (Opposite ⚔️)</button>
+            <button type="button" class="count-btn" data-count="3" onclick="setSetupPlayerCount(3)">3 Players</button>
+            <button type="button" class="count-btn active" data-count="4" onclick="setSetupPlayerCount(4)">4 Players</button>
+          </div>
+          <div id="oppositeNoticeBox" class="opposite-notice" style="display: none; margin-top: 6px;">
+            <span>⚔️</span>
+            <span><strong>2-Player Opposite Duel:</strong> Red vs Yellow on opposite sides of the board!</span>
+          </div>
         </div>
-      </div>
-      <div class="header-actions">
-        <!-- Sound On/Off Button -->
-        <button type="button" class="header-btn" id="soundToggleBtn" onclick="toggleSound()" title="Toggle Sound">
-          <span>🔊</span>
+
+        <!-- Player Slots Customization (Names, Types, Colors) -->
+        <div>
+          <div class="setup-section-label">
+            <span>Configure Players & Colors</span>
+            <span style="font-size: 0.68rem; color: var(--text-muted);">Pick colors & edit names</span>
+          </div>
+          <div class="players-config-list" id="playersConfigList" style="margin-top: 6px;">
+            <!-- Injected dynamically by JS -->
+          </div>
+        </div>
+
+        <!-- Apply & Start Button -->
+        <button type="button" class="btn-lobby primary" onclick="startOfflineMatchFromLobby()" style="justify-content: center; width: 100%; padding: 12px; font-size: 0.95rem; margin-top: 4px;">
+          <span>▶</span> Start Game
         </button>
-        <!-- All Games Hub Modal -->
-        <button type="button" class="header-btn" onclick="openGamesModal()" title="View All 19 Games">
-          <span>🎮 Games (19)</span>
+      </div>
+
+      <!-- Online Lobby Panel (shown in online mode) -->
+      <div class="online-panel" id="onlinePanel" style="display: none;">
+        <div id="onlineChoicesView">
+          <div>
+            <div class="setup-section-label">
+              <span>Select Match Players</span>
+              <span style="color: var(--blue-color);" id="onlinePlayersCountText">2 Players (Opposite)</span>
+            </div>
+            <div class="count-selector-row" style="margin-top: 6px; margin-bottom: 10px;">
+              <button type="button" class="count-btn active" id="btnOnlineCount2" onclick="setOnlinePlayerCount(2)">2 Players (Opposite ⚔️)</button>
+              <button type="button" class="count-btn" id="btnOnlineCount3" onclick="setOnlinePlayerCount(3)">3 Players</button>
+              <button type="button" class="count-btn" id="btnOnlineCount4" onclick="setOnlinePlayerCount(4)">4 Players</button>
+            </div>
+            <div id="onlineOppositeNotice" class="opposite-notice" style="margin-bottom: 10px;">
+              <span>⚔️</span>
+              <span><strong>Total 2 Players:</strong> Host (Red) vs Friend (Yellow) on opposite sides. No bots!</span>
+            </div>
+          </div>
+
+          <div class="online-action-row">
+            <button type="button" class="btn-lobby primary" onclick="hostCreateLudoRoom()" style="flex: 1; justify-content: center; padding: 11px;">
+              <span>⚡</span> Create Room & Invite
+            </button>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+            <input type="text" id="joinCodeInput" class="join-input" placeholder="Enter Room Code (LUDO-XXXX)" maxlength="12">
+            <button type="button" class="btn-lobby" onclick="guestJoinLudoRoom()">
+              <span>🔑</span> Join
+            </button>
+          </div>
+        </div>
+
+        <div id="onlineRoomView" style="display: none;">
+          <div class="room-info-card">
+            <div class="room-header">
+              <div>
+                <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 800;">ROOM:</span>
+                <span class="room-code-badge" id="roomCodeDisplay">LUDO-0000</span>
+              </div>
+              <div id="onlineStatusBadge" style="font-size: 0.75rem; font-weight: 700; color: #fbbf24;">
+                🟡 Waiting for friend to join...
+              </div>
+            </div>
+
+            <div class="player-slots-grid" id="onlinePlayerSlotsGrid">
+              <div class="player-slot slot-red" id="slotRed">
+                <span class="slot-icon">🔴</span>
+                <span class="slot-name" id="nameRed">Player 1</span>
+                <span class="slot-status">Host</span>
+              </div>
+              <div class="player-slot slot-green" id="slotGreen">
+                <span class="slot-icon">🟢</span>
+                <span class="slot-name" id="nameGreen">Open</span>
+                <span class="slot-status" id="statusGreen">Waiting</span>
+              </div>
+              <div class="player-slot slot-yellow" id="slotYellow">
+                <span class="slot-icon">🟡</span>
+                <span class="slot-name" id="nameYellow">Open</span>
+                <span class="slot-status" id="statusYellow">Waiting</span>
+              </div>
+              <div class="player-slot slot-blue" id="slotBlue">
+                <span class="slot-icon">🔵</span>
+                <span class="slot-name" id="nameBlue">Open</span>
+                <span class="slot-status" id="statusBlue">Waiting</span>
+              </div>
+            </div>
+
+            <div class="invite-share-row" id="inviteShareRow">
+              <input type="text" id="inviteUrlInput" readonly value="">
+              <button type="button" class="btn-lobby" id="btnCopyInvite" onclick="copyLudoInvite()" style="padding: 6px 12px; font-size: 0.75rem;">
+                <span>📋 Copy</span>
+              </button>
+              <button type="button" class="btn-lobby" onclick="shareLudoInvite()" style="padding: 6px 12px; font-size: 0.75rem; color: #25d366; border-color: #25d366;">
+                <span>📲 Share Invite</span>
+              </button>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px;">
+              <button type="button" id="btnStartOnline" class="btn-lobby primary" onclick="startOnlineLudoMatch()" style="display: none; padding: 10px 16px; font-size: 0.9rem;">
+                <span>▶</span> Start Match
+              </button>
+              <button type="button" class="btn-lobby" onclick="leaveLudoOnline()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4); font-size: 0.72rem; padding: 6px 10px;">
+                ✕ Leave Room
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 2: GAME ARENA VIEW (SHOWN ONLY DURING PLAY, ZERO SETUP CLUTTER!) -->
+    <div id="ludoArenaView" style="display: none;">
+      <!-- Arena Top Bar with Menu, Status, and Controls -->
+      <div class="arena-top-bar">
+        <button type="button" class="header-btn" onclick="returnToLobby()" title="Back to Options / Menu">
+          <span>⚙️ Menu</span>
         </button>
-        <!-- Exit to Portal -->
-        <a href="index.html" class="header-btn exit-btn" title="Exit to Hub">
-          ✕ Exit
-        </a>
-      </div>
-    </div>
-
-    <!-- Mode Selector Tabs -->
-    <div class="mode-bar">
-      <button type="button" class="mode-btn active" data-mode="ai" onclick="selectGameMode('ai')">
-        <span>🤖</span> vs Computer
-      </button>
-      <button type="button" class="mode-btn" data-mode="pass" onclick="selectGameMode('pass')">
-        <span>👥</span> Pass & Play
-      </button>
-      <button type="button" class="mode-btn" data-mode="online" onclick="selectGameMode('online')">
-        <span>🌐</span> Online (Invite)
-      </button>
-    </div>
-
-    <!-- Match Customization Bar (Players, Names & Colors) -->
-    <div class="setup-toggle-bar" id="setupToggleBar" onclick="toggleSetupPanel()">
-      <div class="setup-toggle-title">
-        <span>⚙️ Player Setup & Colors</span>
-      </div>
-      <div class="setup-toggle-badge" id="setupSummaryBadge">
-        4 Players • Click to Edit
-      </div>
-    </div>
-
-    <!-- Match Customization Collapsible Panel -->
-    <div class="setup-panel" id="setupPanel" style="display: none;">
-      <!-- Number of Players (2, 3, or 4) -->
-      <div>
-        <div class="setup-section-label">
-          <span>Select Number of Players</span>
-          <span style="color: var(--blue-color);" id="activePlayersCountText">4 Players</span>
-        </div>
-        <div class="count-selector-row" style="margin-top: 6px;">
-          <button type="button" class="count-btn" data-count="2" onclick="setSetupPlayerCount(2)">2 Players (Opposite)</button>
-          <button type="button" class="count-btn" data-count="3" onclick="setSetupPlayerCount(3)">3 Players</button>
-          <button type="button" class="count-btn active" data-count="4" onclick="setSetupPlayerCount(4)">4 Players</button>
-        </div>
-        <div id="oppositeNoticeBox" class="opposite-notice" style="display: none; margin-top: 6px;">
-          <span>⚔️</span>
-          <span><strong>2-Player Rule:</strong> Players are placed on <strong>opposite sides</strong> (Red vs Yellow, or Blue vs Green)!</span>
-        </div>
-      </div>
-
-      <!-- Player Slots Customization (Names, Types, Colors) -->
-      <div>
-        <div class="setup-section-label">
-          <span>Configure Names & Colors</span>
-          <span style="font-size: 0.68rem; color: var(--text-muted);">Pick colors & edit names</span>
-        </div>
-        <div class="players-config-list" id="playersConfigList" style="margin-top: 6px;">
-          <!-- Injected dynamically by JS -->
-        </div>
-      </div>
-
-      <!-- Apply & Start Button -->
-      <button type="button" class="btn-lobby primary" onclick="applySetupAndRestart()" style="justify-content: center; width: 100%;">
-        <span>🚀</span> Apply & Start Match
-      </button>
-    </div>
-
-    <!-- Online Lobby Panel (shown in online mode) -->
-    <div class="online-panel" id="onlinePanel" style="display: none;">
-      <div id="onlineChoicesView">
-        <!-- Online Match Size Selection -->
-        <div style="margin-bottom: 8px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-            <span style="font-size: 0.74rem; font-weight: 800; color: #fff;">👥 Select Online Players:</span>
-            <span id="onlineCountBadge" style="font-size: 0.7rem; font-weight: 800; color: var(--blue-color); background: rgba(0, 229, 255, 0.15); padding: 2px 8px; border-radius: 6px;">2 Players (Opposite Duel)</span>
-          </div>
-          <div class="count-selector-row">
-            <button type="button" class="count-btn active" id="btnOnline2" onclick="setOnlinePlayerCount(2)">2 Players (Opposite)</button>
-            <button type="button" class="count-btn" id="btnOnline3" onclick="setOnlinePlayerCount(3)">3 Players</button>
-            <button type="button" class="count-btn" id="btnOnline4" onclick="setOnlinePlayerCount(4)">4 Players</button>
-          </div>
-        </div>
-
-        <div class="online-action-row">
-          <button type="button" class="btn-lobby primary" onclick="hostCreateLudoRoom()">
-            <span>⚡</span> Create Room & Invite
+        <span class="arena-match-badge" id="arenaMatchBadge">
+          ⚔️ 2P: Red vs Yellow
+        </span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <button type="button" class="header-btn" id="soundToggleBtnArena" onclick="toggleSound()" title="Toggle Sound">
+            <span>🔊</span>
           </button>
-          <input type="text" id="joinCodeInput" class="join-input" placeholder="Room Code (LUDO-XXXX)" maxlength="12">
-          <button type="button" class="btn-lobby" onclick="guestJoinLudoRoom()">
-            <span>🔑</span> Join
+          <button type="button" class="header-btn" onclick="openGamesModal()" title="View All 19 Games">
+            <span>🎮 Games</span>
           </button>
+          <a href="index.html" class="header-btn exit-btn" title="Exit to Hub">✕</a>
         </div>
       </div>
 
-      <div id="onlineRoomView" style="display: none;">
-        <div class="room-info-card">
-          <div class="room-header">
-            <div>
-              <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 800;">ROOM:</span>
-              <span class="room-code-badge" id="roomCodeDisplay">LUDO-0000</span>
-              <span id="roomSizeBadge" style="font-size: 0.7rem; font-weight: 800; color: var(--blue-color); margin-left: 6px;">2P Duel</span>
-            </div>
-            <div id="onlineStatusBadge" style="font-size: 0.75rem; font-weight: 700; color: #fbbf24;">
-              🟡 Waiting for opponent...
-            </div>
-          </div>
-
-          <!-- In-Room Match Size Controls (Host can adjust before starting) -->
-          <div id="hostMatchSizeControls" style="display: flex; flex-direction: column; gap: 4px; padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 0.68rem; color: var(--text-muted); font-weight: 700;">MATCH PLAYERS:</span>
-              <span id="inRoomCountLabel" style="font-size: 0.68rem; font-weight: 800; color: var(--blue-color);">2 Players (Opposite Duel)</span>
-            </div>
-            <div class="count-selector-row">
-              <button type="button" class="count-btn active" id="inRoomCount2" onclick="changeInRoomMatchCount(2)">2 Players (Opposite)</button>
-              <button type="button" class="count-btn" id="inRoomCount3" onclick="changeInRoomMatchCount(3)">3 Players</button>
-              <button type="button" class="count-btn" id="inRoomCount4" onclick="changeInRoomMatchCount(4)">4 Players</button>
-            </div>
-          </div>
-
-          <div class="player-slots-grid" id="playerSlotsGrid" style="grid-template-columns: repeat(2, 1fr);">
-            <div class="player-slot slot-red" id="slotRed">
-              <span class="slot-icon">🔴</span>
-              <span class="slot-name" id="nameRed">Player 1</span>
-              <span class="slot-status" id="statusRed">Host</span>
-            </div>
-            <div class="player-slot slot-yellow" id="slotYellow">
-              <span class="slot-icon">🟡</span>
-              <span class="slot-name" id="nameYellow">Open</span>
-              <span class="slot-status" id="statusYellow">Waiting</span>
-            </div>
-            <div class="player-slot slot-green" id="slotGreen" style="display: none;">
-              <span class="slot-icon">🟢</span>
-              <span class="slot-name" id="nameGreen">Open</span>
-              <span class="slot-status" id="statusGreen">Waiting</span>
-            </div>
-            <div class="player-slot slot-blue" id="slotBlue" style="display: none;">
-              <span class="slot-icon">🔵</span>
-              <span class="slot-name" id="nameBlue">Open</span>
-              <span class="slot-status" id="statusBlue">Waiting</span>
-            </div>
-          </div>
-
-          <div class="invite-share-row" id="inviteShareRow">
-            <input type="text" id="inviteUrlInput" readonly value="">
-            <button type="button" class="btn-lobby" id="btnCopyInvite" onclick="copyLudoInvite()" style="padding: 6px 12px; font-size: 0.75rem;">
-              <span>📋 Copy</span>
-            </button>
-            <button type="button" class="btn-lobby" onclick="shareLudoInvite()" style="padding: 6px 12px; font-size: 0.75rem; color: #25d366; border-color: #25d366;">
-              <span>📲 Share</span>
-            </button>
-          </div>
-
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 4px;">
-            <button type="button" id="btnStartOnline" class="btn-lobby primary" onclick="startOnlineLudoMatch()" style="display: none;">
-              <span>▶</span> Start Match
-            </button>
-            <button type="button" class="btn-lobby" onclick="leaveLudoOnline()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4); font-size: 0.72rem; padding: 4px 8px;">
-              ✕ Leave Room
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Active Player HUD Scoreboard -->
-    <div class="hud-bar" id="hudBar">
-      <!-- Generated dynamically based on active players (2, 3, or 4) -->
-    </div>
-
-    <!-- LUDO BOARD SVG CONTAINER (CENTER OF ARENA) -->
-    <div class="ludo-board-wrapper">
-      <svg id="ludoSvg" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
-        <!-- Dynamic board generated by JS -->
-      </svg>
-    </div>
-
-    <!-- Turn Banner & Arcade Rolling Dice Arena (PLACED AT THE BOTTOM) -->
-    <div class="turn-action-panel" id="turnActionPanel">
-      <div class="turn-text-box">
-        <div class="turn-title" id="turnTitle" style="color: var(--red-color);">
-          <span>🔴</span> <span id="turnPlayerName">Red's Turn</span>
-        </div>
-        <div class="turn-hint" id="turnHint">👉 Tap the dice to roll!</div>
+      <!-- Active Player HUD Scoreboard -->
+      <div class="hud-bar" id="hudBar">
+        <!-- Generated dynamically based on active players (2, 3, or 4) -->
       </div>
 
-      <!-- High-Framerate Arcade Rolling Dice -->
-      <div class="dice-box" id="diceBox" onclick="onDiceClick()" title="Tap to Roll Dice">
-        <div class="dice-shaker" id="diceShaker">
-          <div class="dice-body" id="diceBody">
-            <!-- 3x3 pips dynamically generated -->
-          </div>
-        </div>
-        <div class="dice-ground-shadow" id="diceGroundShadow"></div>
+      <!-- LUDO BOARD SVG CONTAINER (CENTER OF ARENA) -->
+      <div class="ludo-board-wrapper">
+        <svg id="ludoSvg" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+          <!-- Dynamic board generated by JS -->
+        </svg>
       </div>
-    </div>
 
-    <!-- Emoji Reactions -->
-    <div class="reactions-bar">
-      <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">React:</span>
-      <button type="button" class="btn-react" onclick="sendLudoReaction('🔥')">🔥</button>
-      <button type="button" class="btn-react" onclick="sendLudoReaction('😂')">😂</button>
-      <button type="button" class="btn-react" onclick="sendLudoReaction('👏')">👏</button>
-      <button type="button" class="btn-react" onclick="sendLudoReaction('💀')">💀</button>
-      <button type="button" class="btn-react" onclick="sendLudoReaction('👑')">👑</button>
-      <button type="button" class="btn-react" onclick="sendLudoReaction('🎲')">🎲</button>
+      <!-- Turn Banner & Arcade Rolling Dice Arena (PLACED AT THE BOTTOM) -->
+      <div class="turn-action-panel" id="turnActionPanel">
+        <div class="turn-text-box">
+          <div class="turn-title" id="turnTitle" style="color: var(--red-color);">
+            <span>🔴</span> <span id="turnPlayerName">Red's Turn</span>
+          </div>
+          <div class="turn-hint" id="turnHint">👉 Tap the dice to roll!</div>
+        </div>
+
+        <!-- High-Framerate Arcade Rolling Dice -->
+        <div class="dice-box" id="diceBox" onclick="onDiceClick()" title="Tap to Roll Dice">
+          <div class="dice-shaker" id="diceShaker">
+            <div class="dice-body" id="diceBody">
+              <!-- 3x3 pips dynamically generated -->
+            </div>
+          </div>
+          <div class="dice-ground-shadow" id="diceGroundShadow"></div>
+        </div>
+      </div>
+
+      <!-- Emoji Reactions -->
+      <div class="reactions-bar">
+        <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">React:</span>
+        <button type="button" class="btn-react" onclick="sendLudoReaction('🔥')">🔥</button>
+        <button type="button" class="btn-react" onclick="sendLudoReaction('😂')">😂</button>
+        <button type="button" class="btn-react" onclick="sendLudoReaction('👏')">👏</button>
+        <button type="button" class="btn-react" onclick="sendLudoReaction('💀')">💀</button>
+        <button type="button" class="btn-react" onclick="sendLudoReaction('👑')">👑</button>
+        <button type="button" class="btn-react" onclick="sendLudoReaction('🎲')">🎲</button>
+      </div>
     </div>
   </div>
 
@@ -1149,6 +1226,7 @@
       <p style="font-size: 0.85rem; color: var(--text-muted);">All 4 tokens reached home safely in an epic Cyber Ludo match!</p>
       <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
         <button type="button" class="btn-lobby primary" onclick="startNewLudoGame()">🔄 Play Again</button>
+        <button type="button" class="btn-lobby" onclick="returnToLobby(); closeWinnerModal();">🏠 Main Menu / Lobby</button>
         <button type="button" class="btn-lobby" onclick="closeWinnerModal()">✕ Close</button>
       </div>
     </div>
@@ -1193,11 +1271,15 @@
     }
 
     function updateSoundBtn() {
-      const btn = document.getElementById('soundToggleBtn');
-      if (btn) {
-        btn.innerHTML = isSoundEnabled ? '<span>🔊</span>' : '<span style="opacity: 0.5;">🔇</span>';
-        btn.title = isSoundEnabled ? 'Sound is ON (Click to Mute)' : 'Sound is OFF (Click to Enable)';
-      }
+      const icon = isSoundEnabled ? '<span>🔊</span>' : '<span style="opacity: 0.5;">🔇</span>';
+      const title = isSoundEnabled ? 'Sound is ON (Click to Mute)' : 'Sound is OFF (Click to Enable)';
+      ['soundToggleBtn', 'soundToggleBtnLobby', 'soundToggleBtnArena'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.innerHTML = icon;
+          btn.title = title;
+        }
+      });
     }
 
     function soundDiceRattle() {
@@ -1778,32 +1860,24 @@
         document.getElementById('turnHint').innerText = `Rolled a ${diceValue}. No moves possible! Turn passing...`;
         setTimeout(passTurnToNextPlayer, 1000);
       } else if (movableTokens.length === 1) {
-        // EXACTLY 1 TOKEN CAN MOVE -> AUTOMATIC MOVEMENT (No choice needed)
-        renderTokens();
+        // Auto-move single eligible token automatically (User request: auto-move when only 1 token can move)
         const singleTok = movableTokens[0];
         const isBot = (players[currentTurnColor].type === 'bot');
-        const isMyOnlineTurn = (gameMode === 'online' && currentTurnColor === myOnlineColor);
-        const isLocalHumanTurn = (gameMode !== 'online' && !isBot);
+        const isMeOnline = (gameMode === 'online' && currentTurnColor === myOnlineColor);
+        const isMeOffline = (gameMode !== 'online' && !isBot);
 
-        if (isBot) {
-          document.getElementById('turnHint').innerText = `Bot rolled ${diceValue}. Auto-moving...`;
+        document.getElementById('turnHint').innerHTML = `Only 1 valid move! <strong>Auto-moving token...</strong>`;
+        renderTokens();
+
+        if (isBot || isMeOffline || isMeOnline || (gameMode === 'online' && isHost)) {
           setTimeout(() => {
-            if (!isGameOver && !isMovingToken && movableTokens.length === 1) {
-              moveToken(currentTurnColor, singleTok.id);
-            }
-          }, 450);
-        } else if (isLocalHumanTurn || isMyOnlineTurn) {
-          document.getElementById('turnHint').innerHTML = `Rolled a <strong>${diceValue}</strong>! Only 1 move possible — <em>Auto-moving...</em>`;
-          setTimeout(() => {
-            if (!isGameOver && !isMovingToken && movableTokens.length === 1) {
-              executeMove(currentTurnColor, singleTok.id);
+            if (!isGameOver && movableTokens.length === 1 && currentTurnColor === singleTok.color) {
+              executeMove(singleTok.color, singleTok.id);
             }
           }, 420);
-        } else {
-          document.getElementById('turnHint').innerText = `${players[currentTurnColor].name} is moving token...`;
         }
       } else {
-        // MULTIPLE TOKENS CAN MOVE (2 or more choices) -> MANUAL SELECTION REQUIRED
+        // Human player move prompt - 100% manual selection by player
         if (diceValue === 6 && movableTokens.some(t => t.step === -1) && movableTokens.some(t => t.step >= 0)) {
           document.getElementById('turnHint').innerHTML = `Rolled a <strong>6</strong>! Tap yard token to exit OR track token to advance!`;
         } else if (diceValue === 6 && movableTokens.some(t => t.step === -1)) {
@@ -2273,21 +2347,50 @@
       // Sort clockwise
       activeColors.sort((a, b) => ALL_COLORS.indexOf(a) - ALL_COLORS.indexOf(b));
 
-      document.getElementById('setupSummaryBadge').innerText = `${setupConfig.count} Players (${activeColors.map(c => c.toUpperCase()).join(' vs ')})`;
-      document.getElementById('setupPanel').style.display = 'none';
-
       buildHudUI();
       renderBoardSVG();
       startNewLudoGame();
     }
 
+    function showArenaView() {
+      const lobby = document.getElementById('ludoLobbyView');
+      const arena = document.getElementById('ludoArenaView');
+      if (lobby) lobby.style.display = 'none';
+      if (arena) arena.style.display = 'flex';
+
+      const badge = document.getElementById('arenaMatchBadge');
+      if (badge) {
+        if (gameMode === 'online') {
+          const modeText = onlinePlayerCount === 2 ? '⚔️ 2P Opposite Duel' : `🌐 ${onlinePlayerCount}P Online`;
+          badge.innerText = `${modeText} • ${currentLudoRoomCode || 'Live'}`;
+        } else if (gameMode === 'ai') {
+          badge.innerText = setupConfig.count === 2 ? '🤖 2P Duel: You vs Master Bot' : `🤖 vs AI (${setupConfig.count}P)`;
+        } else {
+          badge.innerText = setupConfig.count === 2 ? '👥 2P Duel: Red vs Yellow' : `👥 Pass & Play (${setupConfig.count}P)`;
+        }
+      }
+    }
+
+    function returnToLobby() {
+      const lobby = document.getElementById('ludoLobbyView');
+      const arena = document.getElementById('ludoArenaView');
+      if (arena) arena.style.display = 'none';
+      if (lobby) lobby.style.display = 'flex';
+    }
+
+    function startOfflineMatchFromLobby() {
+      applySetupAndRestart();
+      showArenaView();
+    }
+
     function buildHudUI() {
       const hudBar = document.getElementById('hudBar');
+      if (!hudBar) return;
       hudBar.style.gridTemplateColumns = `repeat(${activeColors.length}, 1fr)`;
       let html = '';
 
       activeColors.forEach(c => {
-        const p = players[c];
+        const p = players[c] || { name: c.toUpperCase() };
         html += `
           <div class="hud-player-card color-${c} ${c === currentTurnColor ? 'active-turn' : ''}" id="hud${c.charAt(0).toUpperCase() + c.slice(1)}">
             <div class="hud-player-name">${COLOR_EMOJIS[c]} ${p.name}</div>
@@ -2322,12 +2425,24 @@
       updateTurnUI();
       renderTokens();
 
-      showLudoToast(`🎲 Match Started! ${players[currentTurnColor].name} rolls first.`);
+      showLudoToast(`🎲 Match Started! ${players[currentTurnColor] ? players[currentTurnColor].name : 'First player'} rolls.`);
       checkAndTriggerBot();
     }
 
-    // --- 9. GAME MODES & ONLINE MULTIPLAYER (PEERJS) ---
-    // --- 9. GAME MODES & ONLINE MULTIPLAYER (PEERJS) ---
+    // --- 9. GAME MODES & ONLINE MULTIPLAYER (PEERJS & GLOBAL STUN) ---
+    const ICE_CONFIG = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' },
+        { urls: 'stun:stun.services.mozilla.com' },
+        { urls: 'stun:global.stun.twilio.com:3478' }
+      ]
+    };
+
+    let onlinePlayerCount = 2; // Default 2-player opposite duel
     let myOnlineColor = 'red';
     let isHost = false;
     let isOnlineConnected = false;
@@ -2336,7 +2451,36 @@
     let activeConn = null;
     let guestConnections = {};
     let currentLudoRoomCode = null;
-    let onlineMatchCount = 2; // Default to 2-player opposite duel
+    let incomingRoomParam = null;
+
+    function setOnlinePlayerCount(count) {
+      onlinePlayerCount = count;
+      [2, 3, 4].forEach(c => {
+        const btn = document.getElementById(`btnOnlineCount${c}`);
+        if (btn) btn.classList.toggle('active', c === count);
+      });
+
+      const textEl = document.getElementById('onlinePlayersCountText');
+      const noticeEl = document.getElementById('onlineOppositeNotice');
+      if (count === 2) {
+        if (textEl) textEl.innerText = '2 Players (Opposite ⚔️)';
+        if (noticeEl) {
+          noticeEl.style.display = 'flex';
+          noticeEl.innerHTML = '<span>⚔️</span><span><strong>Total 2 Players:</strong> Host (Red) vs Friend (Yellow) on opposite sides. No bots!</span>';
+        }
+      } else if (count === 3) {
+        if (textEl) textEl.innerText = '3 Players';
+        if (noticeEl) {
+          noticeEl.style.display = 'flex';
+          noticeEl.innerHTML = '<span>👥</span><span><strong>3 Players:</strong> Host (Red) vs 2 Friends (Green & Yellow).</span>';
+        }
+      } else {
+        if (textEl) textEl.innerText = '4 Players';
+        if (noticeEl) {
+          noticeEl.style.display = 'none';
+        }
+      }
+    }
 
     function selectGameMode(mode) {
       gameMode = mode;
@@ -2345,109 +2489,31 @@
       });
 
       const onlinePanel = document.getElementById('onlinePanel');
-      const setupToggleBar = document.getElementById('setupToggleBar');
+      const offlineSection = document.getElementById('offlineSetupSection');
 
       if (mode === 'online') {
-        onlinePanel.style.display = 'flex';
-        setupToggleBar.style.display = 'none';
-        document.getElementById('setupPanel').style.display = 'none';
-        setOnlinePlayerCount(onlineMatchCount);
+        if (onlinePanel) onlinePanel.style.display = 'flex';
+        if (offlineSection) offlineSection.style.display = 'none';
       } else {
-        onlinePanel.style.display = 'none';
-        setupToggleBar.style.display = 'flex';
+        if (onlinePanel) onlinePanel.style.display = 'none';
+        if (offlineSection) offlineSection.style.display = 'flex';
         leaveLudoOnline(true);
       }
 
       if (mode === 'ai') {
-        setupConfig.count = 4;
-        setupConfig.slots = [
-          { name: 'You (Sumon)', type: 'human', color: 'red' },
-          { name: 'Speedy Bot', type: 'bot', color: 'green' },
-          { name: 'Master Bot', type: 'bot', color: 'yellow' },
-          { name: 'Cyber Bot', type: 'bot', color: 'blue' }
-        ];
-        applySetupAndRestart();
+        setupConfig.slots[0].type = 'human';
+        setupConfig.slots[0].name = 'You (Sumon)';
+        for (let i = 1; i < 4; i++) {
+          setupConfig.slots[i].type = 'bot';
+        }
+        renderSetupSlotsUI();
       } else if (mode === 'pass') {
-        setupConfig.count = 4;
-        setupConfig.slots = [
-          { name: 'Player 1', type: 'human', color: 'red' },
-          { name: 'Player 2', type: 'human', color: 'green' },
-          { name: 'Player 3', type: 'human', color: 'yellow' },
-          { name: 'Player 4', type: 'human', color: 'blue' }
-        ];
-        applySetupAndRestart();
-      }
-    }
-
-    function setOnlinePlayerCount(count, updateButtons = true) {
-      onlineMatchCount = count;
-
-      if (count === 2) {
-        activeColors = ['red', 'yellow'];
-        players = {
-          red: { type: 'human', name: (isHost ? 'You (Red)' : 'Host (Red)') },
-          yellow: { type: 'online', name: (myOnlineColor === 'yellow' ? 'You (Yellow)' : 'Open Slot') }
-        };
-      } else if (count === 3) {
-        activeColors = ['red', 'green', 'yellow'];
-        players = {
-          red: { type: 'human', name: (isHost ? 'You (Red)' : 'Host (Red)') },
-          green: { type: 'online', name: (myOnlineColor === 'green' ? 'You (Green)' : 'Open Slot') },
-          yellow: { type: 'online', name: (myOnlineColor === 'yellow' ? 'You (Yellow)' : 'Open Slot') }
-        };
-      } else {
-        activeColors = ['red', 'green', 'yellow', 'blue'];
-        players = {
-          red: { type: 'human', name: (isHost ? 'You (Red)' : 'Host (Red)') },
-          green: { type: 'online', name: (myOnlineColor === 'green' ? 'You (Green)' : 'Open Slot') },
-          yellow: { type: 'online', name: (myOnlineColor === 'yellow' ? 'You (Yellow)' : 'Open Slot') },
-          blue: { type: 'online', name: (myOnlineColor === 'blue' ? 'You (Blue)' : 'Open Slot') }
-        };
-      }
-
-      if (updateButtons) {
-        [2, 3, 4].forEach(n => {
-          const b1 = document.getElementById(`btnOnline${n}`);
-          const b2 = document.getElementById(`inRoomCount${n}`);
-          if (b1) b1.classList.toggle('active', n === count);
-          if (b2) b2.classList.toggle('active', n === count);
-        });
-
-        const badge = document.getElementById('onlineCountBadge');
-        if (badge) {
-          badge.innerText = (count === 2) ? '2 Players (Opposite Duel)' : `${count} Players`;
+        for (let i = 0; i < 4; i++) {
+          setupConfig.slots[i].type = 'human';
+          setupConfig.slots[i].name = `Player ${i + 1}`;
         }
-        const roomBadge = document.getElementById('roomSizeBadge');
-        if (roomBadge) {
-          roomBadge.innerText = (count === 2) ? '2P Duel' : `${count}P`;
-        }
-        const inRoomLabel = document.getElementById('inRoomCountLabel');
-        if (inRoomLabel) {
-          inRoomLabel.innerText = (count === 2) ? '2 Players (Opposite Duel)' : `${count} Players`;
-        }
+        renderSetupSlotsUI();
       }
-
-      updateLobbySlots();
-      buildHudUI();
-    }
-
-    function changeInRoomMatchCount(count) {
-      if (!isHost) return;
-      setOnlinePlayerCount(count);
-
-      if (currentLudoRoomCode) {
-        const url = window.location.protocol + '//' + window.location.host + window.location.pathname + '?room=' + currentLudoRoomCode + '&count=' + onlineMatchCount;
-        document.getElementById('inviteUrlInput').value = url;
-      }
-
-      broadcastOnlineMessage({
-        type: 'sync_count',
-        onlineCount: onlineMatchCount,
-        activeColors: activeColors,
-        players: players
-      });
-
-      showLudoToast(`⚙️ Match set to ${count} Players!`);
     }
 
     function hostCreateLudoRoom() {
@@ -2465,33 +2531,53 @@
       myOnlineColor = 'red';
 
       document.getElementById('roomCodeDisplay').innerText = code;
-      const url = window.location.protocol + '//' + window.location.host + window.location.pathname + '?room=' + code + '&count=' + onlineMatchCount;
+      const url = window.location.protocol + '//' + window.location.host + window.location.pathname + '?room=' + code;
       document.getElementById('inviteUrlInput').value = url;
 
       document.getElementById('onlineChoicesView').style.display = 'none';
       document.getElementById('onlineRoomView').style.display = 'block';
-      document.getElementById('btnStartOnline').style.display = 'inline-flex';
-      document.getElementById('hostMatchSizeControls').style.display = 'flex';
+      const startBtn = document.getElementById('btnStartOnline');
+      if (startBtn) startBtn.style.display = 'none';
 
-      setOnlinePlayerCount(onlineMatchCount);
+      setupConfig.count = onlinePlayerCount;
+      if (onlinePlayerCount === 2) {
+        activeColors = ['red', 'yellow'];
+        players = {
+          red: { type: 'human', name: 'Host (Red)' },
+          yellow: { type: 'bot', name: 'Waiting for friend...' }
+        };
+      } else if (onlinePlayerCount === 3) {
+        activeColors = ['red', 'green', 'yellow'];
+        players = {
+          red: { type: 'human', name: 'Host (Red)' },
+          green: { type: 'bot', name: 'Waiting for player 2...' },
+          yellow: { type: 'bot', name: 'Waiting for player 3...' }
+        };
+      } else {
+        activeColors = ['red', 'green', 'yellow', 'blue'];
+        players = {
+          red: { type: 'human', name: 'Host (Red)' },
+          green: { type: 'bot', name: 'Waiting for player 2...' },
+          yellow: { type: 'bot', name: 'Waiting for player 3...' },
+          blue: { type: 'bot', name: 'Waiting for player 4...' }
+        };
+      }
+
+      updateLobbySlots();
+      buildHudUI();
+      renderBoardSVG();
 
       try {
         hostPeer = new Peer(peerId, {
           debug: 1,
-          config: {
-            iceServers: [
-              { urls: 'stun:stun.l.google.com:19302' },
-              { urls: 'stun:global.stun.twilio.com:3478' }
-            ]
-          }
+          config: ICE_CONFIG
         });
 
         hostPeer.on('open', () => {
-          const statusText = (onlineMatchCount === 2) 
-            ? '🟡 Waiting for friend (Opposite Duel)...' 
-            : `🟡 Waiting for friends (1/${onlineMatchCount})...`;
-          document.getElementById('onlineStatusBadge').innerText = statusText;
-          showLudoToast(`⚡ Room ${code} (${onlineMatchCount} Players) created! Send link to friends.`);
+          document.getElementById('onlineStatusBadge').innerText = (onlinePlayerCount === 2) 
+            ? '🟡 Waiting for friend to join...' 
+            : `🟡 Waiting for ${onlinePlayerCount - 1} players to join...`;
+          showLudoToast(`⚡ Room ${code} created! Send invite to friend.`);
         });
 
         hostPeer.on('connection', (conn) => {
@@ -2509,9 +2595,9 @@
 
     function handleIncomingGuest(conn) {
       let assignedColor = null;
-      if (onlineMatchCount === 2) {
+      if (onlinePlayerCount === 2) {
         if (!guestConnections.yellow) assignedColor = 'yellow';
-      } else if (onlineMatchCount === 3) {
+      } else if (onlinePlayerCount === 3) {
         if (!guestConnections.green) assignedColor = 'green';
         else if (!guestConnections.yellow) assignedColor = 'yellow';
       } else {
@@ -2521,8 +2607,10 @@
       }
 
       if (!assignedColor) {
-        conn.send({ type: 'room_full', msg: `Room ${currentLudoRoomCode} is full (${onlineMatchCount} Players limit)!` });
-        setTimeout(() => conn.close(), 600);
+        conn.on('open', () => {
+          conn.send({ type: 'room_full', msg: 'Room is full!' });
+          setTimeout(() => conn.close(), 500);
+        });
         return;
       }
 
@@ -2535,23 +2623,26 @@
           type: 'welcome',
           yourColor: assignedColor,
           roomCode: currentLudoRoomCode,
-          onlineCount: onlineMatchCount,
+          players: players,
           activeColors: activeColors,
-          players: players
+          onlinePlayerCount: onlinePlayerCount
         });
 
         updateLobbySlots();
         buildHudUI();
         showLudoToast(`🎉 Player joined as ${assignedColor.toUpperCase()}!`);
-        
-        const connectedCount = Object.keys(guestConnections).length + 1;
-        if (connectedCount >= onlineMatchCount) {
-          document.getElementById('onlineStatusBadge').innerText = `🟢 All ${onlineMatchCount} Players Ready!`;
-        } else {
-          document.getElementById('onlineStatusBadge').innerText = `🟡 Players: ${connectedCount}/${onlineMatchCount}`;
-        }
+        broadcastOnlineMessage({ type: 'sync_lobby', players, activeColors, onlinePlayerCount });
 
-        broadcastOnlineMessage({ type: 'sync_lobby', players, onlineCount: onlineMatchCount, activeColors });
+        // Check if all needed guests connected
+        const guestCount = Object.keys(guestConnections).length;
+        const requiredGuests = onlinePlayerCount - 1;
+        if (guestCount >= requiredGuests) {
+          document.getElementById('onlineStatusBadge').innerText = '🟢 Ready to Play!';
+          const startBtn = document.getElementById('btnStartOnline');
+          if (startBtn) startBtn.style.display = 'inline-flex';
+        } else {
+          document.getElementById('onlineStatusBadge').innerText = `🟡 Joined (${guestCount + 1}/${onlinePlayerCount}). Waiting for more...`;
+        }
       });
 
       conn.on('data', (data) => {
@@ -2560,19 +2651,18 @@
 
       conn.on('close', () => {
         delete guestConnections[assignedColor];
-        if (players[assignedColor]) {
-          players[assignedColor] = { type: 'online', name: 'Open Slot' };
-        }
+        players[assignedColor] = { type: 'bot', name: `Waiting for player...` };
         updateLobbySlots();
         buildHudUI();
         showLudoToast(`⚠️ ${assignedColor.toUpperCase()} left room.`);
-        const connectedCount = Object.keys(guestConnections).length + 1;
-        document.getElementById('onlineStatusBadge').innerText = `🟡 Waiting for players (${connectedCount}/${onlineMatchCount})...`;
-        broadcastOnlineMessage({ type: 'sync_lobby', players, onlineCount: onlineMatchCount, activeColors });
+        const startBtn = document.getElementById('btnStartOnline');
+        if (startBtn) startBtn.style.display = 'none';
+        document.getElementById('onlineStatusBadge').innerText = '🟡 Waiting for friend to join...';
+        broadcastOnlineMessage({ type: 'sync_lobby', players, activeColors, onlinePlayerCount });
       });
     }
 
-    function guestJoinLudoRoom(codeParam = null, countParam = null) {
+    function guestJoinLudoRoom(codeParam = null) {
       if (typeof Peer === 'undefined') {
         showLudoToast("⚠️ PeerJS loading... Please retry in a moment.");
         return;
@@ -2590,30 +2680,18 @@
       isHost = false;
       leaveLudoOnline(true);
 
-      if (countParam) {
-        onlineMatchCount = parseInt(countParam) || 2;
-      }
-
       document.getElementById('roomCodeDisplay').innerText = code;
-      const url = window.location.protocol + '//' + window.location.host + window.location.pathname + '?room=' + code + '&count=' + onlineMatchCount;
-      document.getElementById('inviteUrlInput').value = url;
+      document.getElementById('inviteUrlInput').value = window.location.protocol + '//' + window.location.host + window.location.pathname + '?room=' + code;
       document.getElementById('onlineChoicesView').style.display = 'none';
       document.getElementById('onlineRoomView').style.display = 'block';
-      document.getElementById('btnStartOnline').style.display = 'none';
-      document.getElementById('hostMatchSizeControls').style.display = 'none';
+      const startBtn = document.getElementById('btnStartOnline');
+      if (startBtn) startBtn.style.display = 'none';
       document.getElementById('onlineStatusBadge').innerText = `Connecting to ${code}...`;
-
-      setOnlinePlayerCount(onlineMatchCount);
 
       try {
         guestPeer = new Peer({
           debug: 1,
-          config: {
-            iceServers: [
-              { urls: 'stun:stun.l.google.com:19302' },
-              { urls: 'stun:global.stun.twilio.com:3478' }
-            ]
-          }
+          config: ICE_CONFIG
         });
 
         guestPeer.on('open', () => {
@@ -2652,43 +2730,35 @@
       if (data.type === 'welcome') {
         myOnlineColor = data.yourColor;
         currentLudoRoomCode = data.roomCode;
-        if (data.onlineCount) onlineMatchCount = data.onlineCount;
+        if (data.onlinePlayerCount) {
+          onlinePlayerCount = data.onlinePlayerCount;
+          setupConfig.count = data.onlinePlayerCount;
+        }
         if (data.activeColors) activeColors = data.activeColors;
         players = data.players;
         players[myOnlineColor] = { type: 'human', name: `You (${myOnlineColor.toUpperCase()})` };
-        document.getElementById('onlineStatusBadge').innerText = `🟢 You are ${myOnlineColor.toUpperCase()} (Connected)`;
-        setOnlinePlayerCount(onlineMatchCount, true);
+        document.getElementById('onlineStatusBadge').innerText = `🟢 You are ${myOnlineColor.toUpperCase()} (Waiting for host to start)`;
         updateLobbySlots();
         buildHudUI();
+        renderBoardSVG();
         showLudoToast(`🎮 You joined as ${myOnlineColor.toUpperCase()}!`);
       } else if (data.type === 'sync_lobby') {
-        if (data.onlineCount) onlineMatchCount = data.onlineCount;
+        if (data.onlinePlayerCount) {
+          onlinePlayerCount = data.onlinePlayerCount;
+          setupConfig.count = data.onlinePlayerCount;
+        }
         if (data.activeColors) activeColors = data.activeColors;
         players = data.players;
         if (players[myOnlineColor]) players[myOnlineColor].name = `You (${myOnlineColor.toUpperCase()})`;
-        setOnlinePlayerCount(onlineMatchCount, true);
         updateLobbySlots();
         buildHudUI();
-      } else if (data.type === 'sync_count') {
-        if (data.onlineCount) onlineMatchCount = data.onlineCount;
-        if (data.activeColors) activeColors = data.activeColors;
-        players = data.players;
-        if (players[myOnlineColor]) players[myOnlineColor].name = `You (${myOnlineColor.toUpperCase()})`;
-        setOnlinePlayerCount(onlineMatchCount, true);
-        updateLobbySlots();
-        buildHudUI();
-        showLudoToast(`⚙️ Match size updated: ${onlineMatchCount} Players`);
+        renderBoardSVG();
       } else if (data.type === 'start_match') {
         document.getElementById('inviteShareRow').style.display = 'none';
         document.getElementById('onlineStatusBadge').innerText = `🟢 Match Live`;
-        if (data.onlineCount) onlineMatchCount = data.onlineCount;
-        if (data.activeColors) activeColors = data.activeColors;
-        if (data.players) players = data.players;
-        setupConfig.count = onlineMatchCount;
-        buildHudUI();
-        renderBoardSVG();
         startNewLudoGame();
-        showLudoToast(`🚀 ${onlineMatchCount}-Player Tournament Match Started!`);
+        showArenaView();
+        showLudoToast("🚀 Tournament match started!");
       } else if (data.type === 'sync_roll') {
         if (data.color !== myOnlineColor) {
           currentTurnColor = data.color;
@@ -2710,39 +2780,32 @@
       } else if (data.type === 'reaction') {
         showLudoFloatingEmoji(data.emoji);
       } else if (data.type === 'room_full') {
-        showLudoToast(`⚠️ ${data.msg || 'Room is already full!'}`);
+        showLudoToast("⚠️ " + (data.msg || "Room is full!"));
+        leaveLudoOnline();
       }
     }
 
     function updateLobbySlots() {
-      const grid = document.getElementById('playerSlotsGrid');
-      if (grid) {
-        grid.style.gridTemplateColumns = `repeat(${activeColors.length}, 1fr)`;
-      }
-
       ALL_COLORS.forEach(c => {
         const slotEl = document.getElementById(`slot${c.charAt(0).toUpperCase() + c.slice(1)}`);
         const nameEl = document.getElementById(`name${c.charAt(0).toUpperCase() + c.slice(1)}`);
         const statusEl = document.getElementById(`status${c.charAt(0).toUpperCase() + c.slice(1)}`);
 
-        const isActive = activeColors.includes(c);
         if (slotEl) {
-          slotEl.style.display = isActive ? 'flex' : 'none';
+          if (activeColors.includes(c)) {
+            slotEl.style.display = 'flex';
+          } else {
+            slotEl.style.display = 'none';
+          }
         }
 
-        if (nameEl && statusEl && isActive) {
-          if (c === 'red') {
-            nameEl.innerText = isHost ? 'You (Host)' : 'Host';
-            statusEl.innerText = '🔴 Host';
-          } else if (c === myOnlineColor && !isHost) {
-            nameEl.innerText = `You (${c.toUpperCase()})`;
-            statusEl.innerText = '🟢 Connected';
-          } else if (guestConnections[c]) {
-            nameEl.innerText = `Guest (${c.toUpperCase()})`;
-            statusEl.innerText = '🟢 Connected';
-          } else {
-            nameEl.innerText = 'Open Slot';
-            statusEl.innerText = '🟡 Waiting...';
+        if (nameEl && players[c]) {
+          nameEl.innerText = players[c].name;
+          if (statusEl) {
+            if (c === 'red' && isHost) statusEl.innerText = 'Host';
+            else if (players[c].type === 'online') statusEl.innerText = 'Guest';
+            else if (players[c].type === 'human') statusEl.innerText = 'You';
+            else statusEl.innerText = 'Waiting...';
           }
         }
       });
@@ -2752,28 +2815,11 @@
       if (!isHost) return;
       document.getElementById('inviteShareRow').style.display = 'none';
       document.getElementById('btnStartOnline').style.display = 'none';
-      document.getElementById('hostMatchSizeControls').style.display = 'none';
       document.getElementById('onlineStatusBadge').innerText = `🟢 Match Live`;
-
-      // Fill any active open slots with Bot
-      activeColors.forEach(c => {
-        if (c !== 'red' && !guestConnections[c]) {
-          players[c] = { type: 'bot', name: `${c.toUpperCase()} Bot` };
-        }
-      });
-
-      broadcastOnlineMessage({
-        type: 'start_match',
-        onlineCount: onlineMatchCount,
-        activeColors: activeColors,
-        players: players
-      });
-
-      setupConfig.count = onlineMatchCount;
-      buildHudUI();
-      renderBoardSVG();
+      broadcastOnlineMessage({ type: 'start_match' });
       startNewLudoGame();
-      showLudoToast(`🚀 ${onlineMatchCount}-Player Tournament Started!`);
+      showArenaView();
+      showLudoToast("🚀 Match Started!");
     }
 
     function leaveLudoOnline(silent = false) {
@@ -2784,11 +2830,14 @@
       isOnlineConnected = false;
       isHost = false;
 
-      document.getElementById('onlineChoicesView').style.display = 'block';
-      document.getElementById('onlineRoomView').style.display = 'none';
-      document.getElementById('inviteShareRow').style.display = 'flex';
+      const choices = document.getElementById('onlineChoicesView');
+      const roomView = document.getElementById('onlineRoomView');
+      const shareRow = document.getElementById('inviteShareRow');
+      if (choices) choices.style.display = 'block';
+      if (roomView) roomView.style.display = 'none';
+      if (shareRow) shareRow.style.display = 'flex';
 
-      if (window.history.replaceState) {
+      if (window.history && window.history.replaceState) {
         const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
         window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
       }
@@ -2796,10 +2845,16 @@
       if (!silent) showLudoToast("Left online lobby.");
     }
 
-    function copyLudoInvite() {
+    function getInviteShareMessage() {
+      const countLabel = onlinePlayerCount === 2 ? '2-Player Opposite Duel ⚔️' : `${onlinePlayerCount}-Player Match`;
       const url = document.getElementById('inviteUrlInput').value;
+      return `🎲 Join to Play Cyber Ludo with me! (${countLabel})\nRoom Code: ${currentLudoRoomCode}\nTap link to join & play now:\n${url}`;
+    }
+
+    function copyLudoInvite() {
+      const shareText = getInviteShareMessage();
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(showCopyFeedback);
+        navigator.clipboard.writeText(shareText).then(showCopyFeedback);
       } else {
         const input = document.getElementById('inviteUrlInput');
         input.select();
@@ -2810,25 +2865,33 @@
 
     function showCopyFeedback() {
       const btn = document.getElementById('btnCopyInvite');
-      btn.innerHTML = '<span>✅ Copied!</span>';
-      showLudoToast("📋 Invite link copied to clipboard!");
+      if (btn) btn.innerHTML = '<span>✅ Copied!</span>';
+      showLudoToast("📋 'Join to Play' invite copied to clipboard!");
       setTimeout(() => {
-        btn.innerHTML = '<span>📋 Copy</span>';
+        if (btn) btn.innerHTML = '<span>📋 Copy</span>';
       }, 2000);
     }
 
     function shareLudoInvite() {
+      const shareText = getInviteShareMessage();
       const url = document.getElementById('inviteUrlInput').value;
-      const countLabel = (onlineMatchCount === 2) ? '2-Player Opposite Duel' : `${onlineMatchCount}-Player Tournament`;
       if (navigator.share) {
         navigator.share({
-          title: 'Play Cyber Ludo with me!',
-          text: `Join my ${countLabel} room ${currentLudoRoomCode}! Tap link to play:`,
+          title: 'Join to Play Cyber Ludo!',
+          text: shareText,
           url: url
         }).catch(() => {});
       } else {
-        const waText = encodeURIComponent(`Play Cyber Ludo with me! Join my ${countLabel} room ${currentLudoRoomCode}: ${url}`);
+        const waText = encodeURIComponent(shareText);
         window.open(`https://api.whatsapp.com/send?text=${waText}`, '_blank');
+      }
+    }
+
+    function acceptIncomingInvite() {
+      const card = document.getElementById('inviteWelcomeCard');
+      if (card) card.style.display = 'none';
+      if (incomingRoomParam) {
+        guestJoinLudoRoom(incomingRoomParam);
       }
     }
 
@@ -2916,19 +2979,28 @@
     // --- 11. INITIALIZATION ---
     window.addEventListener('DOMContentLoaded', () => {
       updateSoundBtn();
-      applySetupAndRestart();
+      setSetupPlayerCount(4);
+      setOnlinePlayerCount(2);
 
       const urlParams = new URLSearchParams(window.location.search);
       const roomParam = urlParams.get('room');
-      const countParam = urlParams.get('count');
-      if (countParam) {
-        setOnlinePlayerCount(parseInt(countParam) || 2);
-      }
       if (roomParam) {
+        incomingRoomParam = roomParam.toUpperCase();
+        if (!incomingRoomParam.startsWith('LUDO-')) incomingRoomParam = 'LUDO-' + incomingRoomParam;
+
         selectGameMode('online');
-        setTimeout(() => {
-          guestJoinLudoRoom(roomParam, countParam);
-        }, 350);
+
+        const card = document.getElementById('inviteWelcomeCard');
+        if (card) {
+          card.style.display = 'flex';
+          const codeEl = document.getElementById('welcomeRoomCode');
+          if (codeEl) codeEl.innerText = incomingRoomParam;
+        }
+
+        const choices = document.getElementById('onlineChoicesView');
+        if (choices) choices.style.display = 'none';
+      } else {
+        selectGameMode('ai');
       }
     });
   </script>

@@ -981,6 +981,26 @@
       color: var(--text-muted);
     }
 
+    .network-notice-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 10px;
+      padding: 9px 12px;
+      margin-top: 10px;
+      font-size: 0.74rem;
+      color: #94a3b8;
+      line-height: 1.4;
+      text-align: left;
+    }
+
+    .network-notice-box .notice-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
     @media (max-width: 480px) {
       .game-wrapper {
         padding: 12px;
@@ -1051,9 +1071,16 @@
         <div style="font-size: 38px; margin-bottom: 4px;">⚡</div>
         <h2 style="color: #fff; font-size: 1.2rem; margin: 0 0 4px 0;">Cyber Tic-Tac-Toe Live Challenge!</h2>
         <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0 0 12px 0;">You've been invited to play Cyber Tic-Tac-Toe live with a friend!</p>
-        <div style="background: rgba(0, 229, 255, 0.1); border: 1px dashed var(--neon-cyan); padding: 8px 14px; border-radius: 10px; margin-bottom: 12px; display: inline-block;">
+        <div style="background: rgba(0, 229, 255, 0.1); border: 1px dashed var(--neon-cyan); padding: 8px 14px; border-radius: 10px; margin-bottom: 10px; display: inline-block;">
           <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">ROOM: </span>
           <span style="font-size: 1.15rem; font-weight: 900; color: var(--neon-cyan);" id="welcomeRoomCode">CYBER-0000</span>
+        </div>
+        <div class="network-notice-box" style="margin: 0 0 12px 0;">
+          <span class="notice-icon">📶</span>
+          <div>
+            <strong style="color: var(--neon-cyan);">Network Requirement:</strong>
+            <span>Make sure both devices are connected to the same network (Wi-Fi or Mobile Hotspot) to connect and play.</span>
+          </div>
         </div>
         <button type="button" class="btn-lobby-start" onclick="acceptIncomingInvite()" style="padding: 12px;">
           <span>⚡ Join to Play Now</span>
@@ -1151,6 +1178,14 @@
                 <span>🔑 Join</span>
               </button>
             </div>
+
+            <div class="network-notice-box">
+              <span class="notice-icon">📶</span>
+              <div>
+                <strong style="color: var(--neon-cyan);">Network Requirement:</strong>
+                <span>Make sure both devices are connected to the same network (Wi-Fi or Mobile Hotspot) to connect and play.</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1178,8 +1213,12 @@
               </button>
             </div>
 
-            <div style="font-size: 0.74rem; color: #94a3b8; background: rgba(0, 0, 0, 0.3); padding: 8px; border-radius: 8px;">
-              💡 <strong>Cross-Network / Cross-Device:</strong> Send this invite! Friend can tap link or enter the 4-digit Room Code from mobile or computer.
+            <div class="network-notice-box" style="margin-top: 8px; margin-bottom: 6px;">
+              <span class="notice-icon">📶</span>
+              <div>
+                <strong style="color: var(--neon-cyan);">Notice:</strong>
+                <span>Make sure both devices are connected to the same network (Wi-Fi or Mobile Hotspot).</span>
+              </div>
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px;">
@@ -1208,9 +1247,6 @@
         <div style="display: flex; gap: 6px; align-items: center;">
           <button type="button" class="header-btn" id="soundToggleBtnArena" onclick="toggleSound()" title="Toggle Sound">
             <span>🔊</span>
-          </button>
-          <button type="button" class="header-btn" onclick="openGamesModal()" title="View All 19 Games">
-            <span>🎮 Games</span>
           </button>
           <button type="button" class="header-btn exit-btn" onclick="exitToHub(event)" title="Exit to Hub">✕</button>
         </div>
@@ -2445,10 +2481,10 @@
     function copyInviteLink() {
       const code = currentRoomCode || 'ROOM';
       const url = inviteLinkInput.value;
-      const shareText = `Play Cyber Tic-Tac-Toe with me online!\nRoom Code: ${code}\nLink: ${url}`;
+      const shareText = `Play Cyber Tic-Tac-Toe with me online!\nRoom Code: ${code}\nLink: ${url}\n(Note: Make sure both devices are connected to the same Wi-Fi or Hotspot network)`;
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(() => {
+        navigator.clipboard.writeText(shareText).then(() => {
           showCopySuccess();
         }).catch(() => {
           fallbackCopy();
@@ -2482,14 +2518,14 @@
       const url = inviteLinkInput.value;
       const shareData = {
         title: 'Cyber Tic-Tac-Toe Duel',
-        text: `Play Cyber Tic-Tac-Toe with me online! Room Code: ${code}`,
+        text: `Play Cyber Tic-Tac-Toe with me online! Room Code: ${code} (Connect to same Wi-Fi/Hotspot)`,
         url: url
       };
 
       if (navigator.share) {
         navigator.share(shareData).catch(() => {});
       } else {
-        const waText = encodeURIComponent(`Play Cyber Tic-Tac-Toe with me online! Room Code: ${code}\nLink: ${url}`);
+        const waText = encodeURIComponent(`Play Cyber Tic-Tac-Toe with me online! Room Code: ${code}\nLink: ${url}\n(Note: Make sure both devices are connected to the same Wi-Fi or Hotspot network)`);
         window.open(`https://api.whatsapp.com/send?text=${waText}`, '_blank');
       }
     }

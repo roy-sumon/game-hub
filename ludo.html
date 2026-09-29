@@ -974,6 +974,26 @@
       color: var(--text-muted);
     }
 
+    .network-notice-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 10px;
+      padding: 9px 12px;
+      margin-top: 10px;
+      font-size: 0.74rem;
+      color: #94a3b8;
+      line-height: 1.4;
+      text-align: left;
+    }
+
+    .network-notice-box .notice-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
     @media (max-width: 480px) {
       .game-wrapper {
         padding: 8px;
@@ -1101,9 +1121,16 @@
         <div style="font-size: 38px; margin-bottom: 4px;">🎲</div>
         <h2 style="color: #fff; font-size: 1.2rem; margin: 0 0 4px 0;">Cyber Ludo Live Challenge!</h2>
         <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0 0 12px 0;">You've been invited to play Cyber Ludo live with a friend!</p>
-        <div style="background: rgba(0, 229, 255, 0.1); border: 1px dashed var(--blue-color); padding: 8px 14px; border-radius: 10px; margin-bottom: 12px; display: inline-block;">
+        <div style="background: rgba(0, 229, 255, 0.1); border: 1px dashed var(--blue-color); padding: 8px 14px; border-radius: 10px; margin-bottom: 10px; display: inline-block;">
           <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">ROOM: </span>
           <span style="font-size: 1.15rem; font-weight: 900; color: var(--yellow-color);" id="welcomeRoomCode">LUDO-0000</span>
+        </div>
+        <div class="network-notice-box" style="margin: 0 0 12px 0;">
+          <span class="notice-icon">📶</span>
+          <div>
+            <strong style="color: var(--blue-color);">Network Requirement:</strong>
+            <span>Make sure both devices are connected to the same network (Wi-Fi or Mobile Hotspot) to connect and play.</span>
+          </div>
         </div>
         <button type="button" class="btn-lobby primary" onclick="acceptIncomingInvite()" style="width: 100%; justify-content: center; font-size: 0.95rem; padding: 11px;">
           <span>🎮 Join to Play Now</span>
@@ -1190,6 +1217,14 @@
               <span>🔑</span> Join
             </button>
           </div>
+
+          <div class="network-notice-box">
+            <span class="notice-icon">📶</span>
+            <div>
+              <strong style="color: var(--blue-color);">Network Requirement:</strong>
+              <span>Make sure both devices are connected to the same network (Wi-Fi or Mobile Hotspot) to connect and play.</span>
+            </div>
+          </div>
         </div>
 
         <div id="onlineRoomView" style="display: none;">
@@ -1237,6 +1272,14 @@
               </button>
             </div>
 
+            <div class="network-notice-box" style="margin-top: 8px; margin-bottom: 6px;">
+              <span class="notice-icon">📶</span>
+              <div>
+                <strong style="color: var(--blue-color);">Notice:</strong>
+                <span>Make sure both devices are connected to the same network (Wi-Fi or Mobile Hotspot).</span>
+              </div>
+            </div>
+
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px;">
               <button type="button" id="btnStartOnline" class="btn-lobby primary" onclick="startOnlineLudoMatch()" style="display: none; padding: 10px 16px; font-size: 0.9rem;">
                 <span>▶</span> Start Match
@@ -1263,9 +1306,6 @@
         <div style="display: flex; gap: 6px; align-items: center;">
           <button type="button" class="header-btn" id="soundToggleBtnArena" onclick="toggleSound()" title="Toggle Sound">
             <span>🔊</span>
-          </button>
-          <button type="button" class="header-btn" onclick="openGamesModal()" title="View All 19 Games">
-            <span>🎮 Games</span>
           </button>
           <button type="button" class="header-btn exit-btn" onclick="exitToHub(event)" title="Exit to Hub">✕</button>
         </div>
@@ -3194,7 +3234,7 @@
     function getInviteShareMessage() {
       const countLabel = onlinePlayerCount === 2 ? '2-Player Opposite Duel ⚔️' : `${onlinePlayerCount}-Player Match`;
       const url = document.getElementById('inviteUrlInput').value;
-      return `🎲 Join to Play Cyber Ludo with me! (${countLabel})\nRoom Code: ${currentLudoRoomCode}\nTap link to join & play now:\n${url}`;
+      return `🎲 Join to Play Cyber Ludo with me! (${countLabel})\nRoom Code: ${currentLudoRoomCode}\nTap link to join & play now:\n${url}\n(Note: Make sure both devices are connected to the same Wi-Fi or Hotspot network)`;
     }
 
     function copyLudoInvite() {
